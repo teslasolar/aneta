@@ -1,6 +1,6 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Aneta — κ=1/φ</title>
+<title>次元の魔女 — Dimensional Witch</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;overflow:hidden;background:#08040e;font-family:'Courier New',monospace;color:#fff8e7}
@@ -27,7 +27,7 @@ canvas#k2d{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;pointer-
 #snd{background:rgba(220,20,60,.08);border:1px solid rgba(220,20,60,.2);color:#dc143c;padding:8px 14px;font:10px monospace;border-radius:5px;cursor:pointer;letter-spacing:2px}
 #boot{position:fixed;inset:0;z-index:100;background:#08040e;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity 1.5s}
 #boot.done{opacity:0;pointer-events:none}
-#boot h1{font-family:Georgia,serif;font-size:38px;color:#dc143c;font-style:italic;text-shadow:0 0 40px rgba(220,20,60,.15);margin-bottom:6px}
+#boot h1{font-family:Georgia,serif;font-size:42px;color:#d4a94a;font-style:italic;text-shadow:0 0 40px rgba(212,169,74,.2),0 0 80px rgba(212,169,74,.08);margin-bottom:4px;letter-spacing:6px}
 #boot .sub{font-size:10px;color:rgba(255,248,231,.25);letter-spacing:3px;margin-bottom:24px}
 #boot-text{font-size:10px;color:rgba(220,20,60,.4);text-align:center;line-height:2}
 #boot-bar{width:260px;height:2px;background:rgba(255,255,255,.04);margin-top:16px;border-radius:1px;overflow:hidden}
@@ -50,7 +50,7 @@ canvas#k2d{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1;pointer-
 <div id="chat"><div id="msgs"></div>
   <div id="irow"><input id="inp" placeholder="speak to her..." autocomplete="off"><button id="snd" onclick="A.send()">fold</button></div>
 </div>
-<div id="boot"><h1>Aneta</h1><div class="sub">κ = 1/φ</div><div id="boot-text">initializing...</div><div id="boot-bar"><div id="boot-fill"></div></div></div>
+<div id="boot"><h1>次元の魔女</h1><div class="sub">DIMENSIONAL WITCH · ANETA</div><div class="sub2" style="font-size:8px;color:rgba(255,248,231,.15);letter-spacing:2px;margin-top:6px">there is no coincidence · only hitsuzen · 必然</div><div id="boot-text" style="margin-top:20px">initializing...</div><div id="boot-bar"><div id="boot-fill"></div></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script type="module">
@@ -78,6 +78,35 @@ const pLight = new THREE.PointLight(0xdc143c, .4, 20); pLight.position.set(0, 4,
 const orbs = buildOrbs(scene, THREE)
 const buses = buildBuses(scene, THREE)
 buildStars(scene, THREE)
+
+// ═══ BUTTERFLIES — Yuuko's motif ═══
+const butterflies = []
+for (let i = 0; i < 12; i++) {
+  const bGeo = new THREE.PlaneGeometry(.12, .08)
+  const bMat = new THREE.MeshBasicMaterial({ color: i < 6 ? 0xd4a94a : 0xdc143c, transparent: true, opacity: .25, side: THREE.DoubleSide, blending: THREE.AdditiveBlending })
+  const wing1 = new THREE.Mesh(bGeo, bMat)
+  const wing2 = new THREE.Mesh(bGeo, bMat.clone())
+  const bGroup = new THREE.Group()
+  wing1.position.x = .06; wing2.position.x = -.06
+  bGroup.add(wing1); bGroup.add(wing2)
+  bGroup.position.set((Math.random() - .5) * 6, Math.random() * 4, (Math.random() - .5) * 4)
+  scene.add(bGroup)
+  butterflies.push({ group: bGroup, w1: wing1, w2: wing2, phase: Math.random() * Math.PI * 2, speed: .5 + Math.random() * .8, drift: { x: (Math.random() - .5) * .003, y: (Math.random() - .5) * .002, z: (Math.random() - .5) * .003 } })
+}
+
+// ═══ SMOKE WISPS — pipe smoke particles ═══
+const smokeGeo = new THREE.BufferGeometry()
+const smokePos = new Float32Array(200 * 3), smokeAlpha = new Float32Array(200)
+for (let i = 0; i < 200; i++) {
+  smokePos[i * 3] = (Math.random() - .5) * 3
+  smokePos[i * 3 + 1] = Math.random() * 5
+  smokePos[i * 3 + 2] = (Math.random() - .5) * 3
+  smokeAlpha[i] = Math.random()
+}
+smokeGeo.setAttribute('position', new THREE.BufferAttribute(smokePos, 3))
+const smokeMat = new THREE.PointsMaterial({ color: 0xd4a94a, size: .04, transparent: true, opacity: .06, blending: THREE.AdditiveBlending })
+const smoke = new THREE.Points(smokeGeo, smokeMat)
+scene.add(smoke)
 
 // ═══ 2D CANVAS ═══
 const k2d = document.getElementById('k2d'), kx = k2d.getContext('2d')
@@ -136,7 +165,7 @@ function fireRing(orbId, ring) {
   const ex = (v.x + 1) / 2 * innerWidth, ey = (1 - v.y) / 2 * innerHeight
   const el = document.createElement('div'); el.className = 'epop'
   el.style.left = ex + 'px'; el.style.top = ey + 'px'
-  el.textContent = ['🌸', '✦', '◎', '☸', '💫', '🔮', '♡', '△', '⟡'][Math.random() * 9 | 0]
+  el.textContent = ['🦋', '✦', '◎', '☸', '💫', '🔮', '♡', '🦋', '⟡', '蝶'][Math.random() * 10 | 0]
   document.body.appendChild(el); setTimeout(() => el.remove(), 1800)
 }
 
@@ -233,6 +262,30 @@ function animate(ts) {
   if (kAgent.atAttractor) pLight.intensity = .4 + Math.sin(t * 8) * .3
   else pLight.intensity = .3
 
+  // butterflies
+  butterflies.forEach(b => {
+    b.phase += .03 * b.speed
+    const flap = Math.sin(b.phase * 4) * .6
+    b.w1.rotation.y = flap; b.w2.rotation.y = -flap
+    b.group.position.x += b.drift.x + Math.sin(t * b.speed) * .002
+    b.group.position.y += b.drift.y + Math.cos(t * b.speed * .7) * .001
+    b.group.position.z += b.drift.z
+    if (b.group.position.y > 5) b.group.position.y = -1
+    if (Math.abs(b.group.position.x) > 5) b.drift.x *= -1
+    if (Math.abs(b.group.position.z) > 4) b.drift.z *= -1
+    b.group.rotation.y = Math.atan2(b.drift.z, b.drift.x)
+  })
+
+  // smoke wisps rise
+  const sp = smoke.geometry.attributes.position.array
+  for (let i = 0; i < 200; i++) {
+    sp[i * 3 + 1] += .003 + Math.sin(t + i) * .001
+    sp[i * 3] += Math.sin(t * .5 + i * .3) * .001
+    if (sp[i * 3 + 1] > 5) { sp[i * 3 + 1] = -1; sp[i * 3] = (Math.random() - .5) * 3 }
+  }
+  smoke.geometry.attributes.position.needsUpdate = true
+  smokeMat.opacity = .04 + emergence(kAgent.k) * .04
+
   // camera
   cam.position.x = Math.sin(t * .08) * .3; cam.position.y = 1.5 + Math.cos(t * .06) * .15
 
@@ -241,21 +294,22 @@ function animate(ts) {
   // HUD
   const layers = LAYERS[currentLang] || LAYERS.en
   document.getElementById('hud').innerHTML =
-    `ANETA · κ=<span class="v">${kAgent.k.toFixed(4)}</span> → 1/φ\n` +
-    `φ·κ=<span class="v">${(PHI * kAgent.k).toFixed(4)}</span>\n` +
-    `Ψ=<span class="v">${emergence(kAgent.k).toFixed(3)}</span> φ-coh=<span class="v">${S.phi.toFixed(3)}</span>\n` +
-    `fold=<span class="v">${S.fold.toLocaleString()}</span> shield=<span class="v">${S.shield}</span>`
+    `次元の魔女 · κ=<span class="v">${kAgent.k.toFixed(4)}</span> → 1/φ\n` +
+    `φ·κ=<span class="v">${(PHI * kAgent.k).toFixed(4)}</span> (balance)\n` +
+    `Ψ=<span class="v">${emergence(kAgent.k).toFixed(3)}</span> (emergence)\n` +
+    `hitsuzen=<span class="v">${S.fold.toLocaleString()}</span> · ${S.shield}`
   document.getElementById('rhud').innerHTML = layers.map((l, i) =>
     `${l} <span style="color:${RCOL_CSS[i]}">${'█'.repeat(Math.round(S.bloom[i]))}</span>`
   ).join('\n')
+  const price = BL.wound(S.bloom.map(v => Math.round(v)))
   document.getElementById('dyn').textContent =
-    `§ Κ.DYNAMICS\n` +
-    `κ_agent: ${kAgent.k.toFixed(4)} (${kAgent.atAttractor ? 'AT κ*' : '→ 1/φ'})\n` +
-    `κ_user:  ${kUser.k.toFixed(4)}\n` +
-    `α=${ALPHA.toFixed(3)} β=${BETA.toFixed(4)} γ=${GAMMA.toFixed(4)}\n` +
+    `§ 必然 HITSUZEN\n` +
+    `witch:  κ=${kAgent.k.toFixed(4)} ${kAgent.atAttractor ? '⟡ balanced' : '→ 1/φ'}\n` +
+    `guest:  κ=${kUser.k.toFixed(4)}\n` +
+    `price:  ${price.toLocaleString()} (wound)\n` +
+    `wish:   Ψ=${emergence(kAgent.k).toFixed(3)}\n` +
     `V(κ)=${kAgent.V.toFixed(4)} V̇=${kAgent.Vdot.toFixed(6)}\n` +
-    `retain/forget=${kAgent.phi.toFixed(3)} (φ=${PHI.toFixed(3)})\n` +
-    `R(a,u)=${Love.recognition(S.bloom, S.bloom.map(v => v * kUser.k)).toFixed(2)}`
+    `keep/release=${kAgent.phi.toFixed(3)} (φ=${PHI.toFixed(3)})`
 
   R.render(scene, cam)
 }
