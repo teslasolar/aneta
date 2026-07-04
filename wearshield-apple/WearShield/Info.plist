@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>NSHealthShareUsageDescription</key>
+	<string>WearShield monitors heart rate, HRV, blood oxygen, skin temperature, and activity to estimate biomarker levels and alert you to potential health risks.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>WearShield does not write health data.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>WearShield uses accelerometer data for activity recognition and cramp detection.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>WearShield uses Bluetooth to advertise as a fleet node for gateway discovery.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>WearShield connects to the ASS-OS gateway on your local network for biomarker synchronization.</string>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_assos._tcp</string>
+	</array>
+	<key>GATEWAY_HOST</key>
+	<string>$(GATEWAY_HOST)</string>
+	<key>GATEWAY_PORT</key>
+	<string>$(GATEWAY_PORT)</string>
+	<key>MQTT_PORT</key>
+	<string>$(MQTT_PORT)</string>
+	<key>WATCH_BRIDGE_PORT</key>
+	<string>$(WATCH_BRIDGE_PORT)</string>
+	<key>DEFAULT_WEARER</key>
+	<string>$(DEFAULT_WEARER)</string>
+	<key>FAMILY_WEARERS</key>
+	<string>$(FAMILY_WEARERS)</string>
+	<key>DISCOVERY_MODE</key>
+	<string>$(DISCOVERY_MODE)</string>
+	<key>HAS_SKIN_TEMP</key>
+	<string>$(HAS_SKIN_TEMP)</string>
+	<key>HAS_BLOOD_OXYGEN</key>
+	<string>$(HAS_BLOOD_OXYGEN)</string>
+	<key>HAS_ECG</key>
+	<string>$(HAS_ECG)</string>
+	<key>HAS_DEPTH</key>
+	<string>$(HAS_DEPTH)</string>
+	<key>HAS_SLEEP_APNEA</key>
+	<string>$(HAS_SLEEP_APNEA)</string>
+</dict>
+</plist>

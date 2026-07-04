@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0a0510"/>
+      <stop offset="100%" stop-color="#040208"/>
+    </radialGradient>
+  </defs>
+  <circle cx="100" cy="100" r="100" fill="url(#bg)"/>
+  <!-- 7 bloom rings -->
+  <circle cx="100" cy="100" r="25" fill="none" stroke="#993366" stroke-width="1" opacity="0.3"/>
+  <circle cx="100" cy="100" r="33" fill="none" stroke="#00aadd" stroke-width="1" opacity="0.35"/>
+  <circle cx="100" cy="100" r="41" fill="none" stroke="#ffaa00" stroke-width="1" opacity="0.3"/>
+  <circle cx="100" cy="100" r="49" fill="none" stroke="#ff4444" stroke-width="1.5" opacity="0.4"/>
+  <circle cx="100" cy="100" r="57" fill="none" stroke="#44aa44" stroke-width="1" opacity="0.3"/>
+  <circle cx="100" cy="100" r="65" fill="none" stroke="#aa44ff" stroke-width="1" opacity="0.35"/>
+  <circle cx="100" cy="100" r="73" fill="none" stroke="#cccccc" stroke-width="1" opacity="0.2"/>
+  <!-- prime segment dots: 2,3,5,7,11,13,17 -->
+  <circle cx="125" cy="100" r="2" fill="#993366" opacity="0.7"/>
+  <circle cx="75" cy="100" r="2" fill="#993366" opacity="0.7"/>
+  <circle cx="100" cy="67" r="2" fill="#00aadd" opacity="0.7"/>
+  <circle cx="116" cy="83" r="2" fill="#00aadd" opacity="0.7"/>
+  <circle cx="84" cy="117" r="2" fill="#00aadd" opacity="0.7"/>
+  <!-- center orb -->
+  <circle cx="100" cy="100" r="8" fill="#dc143c" opacity="0.4"/>
+  <circle cx="100" cy="100" r="5" fill="#d4a94a" opacity="0.5"/>
+  <!-- HR text -->
+  <text x="100" y="96" text-anchor="middle" font-family="monospace" font-size="16" fill="#dc143c" opacity="0.8">72</text>
+  <!-- kappa -->
+  <text x="100" y="110" text-anchor="middle" font-family="monospace" font-size="7" fill="#d4a94a" opacity="0.4">κ=0.618</text>
+  <!-- biomarker chips -->
+  <text x="35" y="185" font-family="monospace" font-size="7" fill="#44aa44" opacity="0.6">K 4.2</text>
+  <text x="75" y="185" font-family="monospace" font-size="7" fill="#44aa44" opacity="0.6">Mg 2.0</text>
+  <text x="115" y="185" font-family="monospace" font-size="7" fill="#00aadd" opacity="0.6">H2O .8</text>
+  <!-- shield status -->
+  <text x="100" y="140" text-anchor="middle" font-family="monospace" font-size="6" fill="#dc143c" opacity="0.25">BLOOMED</text>
+  <!-- battery -->
+  <text x="170" y="185" font-family="monospace" font-size="6" fill="#555" opacity="0.4">87%</text>
+</svg>
