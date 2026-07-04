@@ -1,0 +1,48 @@
+// WearShield Apple — parameterized for any Apple Watch
+// Change these to target different watch models / deployments
+
+// ═══ IDENTITY ═══
+PRODUCT_BUNDLE_IDENTIFIER = com.assos.wearshield
+PRODUCT_NAME = WearShield
+MARKETING_VERSION = 0.1.0
+CURRENT_PROJECT_VERSION = 1
+
+// ═══ DEPLOYMENT — change per target Apple Watch ═══
+// Series 4-5:     watchOS 9.0, arm64_32
+// Series 6-7:     watchOS 9.0, arm64_32
+// Series 8-9:     watchOS 10.0, arm64_32  (skin temp available)
+// Ultra/Ultra 2:  watchOS 10.0, arm64_32  (depth gauge, dual freq GPS)
+// Series 10:      watchOS 11.0, arm64_32  (sleep apnea detection)
+WATCHOS_DEPLOYMENT_TARGET = 10.0
+TARGETED_DEVICE_FAMILY = 4
+
+// ═══ GATEWAY — LAN server connection ═══
+GATEWAY_HOST = 10.0.0.25
+GATEWAY_PORT = 5540
+MQTT_PORT = 1883
+WATCH_BRIDGE_PORT = 7272
+
+// ═══ FAMILY UNIT ═══
+// Comma-separated wearer IDs — first is default on this device
+// Each wearer gets their own bloom state, sensor history, and gateway session
+// On first launch: picker shows all wearers, selection persists
+FAMILY_WEARERS = user1
+DEFAULT_WEARER = user1
+
+// ═══ GATEWAY DISCOVERY ═══
+// AUTO: mDNS/Bonjour scan for _assos._tcp on LAN
+// STATIC: use GATEWAY_HOST:GATEWAY_PORT
+DISCOVERY_MODE = AUTO
+
+// ═══ CAPABILITIES ═══
+// Set to YES/NO based on watch model
+HAS_SKIN_TEMP = YES
+HAS_BLOOD_OXYGEN = YES
+HAS_ECG = YES
+HAS_DEPTH = NO
+HAS_SLEEP_APNEA = NO
+
+// ═══ BUILD ═══
+SWIFT_VERSION = 5.9
+DEVELOPMENT_TEAM =
+CODE_SIGN_STYLE = Automatic
