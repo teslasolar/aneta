@@ -1,0 +1,252 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Neuroblastoma — Flow Architecture</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#06030a;color:#c8c0d0;font-family:'Courier New',monospace;overflow:auto}
+#nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(6,3,10,.95);backdrop-filter:blur(8px);
+  padding:8px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #dc143c15}
+#nav .back{font-size:.5rem;color:#556;letter-spacing:2px}
+#nav h1{font-family:Georgia,serif;color:#dc143c;font-size:.8rem;letter-spacing:2px;flex:1}
+.view-btn{font-size:.45rem;color:#556;letter-spacing:1.5px;padding:3px 8px;cursor:pointer;border-radius:3px;
+  border:1px solid #dc143c15;transition:all .2s}
+.view-btn:hover,.view-btn.on{color:#dc143c;background:#dc143c12;border-color:#dc143c44}
+#canvas{width:100%;min-height:100vh;padding:52px 20px 40px;position:relative}
+svg.flow{width:100%;height:auto;display:block;margin:0 auto}
+
+/* animated flow lines */
+@keyframes flowPulse{0%{stroke-dashoffset:20}100%{stroke-dashoffset:0}}
+@keyframes flowPulseRev{0%{stroke-dashoffset:0}100%{stroke-dashoffset:20}}
+.flow-line{stroke-dasharray:8,4;animation:flowPulse 1.5s linear infinite}
+.flow-line-rev{stroke-dasharray:8,4;animation:flowPulseRev 1.5s linear infinite}
+.flow-line-fast{stroke-dasharray:4,3;animation:flowPulse .6s linear infinite}
+.flow-line-slow{stroke-dasharray:12,6;animation:flowPulse 3s linear infinite}
+
+/* node hover */
+.node{cursor:pointer;transition:filter .2s}
+.node:hover{filter:brightness(1.4) drop-shadow(0 0 8px currentColor)}
+.node text{pointer-events:none}
+
+/* tooltip */
+#tip{position:fixed;z-index:100;background:rgba(10,6,16,.95);border:1px solid #dc143c33;border-radius:4px;
+  padding:8px 12px;font-size:.5rem;line-height:1.6;color:#998;max-width:280px;display:none;pointer-events:none}
+#tip .tt{color:#dc143c;font-weight:bold;margin-bottom:3px}
+#tip .td{color:#778}
+#tip .tk{color:#d4a94a;font-size:.45rem;margin-top:4px}
+
+/* severity legend */
+#legend{position:fixed;bottom:12px;left:12px;z-index:40;font-size:.4rem;color:#556;line-height:2}
+.leg-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle}
+</style>
+</head><body>
+
+<div id="nav">
+  <a class="back" href="./">← NEUROBLASTOMA</a>
+  <h1>⟡ FLOW ARCHITECTURE</h1>
+  <span class="view-btn on" onclick="setView('full')">FULL</span>
+  <span class="view-btn" onclick="setView('decision')">DECISION</span>
+  <span class="view-btn" onclick="setView('regression')">REGRESSION</span>
+  <span class="view-btn" onclick="setView('risk')">RISK</span>
+</div>
+
+<div id="canvas"></div>
+<div id="tip"></div>
+<div id="legend">
+  <span class="leg-dot" style="background:#44aa44"></span>FAVORABLE
+  <span class="leg-dot" style="background:#d4a94a;margin-left:8px"></span>INTERMEDIATE
+  <span class="leg-dot" style="background:#ff8800;margin-left:8px"></span>ELEVATED
+  <span class="leg-dot" style="background:#ff4444;margin-left:8px"></span>HIGH RISK
+  <span class="leg-dot" style="background:#aa44ff;margin-left:8px"></span>CORRECTION
+</div>
+
+<script>
+// ═══ NODE UDTs — parameterized SVG templates ═══
+const NODES = {
+  // origin
+  neural_tube:    {x:400,y:40,w:160,h:36,label:'NEURAL TUBE',sub:'dorsal · week 3-4',color:'#d4a94a',icon:'◯',severity:0,
+    tip:'Origin of all neural crest cells. Dorsal fold of the embryonic ectoderm.',kappa:'κ = 1 (undifferentiated)'},
+  neural_crest:   {x:400,y:120,w:180,h:40,label:'NEURAL CREST CELL',sub:'multipotent · migrating',color:'#d4a94a',icon:'⟡',severity:0,
+    tip:'Multipotent progenitor. Migrates weeks 4-8. Can become neuron, melanocyte, Schwann, adrenal, enteric.',kappa:'κ ≈ 0.8 (high potential)'},
+
+  // migration targets
+  sympathetic:    {x:200,y:220,w:150,h:36,label:'SYMPATHETIC',sub:'Bus A · ganglia',color:'#00aadd',icon:'△',severity:0,
+    tip:'Sympathetic nervous system. Fight-or-flight. Bus A in ASS-OS.',kappa:'κ → 1/φ (differentiating)'},
+  adrenal:        {x:400,y:220,w:160,h:36,label:'ADRENAL MEDULLA',sub:'cortisol · adrenaline',color:'#ff4444',icon:'●',severity:1,
+    tip:'Primary tumor site (40%). Produces catecholamines. VMA/HVA markers.',kappa:'κ variable'},
+  melanocyte:     {x:600,y:220,w:140,h:36,label:'MELANOCYTE',sub:'OPN3 · skin',color:'#aa44ff',icon:'◐',severity:0,
+    tip:'Neural crest → melanocyte lineage. Contains OPN3 photoreceptors (PMC6561246).',kappa:'κ ≈ 1/φ'},
+  schwann:        {x:150,y:300,w:130,h:36,label:'SCHWANN CELL',sub:'myelin · Bus C',color:'#00aadd',icon:'〜',severity:0,
+    tip:'Myelin sheath producer. Bus C waveguide in ASS-OS.',kappa:'κ ≈ 1/φ'},
+  enteric:        {x:650,y:300,w:130,h:36,label:'ENTERIC NEURON',sub:'gut brain · vagal',color:'#44aa44',icon:'●',severity:0,
+    tip:'Gut brain neurons. Vagal interface. 500M neurons in the gut.',kappa:'κ ≈ 1/φ'},
+
+  // decision gate
+  decision:       {x:400,y:340,w:180,h:44,label:'DECISION GATE',sub:'differentiate vs proliferate',color:'#dc143c',icon:'┃',severity:2,
+    tip:'The fork: TrkA+NGF→differentiate, TrkA-NGF→apoptose, MYCN>10→proliferate, SLIT3→correct.',kappa:'κ = decision point'},
+
+  // signals
+  trka_ngf:       {x:180,y:440,w:150,h:36,label:'TrkA + NGF',sub:'receptor + ligand',color:'#44aa44',icon:'♡',severity:0,
+    tip:'TrkA receptor binds NGF. Drives differentiation → mature neuron → HALT division.',kappa:'κ → 1/φ'},
+  trka_no_ngf:    {x:180,y:520,w:150,h:36,label:'TrkA − NGF',sub:'receptor without ligand',color:'#44aa44',icon:'華',severity:0,
+    tip:'TrkA without NGF → apoptosis. Same as developmental pruning. Body treats tumor as unplugged neuron.',kappa:'κ → 0'},
+  mycn:           {x:620,y:440,w:160,h:40,label:'MYCN AMPLIFIED',sub:'>10 copies · override',color:'#ff4444',icon:'火',severity:3,
+    tip:'MYCN amplification >10×. Overrides all stop signals. Growth on infinite loop. Ctrl+Z broken.',kappa:'κ >> 1/φ (excess)'},
+  slit3:          {x:400,y:460,w:160,h:36,label:'SLIT3 → ROBO',sub:'2024 · intratumoral',color:'#aa44ff',icon:'輪',severity:0,
+    tip:'PMC12123822 (2024). One tumor cell secretes SLIT3 → ROBO on neighbors → differentiation. Cure inside the cancer.',kappa:'κ: high → 1/φ'},
+  telomere:       {x:400,y:540,w:150,h:36,label:'TELOMERE STATE',sub:'clock maintenance',color:'#d4a94a',icon:'数',severity:1,
+    tip:'Low telomerase → Hayflick limit → senescence. TERT/ALT required for progression (PMC7313726).',kappa:'κ → 0 (clock out)'},
+
+  // outcomes
+  neuron:         {x:80,y:620,w:140,h:36,label:'MATURE NEURON',sub:'differentiated · HALT',color:'#44aa44',icon:'△',severity:0,
+    tip:'Normal outcome. Differentiated neuron. Stopped dividing. Construction complete.',kappa:'κ = 1/φ ✓'},
+  regression:     {x:260,y:620,w:150,h:40,label:'REGRESSION',sub:'Stage 4S · ~50%',color:'#44aa44',icon:'華',severity:0,
+    tip:'Spontaneous regression. ~50% of Stage 4S. Triple redundant rollback: NGF-withdrawal + telomere + SLIT3.',kappa:'κ → 1/φ (correcting)'},
+  tumor:          {x:520,y:620,w:160,h:44,label:'TUMOR',sub:'neuroblastoma',color:'#ff4444',icon:'火',severity:3,
+    tip:'Uncontrolled proliferation. MYCN override. Catecholamine production. Metastatic risk.',kappa:'κ >> 1/φ'},
+  senescence:     {x:400,y:640,w:140,h:36,label:'SENESCENCE',sub:'Hayflick · HALT',color:'#d4a94a',icon:'影',severity:0,
+    tip:'Telomere expiry. Cell stops dividing. Not death, just permanent arrest.',kappa:'κ → 0'},
+
+  // high risk detail
+  high_risk:      {x:620,y:720,w:160,h:40,label:'HIGH RISK',sub:'MYCN + TERT/ALT',color:'#ff4444',icon:'雷',severity:3,
+    tip:'MYCN amplified + active telomere maintenance (TERT rearranged or ALT/ATRX). All rollbacks defeated.',kappa:'κ >> 1/φ (no correction)'},
+  low_risk:       {x:180,y:720,w:150,h:40,label:'LOW RISK',sub:'favorable biology',color:'#44aa44',icon:'●',severity:0,
+    tip:'TrkA+, whole chromosome gains, infant, no MYCN amp. High spontaneous regression rate.',kappa:'κ → 1/φ'},
+  immune:         {x:400,y:720,w:150,h:36,label:'IMMUNE (GD2)',sub:'T/NK cells · dinutuximab',color:'#00aadd',icon:'◐',severity:1,
+    tip:'GD2 surface marker. Anti-GD2 immunotherapy (dinutuximab). EFS 46%→66% (PMC6306059).',kappa:'κ correction via immune'},
+
+  // catecholamines
+  catecholamines: {x:700,y:540,w:160,h:36,label:'CATECHOLAMINES',sub:'VMA/HVA · stress',color:'#ff8800',icon:'雷',severity:2,
+    tip:'Tumor produces adrenaline + noradrenaline. Detectable as urinary VMA/HVA (~95% sensitivity). PMC8201085.',kappa:'stress output'}
+};
+
+// ═══ EDGES — animated flow connections ═══
+const EDGES = [
+  // migration
+  {from:'neural_tube',to:'neural_crest',color:'#d4a94a',speed:'slow',label:'migration'},
+  {from:'neural_crest',to:'sympathetic',color:'#00aadd',speed:'normal',label:''},
+  {from:'neural_crest',to:'adrenal',color:'#ff4444',speed:'normal',label:'primary site'},
+  {from:'neural_crest',to:'melanocyte',color:'#aa44ff',speed:'normal',label:'OPN3'},
+  {from:'neural_crest',to:'schwann',color:'#00aadd',speed:'slow',label:'myelin'},
+  {from:'neural_crest',to:'enteric',color:'#44aa44',speed:'slow',label:'gut'},
+
+  // to decision
+  {from:'adrenal',to:'decision',color:'#dc143c',speed:'normal',label:'fault here'},
+
+  // decision branches
+  {from:'decision',to:'trka_ngf',color:'#44aa44',speed:'normal',label:'TrkA+NGF'},
+  {from:'decision',to:'trka_no_ngf',color:'#44aa44',speed:'normal',label:'TrkA−NGF'},
+  {from:'decision',to:'mycn',color:'#ff4444',speed:'fast',label:'MYCN>10×'},
+  {from:'decision',to:'slit3',color:'#aa44ff',speed:'normal',label:'SLIT3'},
+  {from:'decision',to:'telomere',color:'#d4a94a',speed:'slow',label:'telomere'},
+
+  // outcomes
+  {from:'trka_ngf',to:'neuron',color:'#44aa44',speed:'normal',label:'differentiate'},
+  {from:'trka_no_ngf',to:'regression',color:'#44aa44',speed:'normal',label:'apoptose'},
+  {from:'slit3',to:'regression',color:'#aa44ff',speed:'normal',label:'correct'},
+  {from:'mycn',to:'tumor',color:'#ff4444',speed:'fast',label:'OVERRIDE'},
+  {from:'telomere',to:'senescence',color:'#d4a94a',speed:'slow',label:'expire'},
+  {from:'mycn',to:'catecholamines',color:'#ff8800',speed:'normal',label:'produces'},
+
+  // risk stratification
+  {from:'tumor',to:'high_risk',color:'#ff4444',speed:'fast',label:'MYCN+TERT'},
+  {from:'regression',to:'low_risk',color:'#44aa44',speed:'slow',label:'favorable'},
+  {from:'tumor',to:'immune',color:'#00aadd',speed:'normal',label:'GD2 target'},
+  {from:'immune',to:'regression',color:'#aa44ff',speed:'rev',label:'destroy'},
+];
+
+// ═══ VIEWS — filter which nodes/edges show ═══
+const VIEWS = {
+  full: {nodes: Object.keys(NODES), edges: null},
+  decision: {nodes:['neural_crest','decision','trka_ngf','trka_no_ngf','mycn','slit3','telomere','neuron','regression','tumor','senescence'], edges:null},
+  regression: {nodes:['decision','trka_no_ngf','slit3','telomere','regression','senescence','immune','low_risk'], edges:null},
+  risk: {nodes:['decision','mycn','tumor','high_risk','immune','catecholamines','regression','low_risk'], edges:null}
+};
+let currentView = 'full';
+
+// ═══ RENDER ═══
+function render(viewKey) {
+  currentView = viewKey;
+  const view = VIEWS[viewKey];
+  const visibleNodes = new Set(view.nodes);
+  const canvas = document.getElementById('canvas');
+
+  // compute bounds
+  let minX=Infinity,maxX=0,minY=Infinity,maxY=0;
+  for (const id of visibleNodes) {
+    const n = NODES[id]; if(!n) continue;
+    minX=Math.min(minX,n.x-n.w/2); maxX=Math.max(maxX,n.x+n.w/2);
+    minY=Math.min(minY,n.y-n.h/2); maxY=Math.max(maxY,n.y+n.h/2);
+  }
+  const pad=40, vw=maxX-minX+pad*2, vh=maxY-minY+pad*2;
+
+  let svg = `<svg class="flow" viewBox="${minX-pad} ${minY-pad} ${vw} ${vh}" xmlns="http://www.w3.org/2000/svg">`;
+  svg += `<defs>`;
+  ['#44aa44','#ff4444','#dc143c','#d4a94a','#aa44ff','#00aadd','#ff8800'].forEach(c => {
+    const id = 'a'+c.slice(1);
+    svg += `<marker id="${id}" markerWidth="6" markerHeight="5" refX="6" refY="2.5" orient="auto">
+      <path d="M0,0 L6,2.5 L0,5" fill="none" stroke="${c}" stroke-width="1"/></marker>`;
+  });
+  svg += `</defs>`;
+
+  // edges
+  EDGES.forEach(e => {
+    if (!visibleNodes.has(e.from) || !visibleNodes.has(e.to)) return;
+    const n1=NODES[e.from], n2=NODES[e.to];
+    const x1=n1.x, y1=n1.y+n1.h/2, x2=n2.x, y2=n2.y-n2.h/2;
+    const mx=(x1+x2)/2, my=(y1+y2)/2;
+    const cx=mx+(x2-x1)*0.1, cy=my;
+    const cls = e.speed==='fast'?'flow-line-fast':e.speed==='slow'?'flow-line-slow':e.speed==='rev'?'flow-line-rev':'flow-line';
+    const mid = 'a'+e.color.slice(1);
+    svg += `<path d="M${x1},${y1} Q${cx},${cy} ${x2},${y2}" fill="none" stroke="${e.color}" stroke-width="1.5"
+      class="${cls}" opacity="0.5" marker-end="url(#${mid})"/>`;
+    if (e.label) {
+      const lx=(x1+x2)/2+(x2>x1?8:-8), ly=(y1+y2)/2-4;
+      svg += `<text x="${lx}" y="${ly}" font-size="7" fill="${e.color}" opacity="0.4" font-family="monospace">${e.label}</text>`;
+    }
+  });
+
+  // nodes
+  for (const id of visibleNodes) {
+    const n = NODES[id]; if(!n) continue;
+    const x=n.x-n.w/2, y=n.y-n.h/2;
+    const sevColors = ['#44aa4422','#d4a94a22','#ff880022','#ff444433'];
+    const sevBorders = ['#44aa4444','#d4a94a44','#ff880055','#ff444466'];
+    svg += `<g class="node" data-id="${id}" onmouseenter="showTip(event,'${id}')" onmouseleave="hideTip()">`;
+    svg += `<rect x="${x}" y="${y}" width="${n.w}" height="${n.h}" rx="5" fill="${sevColors[n.severity]}" stroke="${sevBorders[n.severity]}" stroke-width="1"/>`;
+    // icon
+    svg += `<text x="${x+10}" y="${n.y+1}" font-size="11" fill="${n.color}" opacity="0.5" font-family="monospace" dominant-baseline="middle">${n.icon}</text>`;
+    // label
+    svg += `<text x="${x+24}" y="${n.y-3}" font-size="9" fill="${n.color}" font-family="monospace" font-weight="bold" dominant-baseline="middle">${n.label}</text>`;
+    // sub
+    svg += `<text x="${x+24}" y="${n.y+9}" font-size="7" fill="#778" font-family="monospace" dominant-baseline="middle">${n.sub}</text>`;
+    svg += `</g>`;
+  }
+
+  svg += `</svg>`;
+  canvas.innerHTML = svg;
+
+  // update view buttons
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('on', b.textContent.trim().toLowerCase() === viewKey));
+}
+
+// ═══ TOOLTIP ═══
+function showTip(evt, id) {
+  const n = NODES[id]; if(!n) return;
+  const tip = document.getElementById('tip');
+  tip.innerHTML = `<div class="tt">${n.icon} ${n.label}</div><div class="td">${n.tip}</div><div class="tk">${n.kappa}</div>`;
+  tip.style.display = 'block';
+  tip.style.left = (evt.clientX + 12) + 'px';
+  tip.style.top = (evt.clientY + 12) + 'px';
+}
+function hideTip() { document.getElementById('tip').style.display = 'none'; }
+document.addEventListener('mousemove', e => {
+  const tip = document.getElementById('tip');
+  if (tip.style.display === 'block') { tip.style.left = (e.clientX+12)+'px'; tip.style.top = (e.clientY+12)+'px'; }
+});
+
+function setView(v) { render(v); }
+
+// ═══ BOOT ═══
+render('full');
+</script>
+</body></html>
