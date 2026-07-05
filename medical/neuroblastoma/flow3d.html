@@ -1,0 +1,371 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Neuroblastoma — 3D Flow</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#06030a;color:#c8c0d0;font-family:'Courier New',monospace;overflow:hidden}
+canvas{display:block}
+#hud{position:fixed;top:8px;left:12px;z-index:10;font-size:8px;color:rgba(220,20,60,.4);line-height:1.7;pointer-events:none;white-space:pre}
+#hud .v{color:rgba(220,20,60,.7)}
+#rhud{position:fixed;top:8px;right:12px;z-index:10;font-size:8px;color:rgba(0,170,255,.3);text-align:right;line-height:1.7;pointer-events:none;white-space:pre}
+#nav{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:4px;padding:6px;pointer-events:auto}
+.vb{background:rgba(255,255,255,.02);border:1px solid #dc143c15;color:#dc143c55;padding:3px 8px;font:8px monospace;
+  cursor:pointer;border-radius:3px;letter-spacing:1px;transition:all .2s}
+.vb:hover,.vb.on{background:#dc143c15;color:#dc143c;border-color:#dc143c44}
+#tip{position:fixed;z-index:100;background:rgba(6,3,10,.95);border:1px solid #dc143c33;border-radius:4px;
+  padding:10px 14px;font-size:9px;line-height:1.6;color:#998;max-width:300px;display:none;pointer-events:none}
+#tip .tt{color:#dc143c;font-weight:bold;font-size:10px;margin-bottom:4px}
+#tip .td{color:#889}
+#tip .tk{color:#d4a94a;font-size:8px;margin-top:6px}
+#tip .ts{font-size:8px;margin-top:4px}
+#infer{position:fixed;bottom:8px;left:12px;right:12px;z-index:10;font-size:8px;color:rgba(220,20,60,.3);
+  text-align:center;pointer-events:none;transition:color .3s}
+#back{position:fixed;bottom:8px;left:12px;z-index:20;font-size:9px;color:#556;pointer-events:auto}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head><body>
+<div id="nav">
+  <span class="vb on" onclick="setView('full')">FULL</span>
+  <span class="vb" onclick="setView('decision')">DECISION</span>
+  <span class="vb" onclick="setView('regression')">REGRESSION</span>
+  <span class="vb" onclick="setView('risk')">RISK</span>
+</div>
+<div id="hud"></div>
+<div id="rhud"></div>
+<div id="tip"></div>
+<div id="infer"></div>
+<a id="back" href="./">← neuroblastoma</a>
+
+<script>
+const TAU=Math.PI*2,PHI=(1+Math.sqrt(5))/2,K_STAR=1/PHI;
+
+// ═══ NODE UDTs — position, shape, biology ═══
+const N={
+  neural_tube:{p:[0,6,0],shape:'torus',r:.4,color:0xd4a94a,label:'NEURAL TUBE',sub:'dorsal · week 3-4',
+    tip:'Origin of all neural crest cells.',kappa:1,severity:0,group:'origin'},
+  neural_crest:{p:[0,4.5,0],shape:'icosa',r:.5,color:0xd4a94a,label:'NEURAL CREST',sub:'multipotent · migrating',
+    tip:'Multipotent progenitor. Migrates weeks 4-8. Builds the entire autonomic infrastructure.',kappa:.8,severity:0,group:'origin'},
+
+  sympathetic:{p:[-3,2.5,0],shape:'octa',r:.35,color:0x00aadd,label:'SYMPATHETIC',sub:'Bus A · ganglia',
+    tip:'Sympathetic nervous system. Fight-or-flight.',kappa:.618,severity:0,group:'terminal'},
+  adrenal:{p:[0,2.5,0],shape:'dodeca',r:.45,color:0xff4444,label:'ADRENAL MEDULLA',sub:'cortisol factory · 40%',
+    tip:'Primary tumor site. Produces catecholamines (VMA/HVA).',kappa:.5,severity:2,group:'terminal'},
+  melanocyte:{p:[3,2.5,0],shape:'cone',r:.3,color:0xaa44ff,label:'MELANOCYTE',sub:'OPN3 · skin',
+    tip:'Neural crest → melanocyte lineage. Contains OPN3 photoreceptors.',kappa:.618,severity:0,group:'terminal'},
+  schwann:{p:[-4,1.5,-1],shape:'cylinder',r:.25,color:0x00aadd,label:'SCHWANN',sub:'myelin · Bus C',
+    tip:'Myelin sheath. Bus C waveguide.',kappa:.618,severity:0,group:'terminal'},
+  enteric:{p:[4,1.5,-1],shape:'sphere',r:.3,color:0x44aa44,label:'ENTERIC',sub:'gut brain · vagal',
+    tip:'Gut brain neurons. 500M neurons. Vagal interface.',kappa:.618,severity:0,group:'terminal'},
+
+  decision:{p:[0,0,0],shape:'diamond',r:.6,color:0xdc143c,label:'DECISION GATE',sub:'differentiate vs proliferate',
+    tip:'The fork. TrkA/NGF, MYCN, SLIT3, telomere signals compete here.',kappa:.5,severity:2,group:'decision'},
+
+  trka_ngf:{p:[-3,-2,1],shape:'heart',r:.35,color:0x44aa44,label:'TrkA + NGF',sub:'differentiation signal',
+    tip:'TrkA receptor + NGF ligand → differentiate → mature neuron → HALT.',kappa:.618,severity:0,group:'signal'},
+  trka_no:{p:[-3,-3,0],shape:'tetra',r:.3,color:0x44aa44,label:'TrkA − NGF',sub:'pruning signal',
+    tip:'TrkA without NGF → apoptosis. Same as developmental neuron pruning.',kappa:0,severity:0,group:'signal'},
+  mycn:{p:[3,-2,1],shape:'spike',r:.5,color:0xff4444,label:'MYCN >10×',sub:'growth override',
+    tip:'MYCN amplification. Growth on infinite loop. Overrides ALL stop signals. Ctrl+Z broken.',kappa:.95,severity:3,group:'signal'},
+  slit3:{p:[0,-2.5,2],shape:'ring',r:.35,color:0xaa44ff,label:'SLIT3 → ROBO',sub:'2024 · self-correction',
+    tip:'One tumor cell secretes SLIT3 → ROBO on neighbors → differentiation. The cure inside the cancer.',kappa:.618,severity:0,group:'signal'},
+  telomere:{p:[0,-2.5,-2],shape:'hourglass',r:.3,color:0xd4a94a,label:'TELOMERE',sub:'replication clock',
+    tip:'Low telomerase → Hayflick limit. TERT/ALT required for progression.',kappa:0,severity:1,group:'signal'},
+
+  neuron:{p:[-4,-5,0],shape:'star',r:.35,color:0x44aa44,label:'MATURE NEURON',sub:'differentiated · HALT',
+    tip:'Normal outcome. Construction complete. κ = 1/φ.',kappa:.618,severity:0,group:'outcome'},
+  regression:{p:[-1.5,-5,1],shape:'bloom',r:.4,color:0x44aa44,label:'REGRESSION',sub:'Stage 4S · ~50%',
+    tip:'Spontaneous regression. Triple redundant rollback.',kappa:.618,severity:0,group:'outcome'},
+  tumor:{p:[2.5,-5,0],shape:'mass',r:.5,color:0xff4444,label:'TUMOR',sub:'neuroblastoma',
+    tip:'Uncontrolled proliferation. Catecholamine production.',kappa:.95,severity:3,group:'outcome'},
+  senescence:{p:[0,-5,-1.5],shape:'cube',r:.3,color:0xd4a94a,label:'SENESCENCE',sub:'Hayflick · HALT',
+    tip:'Permanent cell arrest. Clock ran out.',kappa:0,severity:0,group:'outcome'},
+
+  high_risk:{p:[4,-7,0],shape:'spike',r:.4,color:0xff4444,label:'HIGH RISK',sub:'MYCN + TERT/ALT',
+    tip:'All rollback mechanisms defeated. Aggressive progression.',kappa:.98,severity:3,group:'risk'},
+  low_risk:{p:[-3,-7,0],shape:'bloom',r:.35,color:0x44aa44,label:'LOW RISK',sub:'favorable biology',
+    tip:'TrkA+, infant, no MYCN amp. High regression rate.',kappa:.618,severity:0,group:'risk'},
+  immune:{p:[1,-7,1.5],shape:'shield',r:.35,color:0x00aadd,label:'GD2 IMMUNE',sub:'dinutuximab',
+    tip:'Anti-GD2 immunotherapy. EFS 46%→66%.',kappa:.5,severity:1,group:'risk'},
+  catechol:{p:[5,-4,-1],shape:'bolt',r:.3,color:0xff8800,label:'CATECHOLAMINES',sub:'VMA/HVA · stress',
+    tip:'Tumor produces adrenaline + noradrenaline. ~95% diagnostic sensitivity.',kappa:.7,severity:2,group:'output'}
+};
+
+const E=[
+  ['neural_tube','neural_crest','#d4a94a',1],['neural_crest','sympathetic','#00aadd',.8],
+  ['neural_crest','adrenal','#ff4444',1],['neural_crest','melanocyte','#aa44ff',.8],
+  ['neural_crest','schwann','#00aadd',.6],['neural_crest','enteric','#44aa44',.6],
+  ['adrenal','decision','#dc143c',1.2],['decision','trka_ngf','#44aa44',1],
+  ['decision','trka_no','#44aa44',1],['decision','mycn','#ff4444',1.5],
+  ['decision','slit3','#aa44ff',1],['decision','telomere','#d4a94a',.7],
+  ['trka_ngf','neuron','#44aa44',1],['trka_no','regression','#44aa44',1],
+  ['slit3','regression','#aa44ff',1],['mycn','tumor','#ff4444',1.5],
+  ['telomere','senescence','#d4a94a',.7],['tumor','high_risk','#ff4444',1.5],
+  ['regression','low_risk','#44aa44',.8],['tumor','immune','#00aadd',1],
+  ['immune','regression','#aa44ff',.8],['mycn','catechol','#ff8800',1]
+];
+
+const VIEWS={
+  full:{nodes:Object.keys(N)},
+  decision:{nodes:['neural_crest','decision','trka_ngf','trka_no','mycn','slit3','telomere','neuron','regression','tumor','senescence']},
+  regression:{nodes:['decision','trka_no','slit3','telomere','regression','senescence','immune','low_risk']},
+  risk:{nodes:['decision','mycn','tumor','high_risk','immune','catechol','regression','low_risk']}
+};
+let curView='full';
+
+// ═══ THREE.JS ═══
+const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,100);
+cam.position.set(0,0,14);
+const R=new THREE.WebGLRenderer({antialias:true});
+R.setSize(innerWidth,innerHeight);R.setPixelRatio(Math.min(devicePixelRatio,2));
+R.toneMapping=THREE.ACESFilmicToneMapping;
+document.body.prepend(R.domElement);
+scene.background=new THREE.Color(0x06030a);scene.fog=new THREE.FogExp2(0x06030a,.03);
+scene.add(new THREE.AmbientLight(0x1a1020,.6));
+const pL=new THREE.PointLight(0xdc143c,.3,20);pL.position.set(0,3,5);scene.add(pL);
+
+// ═══ SHAPE FACTORIES ═══
+function makeShape(type,r,color){
+  const c=new THREE.Color(color);
+  const mat=()=>new THREE.MeshBasicMaterial({color:c,transparent:true,opacity:.3,blending:THREE.AdditiveBlending});
+  const wire=()=>new THREE.MeshBasicMaterial({color:c,wireframe:true,transparent:true,opacity:.15});
+  const g=new THREE.Group();
+  switch(type){
+    case'torus':g.add(new THREE.Mesh(new THREE.TorusGeometry(r,.08,8,32),mat()));break;
+    case'icosa':g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(r,1),wire()));
+      g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(r*.6,0),mat()));break;
+    case'octa':g.add(new THREE.Mesh(new THREE.OctahedronGeometry(r,0),wire()));
+      g.add(new THREE.Mesh(new THREE.SphereGeometry(r*.4,8,8),mat()));break;
+    case'dodeca':g.add(new THREE.Mesh(new THREE.DodecahedronGeometry(r,0),wire()));
+      g.add(new THREE.Mesh(new THREE.SphereGeometry(r*.5,8,8),mat()));break;
+    case'cone':g.add(new THREE.Mesh(new THREE.ConeGeometry(r*.6,r*1.5,6),wire()));break;
+    case'cylinder':g.add(new THREE.Mesh(new THREE.CylinderGeometry(r*.3,r*.3,r*1.2,8),wire()));break;
+    case'sphere':g.add(new THREE.Mesh(new THREE.SphereGeometry(r,12,12),mat()));break;
+    case'diamond':{
+      const top=new THREE.Mesh(new THREE.ConeGeometry(r*.7,r,6),wire());
+      const bot=new THREE.Mesh(new THREE.ConeGeometry(r*.7,r,6),wire());
+      bot.rotation.x=Math.PI;bot.position.y=-r;top.position.y=0;
+      g.add(top);g.add(bot);
+      g.add(new THREE.Mesh(new THREE.SphereGeometry(r*.3,8,8),mat()));break;}
+    case'heart':{
+      const s=new THREE.Mesh(new THREE.SphereGeometry(r*.5,8,8),mat());
+      const s2=new THREE.Mesh(new THREE.SphereGeometry(r*.5,8,8),mat());
+      s.position.set(-r*.25,r*.2,0);s2.position.set(r*.25,r*.2,0);
+      const tip=new THREE.Mesh(new THREE.ConeGeometry(r*.4,r*.6,4),mat());
+      tip.rotation.x=Math.PI;tip.position.y=-r*.3;
+      g.add(s);g.add(s2);g.add(tip);break;}
+    case'tetra':g.add(new THREE.Mesh(new THREE.TetrahedronGeometry(r,0),wire()));break;
+    case'spike':{
+      for(let i=0;i<6;i++){
+        const sp=new THREE.Mesh(new THREE.ConeGeometry(r*.15,r*1.2,4),mat());
+        sp.rotation.z=i/6*TAU;sp.rotation.x=Math.random()*Math.PI;g.add(sp);}
+      g.add(new THREE.Mesh(new THREE.SphereGeometry(r*.35,6,6),mat()));break;}
+    case'ring':g.add(new THREE.Mesh(new THREE.TorusGeometry(r*.6,.06,6,24),mat()));
+      g.add(new THREE.Mesh(new THREE.TorusGeometry(r*.3,.04,6,16),mat()));break;
+    case'hourglass':{
+      const t=new THREE.Mesh(new THREE.ConeGeometry(r*.4,r*.8,6),wire());
+      const b=new THREE.Mesh(new THREE.ConeGeometry(r*.4,r*.8,6),wire());
+      t.position.y=r*.4;b.position.y=-r*.4;b.rotation.x=Math.PI;g.add(t);g.add(b);break;}
+    case'star':{
+      g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(r*.5,0),mat()));
+      for(let i=0;i<5;i++){
+        const a=i/5*TAU,sp=new THREE.Mesh(new THREE.SphereGeometry(r*.12,4,4),mat());
+        sp.position.set(Math.cos(a)*r*.8,Math.sin(a)*r*.8,0);g.add(sp);}break;}
+    case'bloom':{
+      for(let i=0;i<7;i++){
+        const ring=new THREE.Mesh(new THREE.TorusGeometry(r*(.3+i*.08),.02,4,[2,3,5,7,11,13,17][i]*3),
+          new THREE.MeshBasicMaterial({color:new THREE.Color([0x993366,0x00aadd,0xffaa00,0xff4444,0x44aa44,0xaa44ff,0xcccccc][i]),
+            transparent:true,opacity:.2,blending:THREE.AdditiveBlending}));
+        g.add(ring);}break;}
+    case'mass':{
+      for(let i=0;i<8;i++){
+        const s=new THREE.Mesh(new THREE.SphereGeometry(r*(.2+Math.random()*.3),6,6),mat());
+        s.position.set((Math.random()-.5)*r,(Math.random()-.5)*r,(Math.random()-.5)*r);g.add(s);}break;}
+    case'cube':g.add(new THREE.Mesh(new THREE.BoxGeometry(r,r,r),wire()));break;
+    case'shield':{
+      g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(r*.6,2),wire()));
+      g.add(new THREE.Mesh(new THREE.SphereGeometry(r*.3,8,8),mat()));break;}
+    case'bolt':{
+      const b1=new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,r*1.4,4),mat());
+      const b2=new THREE.Mesh(new THREE.CylinderGeometry(.02,.02,r*1.4,4),mat());
+      b2.rotation.z=Math.PI/3;g.add(b1);g.add(b2);
+      g.add(new THREE.Mesh(new THREE.SphereGeometry(r*.2,6,6),mat()));break;}
+    default:g.add(new THREE.Mesh(new THREE.SphereGeometry(r,8,8),mat()));
+  }
+  return g;
+}
+
+// ═══ BUILD SCENE ═══
+const nodes={},edgeMeshes=[];
+Object.entries(N).forEach(([id,n])=>{
+  const g=makeShape(n.shape,n.r,n.color);
+  g.position.set(...n.p);g.userData={id,...n,visible:true,targetOp:1};
+  scene.add(g);nodes[id]=g;
+});
+
+// edge lines with traveling particles
+E.forEach(([f,t,col,spd])=>{
+  const n1=N[f],n2=N[t];
+  const pts=[new THREE.Vector3(...n1.p),new THREE.Vector3(...n2.p)];
+  const mid=new THREE.Vector3().addVectors(pts[0],pts[1]).multiplyScalar(.5);
+  mid.z+=(Math.random()-.5)*1.5;mid.x+=(Math.random()-.5)*.5;
+  const curve=new THREE.QuadraticBezierCurve3(pts[0],mid,pts[1]);
+  const geo=new THREE.BufferGeometry().setFromPoints(curve.getPoints(20));
+  const mat=new THREE.LineBasicMaterial({color:new THREE.Color(col),transparent:true,opacity:.12});
+  const line=new THREE.Line(geo,mat);scene.add(line);
+  // traveling particle
+  const dot=new THREE.Mesh(new THREE.SphereGeometry(.04,4,4),
+    new THREE.MeshBasicMaterial({color:new THREE.Color(col),transparent:true,opacity:.5,blending:THREE.AdditiveBlending}));
+  scene.add(dot);
+  edgeMeshes.push({line,mat,curve,dot,progress:Math.random(),speed:spd*.003,from:f,to:t,visible:true});
+});
+
+// ═══ VIEWS ═══
+function setView(v){
+  curView=v;
+  const vis=new Set(VIEWS[v].nodes);
+  Object.entries(nodes).forEach(([id,g])=>{g.userData.visible=vis.has(id);g.userData.targetOp=vis.has(id)?1:0;});
+  edgeMeshes.forEach(e=>{e.visible=vis.has(e.from)&&vis.has(e.to);});
+  document.querySelectorAll('.vb').forEach(b=>b.classList.toggle('on',b.textContent.trim().toLowerCase()===v));
+}
+
+// ═══ INFERENCE ENGINE ═══
+let inferText='',inferTimer=0;
+const INFERENCES=[
+  {check:()=>true,weight:1,msgs:[
+    'neural crest cells migrate from the dorsal neural tube during weeks 4-8',
+    'one progenitor population builds the entire autonomic infrastructure',
+    'the cell that builds the system IS the cell that becomes the cancer'
+  ]},
+  {check:()=>curView==='decision',weight:2,msgs:[
+    'TrkA + NGF present → the cell differentiates into a mature neuron and stops dividing',
+    'TrkA without NGF → the cell undergoes apoptosis — same as normal developmental pruning',
+    'MYCN amplified >10× → all stop signals overridden — growth on infinite loop',
+    'SLIT3 (2024): one tumor cell tells its neighbors to grow up via ROBO receptor'
+  ]},
+  {check:()=>curView==='regression',weight:2,msgs:[
+    'Stage 4S: ~50% of infants spontaneously regress without treatment',
+    'triple redundant rollback: NGF withdrawal + telomere expiry + SLIT3 signaling',
+    'the cure was always inside the tumor — SLIT3 is the foreman saying "stop building"',
+    'GD2 immunotherapy (dinutuximab) raised event-free survival from 46% to 66%'
+  ]},
+  {check:()=>curView==='risk',weight:2,msgs:[
+    'MYCN amplification disables the installer\'s rollback — ctrl+Z is broken',
+    'high risk = MYCN + active telomere maintenance (TERT or ALT/ATRX)',
+    'the tumor produces catecholamines — it IS the stress hardware making stress hormones',
+    'same apoptosis mechanism: disease in Alzheimer\'s, cure in neuroblastoma regression'
+  ]},
+  {check:()=>curView==='full',weight:1,msgs:[
+    'neuroblastoma: neuro=nerve, blast=baby cell, oma=tumor — baby nerve cells won\'t grow up',
+    'the adrenal medulla (cortisol factory) is where 40% of tumors arise',
+    'VMA/HVA urinary markers detect catecholamine production with ~95% sensitivity',
+    'κ = 1/φ is the balance point — differentiated cells are at the attractor'
+  ]}
+];
+
+function updateInference(t){
+  if(t-inferTimer<6)return;inferTimer=t;
+  const valid=INFERENCES.filter(i=>i.check());
+  const pick=valid[Math.floor(Math.random()*valid.length)];
+  inferText=pick.msgs[Math.floor(Math.random()*pick.msgs.length)];
+  document.getElementById('infer').textContent='§ '+inferText;
+}
+
+// ═══ RAYCASTER ═══
+const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2();
+let hovered=null;
+document.addEventListener('mousemove',e=>{
+  mouse.x=(e.clientX/innerWidth)*2-1;mouse.y=-(e.clientY/innerHeight)*2+1;
+  const tip=document.getElementById('tip');
+  if(tip.style.display==='block'){tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY+14)+'px';}
+});
+
+function checkHover(){
+  raycaster.setFromCamera(mouse,cam);
+  const objs=Object.values(nodes).filter(n=>n.userData.visible);
+  const hits=raycaster.intersectObjects(objs,true);
+  if(hits.length){
+    let obj=hits[0].object;
+    while(obj.parent&&!obj.userData?.id)obj=obj.parent;
+    if(obj.userData?.id&&obj.userData.id!==hovered){
+      hovered=obj.userData.id;
+      const n=obj.userData;
+      const tip=document.getElementById('tip');
+      const sev=['FAVORABLE','INTERMEDIATE','ELEVATED','HIGH RISK'][n.severity];
+      const sevCol=['#44aa44','#d4a94a','#ff8800','#ff4444'][n.severity];
+      tip.innerHTML=`<div class="tt">${n.label}</div><div class="td">${n.tip}</div>
+        <div class="tk">κ = ${n.kappa.toFixed(3)} ${n.kappa>.6&&n.kappa<.64?'≈ 1/φ ✓':n.kappa>.8?'>> 1/φ (excess)':n.kappa<.1?'→ 0 (shutdown)':''}</div>
+        <div class="ts" style="color:${sevCol}">${sev} · ${n.shape}</div>`;
+      tip.style.display='block';
+    }
+  } else {
+    hovered=null;document.getElementById('tip').style.display='none';
+  }
+}
+
+// ═══ CAMERA ═══
+let camTh=0,camPh=.1,camR=14,dragging=false,dragX=0,dragY=0;
+R.domElement.addEventListener('mousedown',e=>{dragging=true;dragX=e.clientX;dragY=e.clientY});
+addEventListener('mouseup',()=>dragging=false);
+addEventListener('mousemove',e=>{if(!dragging)return;
+  camTh-=(e.clientX-dragX)*.005;camPh+=(e.clientY-dragY)*.005;
+  camPh=Math.max(-.8,Math.min(.8,camPh));dragX=e.clientX;dragY=e.clientY;});
+R.domElement.addEventListener('wheel',e=>{camR=Math.max(5,Math.min(25,camR+e.deltaY*.01));},{passive:true});
+
+// ═══ ANIMATION ═══
+let lt=0;
+function animate(ts){
+  requestAnimationFrame(animate);
+  const t=ts*.001,dt=t-lt;lt=t;
+
+  // nodes spin + breathe + visibility fade
+  Object.values(nodes).forEach(g=>{
+    const n=g.userData,vis=n.visible;
+    // fade opacity
+    g.traverse(c=>{if(c.material){
+      const tgt=vis?(.15+n.severity*.08):.0;
+      c.material.opacity+=(tgt-c.material.opacity)*.05;
+    }});
+    if(!vis)return;
+    // unique rotation per shape
+    g.rotation.y+=(.003+n.severity*.004)*(n.kappa>.8?2:1);
+    g.rotation.x+=Math.sin(t+n.p[0])*.002;
+    // pulse with severity
+    const pulse=1+Math.sin(t*2+n.p[1])*.03*(1+n.severity);
+    g.scale.setScalar(pulse);
+  });
+
+  // edge particles travel
+  edgeMeshes.forEach(e=>{
+    e.line.material.opacity=e.visible?.1:.0;
+    if(!e.visible){e.dot.visible=false;return;}
+    e.dot.visible=true;
+    e.progress=(e.progress+e.speed)%1;
+    const pt=e.curve.getPoint(e.progress);e.dot.position.copy(pt);
+  });
+
+  // camera orbit
+  cam.position.x=Math.cos(camTh)*Math.cos(camPh)*camR;
+  cam.position.y=Math.sin(camPh)*camR;
+  cam.position.z=Math.sin(camTh)*Math.cos(camPh)*camR;
+  cam.lookAt(0,-1,0);
+
+  checkHover();
+  updateInference(t);
+
+  // HUD
+  const vis=VIEWS[curView].nodes;
+  const avgK=vis.reduce((s,id)=>s+(N[id]?.kappa||0),0)/vis.length;
+  const maxSev=Math.max(...vis.map(id=>N[id]?.severity||0));
+  document.getElementById('hud').innerHTML=
+    `NEUROBLASTOMA · 3D FLOW\nview: <span class="v">${curView.toUpperCase()}</span>\nnodes: <span class="v">${vis.length}</span>\nκ̄ = <span class="v">${avgK.toFixed(3)}</span>\nmax severity: <span class="v">${['■','■■','■■■','■■■■'][maxSev]}</span>`;
+
+  document.getElementById('rhud').innerHTML=
+    `shapes:\n`+vis.slice(0,8).map(id=>{const n=N[id];return`${n?.shape||'?'} ${n?.label||id}`}).join('\n');
+
+  R.render(scene,cam);
+}
+
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();R.setSize(innerWidth,innerHeight)});
+animate(0);
+</script>
+</body></html>
