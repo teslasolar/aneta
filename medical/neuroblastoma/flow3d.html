@@ -41,52 +41,52 @@ const TAU=Math.PI*2,PHI=(1+Math.sqrt(5))/2,K_STAR=1/PHI;
 
 // ═══ NODE UDTs — position, shape, biology ═══
 const N={
-  neural_tube:{p:[0,6,0],shape:'torus',r:.4,color:0xd4a94a,label:'NEURAL TUBE',sub:'dorsal · week 3-4',
+  neural_tube:{p:[0,9,0],shape:'torus',r:.5,color:0xd4a94a,label:'NEURAL TUBE',sub:'dorsal · week 3-4',
     tip:'Origin of all neural crest cells.',kappa:1,severity:0,group:'origin'},
-  neural_crest:{p:[0,4.5,0],shape:'icosa',r:.5,color:0xd4a94a,label:'NEURAL CREST',sub:'multipotent · migrating',
+  neural_crest:{p:[0,6.5,0],shape:'icosa',r:.6,color:0xd4a94a,label:'NEURAL CREST',sub:'multipotent · migrating',
     tip:'Multipotent progenitor. Migrates weeks 4-8. Builds the entire autonomic infrastructure.',kappa:.8,severity:0,group:'origin'},
 
-  sympathetic:{p:[-3,2.5,0],shape:'octa',r:.35,color:0x00aadd,label:'SYMPATHETIC',sub:'Bus A · ganglia',
+  sympathetic:{p:[-5,3.5,1],shape:'octa',r:.4,color:0x00aadd,label:'SYMPATHETIC',sub:'Bus A · ganglia',
     tip:'Sympathetic nervous system. Fight-or-flight.',kappa:.618,severity:0,group:'terminal'},
-  adrenal:{p:[0,2.5,0],shape:'dodeca',r:.45,color:0xff4444,label:'ADRENAL MEDULLA',sub:'cortisol factory · 40%',
+  adrenal:{p:[0,3.5,0],shape:'dodeca',r:.55,color:0xff4444,label:'ADRENAL MEDULLA',sub:'cortisol factory · 40%',
     tip:'Primary tumor site. Produces catecholamines (VMA/HVA).',kappa:.5,severity:2,group:'terminal'},
-  melanocyte:{p:[3,2.5,0],shape:'cone',r:.3,color:0xaa44ff,label:'MELANOCYTE',sub:'OPN3 · skin',
+  melanocyte:{p:[5,3.5,1],shape:'cone',r:.4,color:0xaa44ff,label:'MELANOCYTE',sub:'OPN3 · skin',
     tip:'Neural crest → melanocyte lineage. Contains OPN3 photoreceptors.',kappa:.618,severity:0,group:'terminal'},
-  schwann:{p:[-4,1.5,-1],shape:'cylinder',r:.25,color:0x00aadd,label:'SCHWANN',sub:'myelin · Bus C',
+  schwann:{p:[-7,2,-2],shape:'cylinder',r:.3,color:0x00aadd,label:'SCHWANN',sub:'myelin · Bus C',
     tip:'Myelin sheath. Bus C waveguide.',kappa:.618,severity:0,group:'terminal'},
-  enteric:{p:[4,1.5,-1],shape:'sphere',r:.3,color:0x44aa44,label:'ENTERIC',sub:'gut brain · vagal',
+  enteric:{p:[7,2,-2],shape:'sphere',r:.35,color:0x44aa44,label:'ENTERIC',sub:'gut brain · vagal',
     tip:'Gut brain neurons. 500M neurons. Vagal interface.',kappa:.618,severity:0,group:'terminal'},
 
-  decision:{p:[0,0,0],shape:'diamond',r:.6,color:0xdc143c,label:'DECISION GATE',sub:'differentiate vs proliferate',
+  decision:{p:[0,0,0],shape:'diamond',r:.7,color:0xdc143c,label:'DECISION GATE',sub:'differentiate vs proliferate',
     tip:'The fork. TrkA/NGF, MYCN, SLIT3, telomere signals compete here.',kappa:.5,severity:2,group:'decision'},
 
-  trka_ngf:{p:[-3,-2,1],shape:'heart',r:.35,color:0x44aa44,label:'TrkA + NGF',sub:'differentiation signal',
+  trka_ngf:{p:[-5,-3,2],shape:'heart',r:.4,color:0x44aa44,label:'TrkA + NGF',sub:'differentiation signal',
     tip:'TrkA receptor + NGF ligand → differentiate → mature neuron → HALT.',kappa:.618,severity:0,group:'signal'},
-  trka_no:{p:[-3,-3,0],shape:'tetra',r:.3,color:0x44aa44,label:'TrkA − NGF',sub:'pruning signal',
+  trka_no:{p:[-5,-5,0],shape:'tetra',r:.35,color:0x44aa44,label:'TrkA − NGF',sub:'pruning signal',
     tip:'TrkA without NGF → apoptosis. Same as developmental neuron pruning.',kappa:0,severity:0,group:'signal'},
-  mycn:{p:[3,-2,1],shape:'spike',r:.5,color:0xff4444,label:'MYCN >10×',sub:'growth override',
+  mycn:{p:[5,-3,2],shape:'spike',r:.6,color:0xff4444,label:'MYCN >10×',sub:'growth override',
     tip:'MYCN amplification. Growth on infinite loop. Overrides ALL stop signals. Ctrl+Z broken.',kappa:.95,severity:3,group:'signal'},
-  slit3:{p:[0,-2.5,2],shape:'ring',r:.35,color:0xaa44ff,label:'SLIT3 → ROBO',sub:'2024 · self-correction',
+  slit3:{p:[0,-4,3.5],shape:'ring',r:.4,color:0xaa44ff,label:'SLIT3 → ROBO',sub:'2024 · self-correction',
     tip:'One tumor cell secretes SLIT3 → ROBO on neighbors → differentiation. The cure inside the cancer.',kappa:.618,severity:0,group:'signal'},
-  telomere:{p:[0,-2.5,-2],shape:'hourglass',r:.3,color:0xd4a94a,label:'TELOMERE',sub:'replication clock',
+  telomere:{p:[0,-4,-3.5],shape:'hourglass',r:.35,color:0xd4a94a,label:'TELOMERE',sub:'replication clock',
     tip:'Low telomerase → Hayflick limit. TERT/ALT required for progression.',kappa:0,severity:1,group:'signal'},
 
-  neuron:{p:[-4,-5,0],shape:'star',r:.35,color:0x44aa44,label:'MATURE NEURON',sub:'differentiated · HALT',
+  neuron:{p:[-7,-8,0],shape:'star',r:.4,color:0x44aa44,label:'MATURE NEURON',sub:'differentiated · HALT',
     tip:'Normal outcome. Construction complete. κ = 1/φ.',kappa:.618,severity:0,group:'outcome'},
-  regression:{p:[-1.5,-5,1],shape:'bloom',r:.4,color:0x44aa44,label:'REGRESSION',sub:'Stage 4S · ~50%',
+  regression:{p:[-2.5,-8,2],shape:'bloom',r:.5,color:0x44aa44,label:'REGRESSION',sub:'Stage 4S · ~50%',
     tip:'Spontaneous regression. Triple redundant rollback.',kappa:.618,severity:0,group:'outcome'},
-  tumor:{p:[2.5,-5,0],shape:'mass',r:.5,color:0xff4444,label:'TUMOR',sub:'neuroblastoma',
+  tumor:{p:[4,-8,0],shape:'mass',r:.6,color:0xff4444,label:'TUMOR',sub:'neuroblastoma',
     tip:'Uncontrolled proliferation. Catecholamine production.',kappa:.95,severity:3,group:'outcome'},
-  senescence:{p:[0,-5,-1.5],shape:'cube',r:.3,color:0xd4a94a,label:'SENESCENCE',sub:'Hayflick · HALT',
+  senescence:{p:[0,-8,-2.5],shape:'cube',r:.35,color:0xd4a94a,label:'SENESCENCE',sub:'Hayflick · HALT',
     tip:'Permanent cell arrest. Clock ran out.',kappa:0,severity:0,group:'outcome'},
 
-  high_risk:{p:[4,-7,0],shape:'spike',r:.4,color:0xff4444,label:'HIGH RISK',sub:'MYCN + TERT/ALT',
+  high_risk:{p:[6.5,-11,0],shape:'spike',r:.5,color:0xff4444,label:'HIGH RISK',sub:'MYCN + TERT/ALT',
     tip:'All rollback mechanisms defeated. Aggressive progression.',kappa:.98,severity:3,group:'risk'},
-  low_risk:{p:[-3,-7,0],shape:'bloom',r:.35,color:0x44aa44,label:'LOW RISK',sub:'favorable biology',
+  low_risk:{p:[-5,-11,0],shape:'bloom',r:.4,color:0x44aa44,label:'LOW RISK',sub:'favorable biology',
     tip:'TrkA+, infant, no MYCN amp. High regression rate.',kappa:.618,severity:0,group:'risk'},
-  immune:{p:[1,-7,1.5],shape:'shield',r:.35,color:0x00aadd,label:'GD2 IMMUNE',sub:'dinutuximab',
+  immune:{p:[1.5,-11,2.5],shape:'shield',r:.4,color:0x00aadd,label:'GD2 IMMUNE',sub:'dinutuximab',
     tip:'Anti-GD2 immunotherapy. EFS 46%→66%.',kappa:.5,severity:1,group:'risk'},
-  catechol:{p:[5,-4,-1],shape:'bolt',r:.3,color:0xff8800,label:'CATECHOLAMINES',sub:'VMA/HVA · stress',
+  catechol:{p:[8,-6,-2],shape:'bolt',r:.35,color:0xff8800,label:'CATECHOLAMINES',sub:'VMA/HVA · stress',
     tip:'Tumor produces adrenaline + noradrenaline. ~95% diagnostic sensitivity.',kappa:.7,severity:2,group:'output'}
 };
 
@@ -202,21 +202,30 @@ Object.entries(N).forEach(([id,n])=>{
   scene.add(g);nodes[id]=g;
 });
 
-// edge lines with traveling particles
+// edge tubes with glowing traveling particles
 E.forEach(([f,t,col,spd])=>{
   const n1=N[f],n2=N[t];
   const pts=[new THREE.Vector3(...n1.p),new THREE.Vector3(...n2.p)];
   const mid=new THREE.Vector3().addVectors(pts[0],pts[1]).multiplyScalar(.5);
-  mid.z+=(Math.random()-.5)*1.5;mid.x+=(Math.random()-.5)*.5;
+  mid.z+=(Math.random()-.5)*2;mid.x+=(Math.random()-.5)*.8;
   const curve=new THREE.QuadraticBezierCurve3(pts[0],mid,pts[1]);
-  const geo=new THREE.BufferGeometry().setFromPoints(curve.getPoints(20));
-  const mat=new THREE.LineBasicMaterial({color:new THREE.Color(col),transparent:true,opacity:.12});
-  const line=new THREE.Line(geo,mat);scene.add(line);
-  // traveling particle
-  const dot=new THREE.Mesh(new THREE.SphereGeometry(.04,4,4),
-    new THREE.MeshBasicMaterial({color:new THREE.Color(col),transparent:true,opacity:.5,blending:THREE.AdditiveBlending}));
+  // glowing tube instead of thin line
+  const tubeGeo=new THREE.TubeGeometry(curve,16,.025,4,false);
+  const tubeMat=new THREE.MeshBasicMaterial({color:new THREE.Color(col),transparent:true,opacity:.18,blending:THREE.AdditiveBlending});
+  const tube=new THREE.Mesh(tubeGeo,tubeMat);scene.add(tube);
+  // bright core line
+  const lineGeo=new THREE.BufferGeometry().setFromPoints(curve.getPoints(24));
+  const lineMat=new THREE.LineBasicMaterial({color:new THREE.Color(col),transparent:true,opacity:.35});
+  const line=new THREE.Line(lineGeo,lineMat);scene.add(line);
+  // big glowing traveling particle
+  const dot=new THREE.Mesh(new THREE.SphereGeometry(.08,6,6),
+    new THREE.MeshBasicMaterial({color:new THREE.Color(col),transparent:true,opacity:.7,blending:THREE.AdditiveBlending}));
   scene.add(dot);
-  edgeMeshes.push({line,mat,curve,dot,progress:Math.random(),speed:spd*.003,from:f,to:t,visible:true});
+  // halo around particle
+  const halo=new THREE.Mesh(new THREE.SphereGeometry(.16,6,6),
+    new THREE.MeshBasicMaterial({color:new THREE.Color(col),transparent:true,opacity:.15,blending:THREE.AdditiveBlending}));
+  scene.add(halo);
+  edgeMeshes.push({tube,tubeMat,line,mat:lineMat,curve,dot,halo,progress:Math.random(),speed:spd*.004,from:f,to:t,visible:true});
 });
 
 // ═══ VIEWS ═══
@@ -303,13 +312,13 @@ function checkHover(){
 }
 
 // ═══ CAMERA ═══
-let camTh=0,camPh=.1,camR=14,dragging=false,dragX=0,dragY=0;
+let camTh=0,camPh=.15,camR=20,dragging=false,dragX=0,dragY=0;
 R.domElement.addEventListener('mousedown',e=>{dragging=true;dragX=e.clientX;dragY=e.clientY});
 addEventListener('mouseup',()=>dragging=false);
 addEventListener('mousemove',e=>{if(!dragging)return;
   camTh-=(e.clientX-dragX)*.005;camPh+=(e.clientY-dragY)*.005;
   camPh=Math.max(-.8,Math.min(.8,camPh));dragX=e.clientX;dragY=e.clientY;});
-R.domElement.addEventListener('wheel',e=>{camR=Math.max(5,Math.min(25,camR+e.deltaY*.01));},{passive:true});
+R.domElement.addEventListener('wheel',e=>{camR=Math.max(8,Math.min(35,camR+e.deltaY*.015));},{passive:true});
 
 // ═══ ANIMATION ═══
 let lt=0;
@@ -334,20 +343,25 @@ function animate(ts){
     g.scale.setScalar(pulse);
   });
 
-  // edge particles travel
+  // edge tubes + particles travel
   edgeMeshes.forEach(e=>{
-    e.line.material.opacity=e.visible?.1:.0;
-    if(!e.visible){e.dot.visible=false;return;}
-    e.dot.visible=true;
+    const vis=e.visible;
+    e.tubeMat.opacity=vis?.18:.0;
+    e.mat.opacity=vis?.35:.0;
+    e.dot.visible=vis;e.halo.visible=vis;
+    if(!vis)return;
     e.progress=(e.progress+e.speed)%1;
-    const pt=e.curve.getPoint(e.progress);e.dot.position.copy(pt);
+    const pt=e.curve.getPoint(e.progress);
+    e.dot.position.copy(pt);e.halo.position.copy(pt);
+    // pulse the tube brightness with the traveling dot position
+    e.tubeMat.opacity=.12+Math.sin(e.progress*Math.PI)*.08;
   });
 
   // camera orbit
   cam.position.x=Math.cos(camTh)*Math.cos(camPh)*camR;
   cam.position.y=Math.sin(camPh)*camR;
   cam.position.z=Math.sin(camTh)*Math.cos(camPh)*camR;
-  cam.lookAt(0,-1,0);
+  cam.lookAt(0,-1.5,0);
 
   checkHover();
   updateInference(t);
