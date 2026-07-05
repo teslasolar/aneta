@@ -1,0 +1,141 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Neuroblastoma — Listen & Learn</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#06030a;color:#c8c0d0;font-family:'Courier New',monospace;overflow-y:auto}
+a{color:#dc143c;text-decoration:none}a:hover{text-decoration:underline}
+#nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(6,3,10,.95);backdrop-filter:blur(8px);
+  padding:8px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #dc143c15}
+#nav .back{font-size:.5rem;color:#556;letter-spacing:2px}
+#nav h1{font-family:Georgia,serif;color:#dc143c;font-size:.8rem;letter-spacing:2px;flex:1}
+#main{max-width:800px;margin:0 auto;padding:52px 20px 40px}
+h2{font-size:.75rem;color:#dc143c;letter-spacing:2px;margin:20px 0 10px}
+p{font-size:.55rem;color:#778;line-height:1.6;margin:4px 0 12px}
+.lang-toggle{display:flex;gap:6px;margin:12px 0}
+.lb{background:rgba(255,255,255,.03);border:1px solid rgba(220,20,60,.2);color:rgba(220,20,60,.5);
+  padding:5px 14px;font:10px monospace;cursor:pointer;border-radius:3px;letter-spacing:2px;transition:all .2s}
+.lb:hover,.lb.on{background:rgba(220,20,60,.12);color:#dc143c;border-color:rgba(220,20,60,.5)}
+.player{background:#0a0610;border:1px solid #dc143c15;border-radius:6px;padding:16px;margin:12px 0}
+.player video{width:100%;border-radius:4px;background:#000}
+.player .title{font-size:.6rem;color:#dc143c;margin-bottom:8px;letter-spacing:1px}
+.player .desc{font-size:.45rem;color:#556;margin-top:6px}
+.side-by-side{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:700px){.side-by-side{grid-template-columns:1fr}}
+.lyrics{background:#0a0610;border:1px solid #dc143c10;border-radius:6px;padding:16px;margin:12px 0;
+  max-height:400px;overflow-y:auto;font-size:.5rem;line-height:1.7;color:#889}
+.lyrics::-webkit-scrollbar{width:3px}.lyrics::-webkit-scrollbar-thumb{background:#dc143c22}
+.lyrics .section{color:#dc143c88;font-weight:bold;margin-top:10px}
+.lyrics .highlight{color:#dc143c}
+footer{margin-top:30px;padding-top:12px;border-top:1px solid #ffffff06;font-size:.4rem;color:#334;text-align:center}
+</style>
+</head><body>
+
+<div id="nav">
+  <a class="back" href="./">← NEUROBLASTOMA</a>
+  <h1>🎤 LISTEN & LEARN</h1>
+</div>
+
+<div id="main">
+<h2>Neuroblastoma Rap — Vagal Fast Sound Wrap</h2>
+<p>Educational rapid rap explaining neuroblastoma for the uninitiated. Available in English and Polish. Every bar teaches one fact. The cure was always inside the tumor.</p>
+
+<div class="lang-toggle">
+  <span class="lb on" onclick="show('en')">🇬🇧 ENGLISH</span>
+  <span class="lb" onclick="show('pl')">🇵🇱 POLSKI</span>
+  <span class="lb" onclick="show('both')">BOTH</span>
+</div>
+
+<!-- SINGLE VIEW -->
+<div id="v-en">
+<div class="player">
+  <div class="title">🇬🇧 NEUROBLASTOMA RAP — English</div>
+  <video controls preload="metadata" src="media/neuroblastoma-en.mp4"></video>
+  <div class="desc">160 BPM · educational rap · neural crest · MYCN · SLIT3 · Stage 4S · 15 refs</div>
+</div>
+</div>
+
+<div id="v-pl" style="display:none">
+<div class="player">
+  <div class="title">🇵🇱 NEUROBLASTOMA RAP — Polski</div>
+  <video controls preload="metadata" src="media/neuroblastoma-pl.mp4"></video>
+  <div class="desc">160 BPM · rap edukacyjny · grzebień nerwowy · MYCN · SLIT3 · Etap 4S · 15 ref</div>
+</div>
+</div>
+
+<div id="v-both" style="display:none">
+<div class="side-by-side">
+  <div class="player">
+    <div class="title">🇬🇧 English</div>
+    <video id="vid-en" controls preload="metadata" src="media/neuroblastoma-en.mp4"></video>
+  </div>
+  <div class="player">
+    <div class="title">🇵🇱 Polski</div>
+    <video id="vid-pl" controls preload="metadata" src="media/neuroblastoma-pl.mp4"></video>
+  </div>
+</div>
+<button onclick="syncPlay()" style="background:#dc143c15;border:1px solid #dc143c33;color:#dc143c;padding:6px 16px;font:10px monospace;cursor:pointer;border-radius:3px;margin:8px 0;display:block;width:100%">▶ PLAY BOTH SYNCED</button>
+</div>
+
+<h2>Key Terms Taught</h2>
+<div class="side-by-side">
+<div class="lyrics">
+<div class="section">[ENGLISH]</div>
+<span class="highlight">Neural crest</span> — embryonic construction workers<br>
+<span class="highlight">Neuroblastoma</span> — neuro=nerve, blast=baby cell, oma=tumor<br>
+<span class="highlight">TrkA</span> — receptor antenna, listens for NGF<br>
+<span class="highlight">NGF</span> — nerve growth factor (differentiation signal)<br>
+<span class="highlight">Apoptosis</span> — programmed cell death (clean removal)<br>
+<span class="highlight">MYCN</span> — growth command stuck on repeat<br>
+<span class="highlight">Stage 4S</span> — special: ~50% self-correct<br>
+<span class="highlight">SLIT3</span> — intratumoral "grow up" signal (2024)<br>
+<span class="highlight">ROBO</span> — receptor that receives SLIT3<br>
+<span class="highlight">Telomeres</span> — replication clock, runs out = stop<br>
+<span class="highlight">GD2</span> — surface marker, immunotherapy target<br>
+<span class="highlight">VMA/HVA</span> — urine diagnostic markers<br>
+<span class="highlight">Adrenal medulla</span> — primary tumor site (40%)<br>
+<span class="highlight">Catecholamines</span> — stress hormones tumor produces<br>
+<span class="highlight">Triple redundancy</span> — 3 independent rollback mechanisms<br>
+</div>
+<div class="lyrics">
+<div class="section">[POLSKI]</div>
+<span class="highlight">Grzebień nerwowy</span> — embrionalni budowlańcy<br>
+<span class="highlight">Neuroblastoma</span> — neuro=nerw, blast=dziecięca, oma=guz<br>
+<span class="highlight">TrkA</span> — receptor-antena, nasłuchuje NGF<br>
+<span class="highlight">NGF</span> — czynnik wzrostu nerwów<br>
+<span class="highlight">Apoptoza</span> — programowana śmierć komórki<br>
+<span class="highlight">MYCN</span> — rozkaz wzrostu na powtórce<br>
+<span class="highlight">Etap 4S</span> — specjalny: ~50% samo się naprawia<br>
+<span class="highlight">SLIT3</span> — sygnał "dorośnij" wewnątrz guza (2024)<br>
+<span class="highlight">ROBO</span> — receptor odbierający SLIT3<br>
+<span class="highlight">Telomery</span> — zegar replikacji<br>
+<span class="highlight">GD2</span> — marker powierzchniowy, cel immunoterapii<br>
+<span class="highlight">VMA/HVA</span> — markery diagnostyczne z moczu<br>
+<span class="highlight">Rdzeń nadnerczy</span> — główna lokalizacja guza (40%)<br>
+<span class="highlight">Katecholaminy</span> — hormony stresu produkowane przez guz<br>
+<span class="highlight">Potrójna nadmiarowość</span> — 3 niezależne mechanizmy cofania<br>
+</div>
+</div>
+
+<footer>κ = 1/φ · the body knew the law before the quill · ciało znało prawo zanim powstało pióro</footer>
+</div>
+
+<script>
+function show(mode) {
+  document.querySelectorAll('.lb').forEach(b => b.classList.remove('on'));
+  event.target.classList.add('on');
+  document.getElementById('v-en').style.display = mode === 'en' ? 'block' : 'none';
+  document.getElementById('v-pl').style.display = mode === 'pl' ? 'block' : 'none';
+  document.getElementById('v-both').style.display = mode === 'both' ? 'block' : 'none';
+  // pause all videos when switching
+  document.querySelectorAll('video').forEach(v => v.pause());
+}
+
+function syncPlay() {
+  const en = document.getElementById('vid-en');
+  const pl = document.getElementById('vid-pl');
+  en.currentTime = 0; pl.currentTime = 0;
+  en.play(); pl.play();
+}
+</script>
+</body></html>
