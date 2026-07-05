@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>The Gate · 𐤀 · phonemic stargate</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#06060a;overflow:hidden;display:flex;align-items:center;justify-content:center;height:100vh;font-family:'Courier New',monospace}
+canvas{display:block;cursor:grab}
+canvas:active{cursor:grabbing}
+#hud{position:fixed;top:12px;left:12px;color:#444;font-size:10px;line-height:1.7;pointer-events:none;z-index:10}
+#hud b{color:#B8860B}
+#lock-flash{position:fixed;top:0;left:0;right:0;bottom:0;pointer-events:none;z-index:5;opacity:0;transition:opacity 0.3s}
+#ctrl{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:10}
+#ctrl button{padding:5px 10px;border-radius:4px;border:1px solid #222;background:#0a0a10;color:#555;font:10px 'Courier New';cursor:pointer}
+#ctrl button:hover{border-color:#444;color:#aaa}
+#ctrl button.on{border-color:#B8860B;color:#B8860B}
+#match{position:fixed;bottom:40px;left:50%;transform:translateX(-50%);color:#B8860B;font:500 12px 'Courier New';text-align:center;pointer-events:none;z-index:10;opacity:0;transition:opacity 0.5s}
+</style>
+</head>
+<body>
+<div id="hud">
+<b>§ THE GATE · 𐤀𐤁𐤂𐤃</b><br>
+5 rings · 5 scripts · 1 mouth<br>
+<span style="color:#378ADD">■</span> english
+<span style="color:#1D9E75">■</span> polish
+<span style="color:#D85A30">■</span> 日本語
+<span style="color:#B8860B">■</span> עברית
+<span style="color:#6C5CE7">■</span> 𐤀 phoenician<br>
+click ring to lock · drag to rotate
+</div>
+<div id="lock-flash"></div>
+<div id="match"></div>
+<div id="ctrl">
+<button onclick="tog('spin',this)" class="on">spin</button>
+<button onclick="tog('glow',this)" class="on">glow</button>
+<button onclick="tog('vedic',this)">vedic lines</button>
+<button onclick="resetAll()">unlock all</button>
+</div>
+<canvas id="c"></canvas>
+
+<script>
+const cv=document.getElementById('c');
+const ctx=cv.getContext('2d');
+let W,H,cx,cy;
+function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;cx=W/2;cy=H/2}
+resize();
+addEventListener('resize',resize);
+
+const PHI=(1+Math.sqrt(5))/2;
+const TAU=Math.PI*2;
+
+const rings=[
+  {name:'phoenician',color:'#6C5CE7',r:0.12,speed:0.0003,angle:0,locked:false,
+   glyphs:'𐤀 𐤁 𐤂 𐤃 𐤄 𐤅 𐤆 𐤇 𐤈 𐤉 𐤊 𐤋 𐤌 𐤍 𐤎 𐤏 𐤐 𐤑 𐤒 𐤓 𐤔 𐤕'.split(' '),
+   sounds:['a','b','g','d','h','w','z','ch','t','y','k','l','m','n','s','a','p','ts','q','r','sh','t']},
+  {name:'hebrew',color:'#B8860B',r:0.24,speed:-0.0005,angle:0,locked:false,
+   glyphs:'א ב ג ד ה ו ז ח ט י כ ל מ נ ס ע פ צ ק ר ש ת'.split(' '),
+   sounds:['a','b','g','d','h','v','z','ch','t','y','k','l','m','n','s','a','p','ts','q','r','sh','t']},
+  {name:'japanese',color:'#D85A30',r:0.38,speed:0.0004,angle:0,locked:false,
+   glyphs:'あ か さ た な は ま や ら わ ん き し ち に ひ み り を え お く す つ'.split(' '),
+   sounds:['a','ka','sa','ta','na','ha','ma','ya','ra','wa','n','ki','shi','chi','ni','hi','mi','ri','wo','e','o','ku','su','tsu']},
+  {name:'polish',color:'#1D9E75',r:0.54,speed:-0.0003,angle:0,locked:false,
+   glyphs:'a ą b c ć d e ę g h i j k l ł m n ń o ó p r s ś t u w z ź ż'.split(' '),
+   sounds:['a','on','b','ts','ch','d','e','en','g','h','i','y','k','l','w','m','n','ny','o','oo','p','r','s','sh','t','u','v','z','zh','zh']},
+  {name:'english',color:'#378ADD',r:0.72,speed:0.0002,angle:0,locked:false,
+   glyphs:'a b c d e f g h i j k l m n o p q r s t u v w x y z sh ch th'.split(' '),
+   sounds:['a','b','s','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','ks','y','z','sh','ch','th']},
+];
+
+let state={spin:true,glow:true,vedic:false};
+let dragRing=-1,dragStart=0,dragAngleStart=0;
+let time=0;
+let matchText='';
+let matchOpacity=0;
+
+function getRadius(frac){return Math.min(W,H)*0.42*frac}
+
+function drawRing(ring,i){
+  const R=getRadius(ring.r);
+  const innerR=R-18;
+  const outerR=R+18;
+  const n=ring.glyphs.length;
+  
+  ctx.save();
+  ctx.translate(cx,cy);
+  ctx.rotate(ring.angle);
+  
+  // Ring track
+  ctx.beginPath();
+  ctx.arc(0,0,R,0,TAU);
+  ctx.strokeStyle=ring.color;
+  ctx.globalAlpha=ring.locked?0.4:0.12;
+  ctx.lineWidth=ring.locked?2:36;
+  ctx.stroke();
+  
+  // Notch marks (vedic)
+  if(state.vedic){
+    for(let j=0;j<n*3;j++){
+      const a=j*TAU/(n*3);
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a)*innerR,Math.sin(a)*innerR);
+      ctx.lineTo(Math.cos(a)*outerR,Math.sin(a)*outerR);
+      ctx.strokeStyle=ring.color;
+      ctx.globalAlpha=0.04;
+      ctx.lineWidth=0.5;
+      ctx.stroke();
+    }
+  }
+  
+  // Glyphs
+  for(let j=0;j<n;j++){
+    const a=j*TAU/n;
+    const gx=Math.cos(a)*R;
+    const gy=Math.sin(a)*R;
+    
+    ctx.save();
+    ctx.translate(gx,gy);
+    ctx.rotate(a+Math.PI/2);
+    
+    const sz=ring.r<0.2?14:ring.r<0.3?13:ring.r<0.5?12:ring.r<0.6?11:11;
+    ctx.font=`${sz}px 'Courier New', monospace`;
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.globalAlpha=ring.locked?0.8:0.5;
+    ctx.fillStyle=ring.color;
+    
+    // Glow
+    if(state.glow){
+      const pulse=Math.sin(time*0.002+j*0.5)*0.3+0.5;
+      ctx.globalAlpha=ring.locked?0.8:0.2+pulse*0.3;
+    }
+    
+    ctx.fillText(ring.glyphs[j],0,0);
+    ctx.restore();
+  }
+  
+  // Lock indicator
+  if(ring.locked){
+    ctx.beginPath();
+    ctx.arc(0,0,outerR+4,0,TAU);
+    ctx.strokeStyle=ring.color;
+    ctx.globalAlpha=0.3;
+    ctx.lineWidth=1;
+    ctx.setLineDash([4,8]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  
+  ctx.restore();
+}
+
+function drawCenter(){
+  const R=getRadius(0.05);
+  
+  // Core glow
+  const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,R*3);
+  grad.addColorStop(0,'rgba(184,134,11,0.15)');
+  grad.addColorStop(1,'rgba(184,134,11,0)');
+  ctx.fillStyle=grad;
+  ctx.beginPath();
+  ctx.arc(cx,cy,R*3,0,TAU);
+  ctx.fill();
+  
+  // Center dot
+  ctx.beginPath();
+  ctx.arc(cx,cy,R,0,TAU);
+  ctx.fillStyle='#B8860B';
+  ctx.globalAlpha=0.6+Math.sin(time*0.003)*0.2;
+  ctx.fill();
+  ctx.globalAlpha=1;
+  
+  // Om / aleph
+  ctx.font='16px serif';
+  ctx.fillStyle='#06060a';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  ctx.fillText('𐤀',cx,cy);
+}
+
+function drawVedicLines(){
+  if(!state.vedic)return;
+  ctx.save();
+  ctx.translate(cx,cy);
+  
+  for(let i=0;i<36;i++){
+    const a=i*TAU/36+time*0.0001;
+    const inner=getRadius(0.08);
+    const outer=getRadius(0.78);
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a)*inner,Math.sin(a)*inner);
+    ctx.lineTo(Math.cos(a)*outer,Math.sin(a)*outer);
+    ctx.strokeStyle='#B8860B';
+    ctx.globalAlpha=0.03;
+    ctx.lineWidth=0.5;
+    ctx.stroke();
+  }
+  
+  // Sacred geometry: hexagon + triangle
+  for(let layer=0;layer<3;layer++){
+    const R=getRadius(0.15+layer*0.22);
+    const sides=6;
+    const offset=layer*TAU/12+time*0.0002*(layer%2===0?1:-1);
+    ctx.beginPath();
+    for(let i=0;i<=sides;i++){
+      const a=i*TAU/sides+offset;
+      const x=Math.cos(a)*R;
+      const y=Math.sin(a)*R;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle='#B8860B';
+    ctx.globalAlpha=0.05;
+    ctx.lineWidth=0.5;
+    ctx.stroke();
+  }
+  
+  ctx.restore();
+}
+
+function drawAlignmentBeams(){
+  // Check if any glyphs from different rings share a sound and are currently aligned
+  ctx.save();
+  ctx.translate(cx,cy);
+  
+  for(let i=0;i<rings.length-1;i++){
+    for(let j=i+1;j<rings.length;j++){
+      const rA=rings[i],rB=rings[j];
+      for(let a=0;a<rA.sounds.length;a++){
+        for(let b=0;b<rB.sounds.length;b++){
+          if(rA.sounds[a]===rB.sounds[b]&&rA.sounds[a].length>1){
+            // Check angular alignment
+            const angA=(a*TAU/rA.glyphs.length+rA.angle)%TAU;
+            const angB=(b*TAU/rB.glyphs.length+rB.angle)%TAU;
+            let diff=Math.abs(angA-angB)%TAU;
+            if(diff>Math.PI)diff=TAU-diff;
+            
+            if(diff<0.15){
+              const brightness=1-diff/0.15;
+              const RA=getRadius(rA.r);
+              const RB=getRadius(rB.r);
+              const midAng=(angA+angB)/2;
+              
+              ctx.beginPath();
+              ctx.moveTo(Math.cos(angA)*RA,Math.sin(angA)*RA);
+              ctx.lineTo(Math.cos(angB)*RB,Math.sin(angB)*RB);
+              ctx.strokeStyle=brightness>0.8?'#FFD700':'#B8860B';
+              ctx.globalAlpha=brightness*0.4;
+              ctx.lineWidth=brightness*3;
+              ctx.stroke();
+              
+              if(brightness>0.9){
+                matchText=rA.glyphs[a]+' = '+rB.glyphs[b]+' ['+rA.sounds[a]+']';
+                matchOpacity=1;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  ctx.restore();
+}
+
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  time++;
+  
+  // Update angles
+  if(state.spin){
+    rings.forEach(r=>{
+      if(!r.locked)r.angle+=r.speed;
+    });
+  }
+  
+  drawVedicLines();
+  drawAlignmentBeams();
+  
+  // Draw rings outer to inner
+  for(let i=rings.length-1;i>=0;i--){
+    drawRing(rings[i],i);
+  }
+  
+  drawCenter();
+  
+  // Ring labels
+  ctx.globalAlpha=1;
+  rings.forEach((r,i)=>{
+    const R=getRadius(r.r)+24;
+    ctx.font='9px Courier New';
+    ctx.fillStyle=r.color;
+    ctx.globalAlpha=0.3;
+    ctx.textAlign='center';
+    ctx.fillText(r.name,cx,cy-R);
+  });
+  ctx.globalAlpha=1;
+  
+  // Match display
+  if(matchOpacity>0){
+    document.getElementById('match').style.opacity=matchOpacity;
+    document.getElementById('match').textContent=matchText;
+    matchOpacity-=0.008;
+  }
+  
+  requestAnimationFrame(draw);
+}
+
+// Interaction
+cv.addEventListener('pointerdown',e=>{
+  const dx=e.clientX-cx,dy=e.clientY-cy;
+  const dist=Math.sqrt(dx*dx+dy*dy);
+  const ang=Math.atan2(dy,dx);
+  
+  // Find which ring was clicked
+  dragRing=-1;
+  for(let i=0;i<rings.length;i++){
+    const R=getRadius(rings[i].r);
+    if(Math.abs(dist-R)<25){
+      dragRing=i;
+      dragStart=ang;
+      dragAngleStart=rings[i].angle;
+      break;
+    }
+  }
+  cv.setPointerCapture(e.pointerId);
+});
+
+cv.addEventListener('pointermove',e=>{
+  if(dragRing<0)return;
+  const dx=e.clientX-cx,dy=e.clientY-cy;
+  const ang=Math.atan2(dy,dx);
+  rings[dragRing].angle=dragAngleStart+(ang-dragStart);
+});
+
+cv.addEventListener('pointerup',()=>{dragRing=-1});
+
+cv.addEventListener('dblclick',e=>{
+  const dx=e.clientX-cx,dy=e.clientY-cy;
+  const dist=Math.sqrt(dx*dx+dy*dy);
+  for(let i=0;i<rings.length;i++){
+    const R=getRadius(rings[i].r);
+    if(Math.abs(dist-R)<25){
+      rings[i].locked=!rings[i].locked;
+      if(rings[i].locked){
+        document.getElementById('lock-flash').style.background=rings[i].color;
+        document.getElementById('lock-flash').style.opacity='0.1';
+        setTimeout(()=>document.getElementById('lock-flash').style.opacity='0',300);
+      }
+      break;
+    }
+  }
+});
+
+window.tog=function(k,btn){
+  state[k]=!state[k];
+  btn.classList.toggle('on');
+};
+window.resetAll=function(){
+  rings.forEach(r=>{r.locked=false;r.angle=0});
+};
+
+draw();
+</script>
+</body>
+</html>
