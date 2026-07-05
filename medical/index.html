@@ -1,0 +1,48 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Medical — Aneta</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#06030a;color:#c8c0d0;font-family:'Courier New',monospace;padding:24px;overflow-y:auto}
+a{color:#dc143c;text-decoration:none}a:hover{text-decoration:underline}
+h1{font-family:Georgia,serif;color:#dc143c;font-size:1.3rem;letter-spacing:3px;margin-bottom:4px}
+.sub{color:#445;font-size:.55rem;letter-spacing:2px;margin-bottom:24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.card{background:rgba(255,255,255,.02);border:1px solid #dc143c15;border-radius:6px;padding:16px;
+  cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.card:hover{border-color:#dc143c44;transform:translateY(-2px);box-shadow:0 4px 20px #dc143c08}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:#dc143c;opacity:.3}
+.card h2{font-size:.8rem;color:#dc143c;margin-bottom:4px;letter-spacing:1px}
+.card p{font-size:.55rem;color:#667;line-height:1.5}
+.card .tag{font-size:.45rem;color:#dc143c44;margin-top:8px;letter-spacing:1px}
+.back{font-size:.5rem;color:#445;letter-spacing:2px;margin-bottom:16px;display:inline-block}
+footer{margin-top:40px;padding-top:16px;border-top:1px solid #ffffff08;font-size:.45rem;color:#334;text-align:center}
+</style>
+</head><body>
+<a class="back" href="../">← ANETA</a>
+<h1>🧬 MEDICAL</h1>
+<div class="sub">SYSTEMS ARCHITECTURE · PATHOLOGY · REFERENCES</div>
+<div class="grid" id="modules"></div>
+<footer>κ = 1/φ · the body knew the law before the quill</footer>
+<script type="module">
+const MODULES = [
+  {
+    id: 'neuroblastoma',
+    title: 'NEUROBLASTOMA',
+    icon: '🧬',
+    desc: 'Neural crest developmental fault. Stage 4S spontaneous regression, MYCN amplification, SLIT3-ROBO self-correction. 15 peer-reviewed refs.',
+    tags: 'neural-crest · sympathetic · adrenal · MYCN · TrkA · SLIT3 · regression',
+    href: 'neuroblastoma/'
+  }
+];
+
+const grid = document.getElementById('modules');
+MODULES.forEach(m => {
+  const card = document.createElement('a');
+  card.className = 'card';
+  card.href = m.href;
+  card.innerHTML = `<h2>${m.icon} ${m.title}</h2><p>${m.desc}</p><div class="tag">${m.tags}</div>`;
+  grid.appendChild(card);
+});
+</script>
+</body></html>

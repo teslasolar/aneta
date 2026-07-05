@@ -1,0 +1,356 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Neuroblastoma — Systems Architecture</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#06030a;color:#c8c0d0;font-family:'Courier New',monospace;overflow-y:auto}
+a{color:#dc143c;text-decoration:none}a:hover{text-decoration:underline}
+
+#nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(6,3,10,.95);backdrop-filter:blur(8px);
+  padding:8px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #dc143c15}
+#nav .back{font-size:.5rem;color:#556;letter-spacing:2px}
+#nav h1{font-family:Georgia,serif;color:#dc143c;font-size:.8rem;letter-spacing:2px;flex:1}
+.tab{font-size:.5rem;color:#556;letter-spacing:1.5px;padding:4px 10px;cursor:pointer;border-radius:3px;transition:all .2s}
+.tab:hover,.tab.on{color:#dc143c;background:#dc143c12}
+
+#main{max-width:900px;margin:0 auto;padding:52px 20px 40px}
+
+/* sections */
+.section{display:none;animation:fi .3s ease}.section.on{display:block}
+@keyframes fi{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* overview tab */
+h2{font-size:.75rem;color:#dc143c;letter-spacing:2px;margin:20px 0 8px;padding-bottom:4px;border-bottom:1px solid #dc143c15}
+h3{font-size:.6rem;color:#d4a94a;letter-spacing:1px;margin:14px 0 6px}
+p,li{font-size:.6rem;line-height:1.7;color:#998}
+ul{padding-left:16px;margin:4px 0 12px}
+code{background:#ffffff08;padding:1px 4px;border-radius:2px;font-size:.55rem;color:#dc143c88}
+pre{background:#0a0610;border:1px solid #dc143c10;border-radius:4px;padding:12px;margin:8px 0 16px;
+  font-size:.5rem;line-height:1.6;color:#889;overflow-x:auto}
+table{width:100%;border-collapse:collapse;margin:8px 0 16px;font-size:.5rem}
+th{text-align:left;color:#dc143c88;padding:4px 8px;border-bottom:1px solid #dc143c15;letter-spacing:1px}
+td{padding:4px 8px;border-bottom:1px solid #ffffff06;color:#889}
+tr:hover td{background:#dc143c06}
+.tag{display:inline-block;font-size:.4rem;color:#dc143c66;border:1px solid #dc143c15;padding:1px 6px;border-radius:2px;margin:2px}
+
+/* diagrams */
+svg.dia{width:100%;max-width:700px;margin:12px auto;display:block}
+.node{cursor:pointer}.node:hover text{fill:#dc143c}
+
+/* refs */
+.ref{background:#0a0610;border:1px solid #dc143c10;border-radius:4px;padding:10px 12px;margin:6px 0;
+  display:flex;gap:10px;align-items:flex-start;transition:border-color .2s}
+.ref:hover{border-color:#dc143c33}
+.ref-id{font-size:.5rem;color:#dc143c;min-width:100px;font-weight:bold}
+.ref-body{flex:1}
+.ref-title{font-size:.5rem;color:#aaa;margin-bottom:2px}
+.ref-finding{font-size:.45rem;color:#667;line-height:1.5}
+.ref-year{font-size:.45rem;color:#dc143c44}
+.ref-status{font-size:.4rem;padding:1px 6px;border-radius:2px;margin-left:6px}
+.ref-status.ok{background:#44aa4422;color:#4a4}.ref-status.pending{background:#ffaa0022;color:#aa8}
+
+/* verify panel */
+#verify-log{background:#0a0610;border:1px solid #dc143c10;border-radius:4px;padding:12px;
+  font-size:.45rem;line-height:1.8;max-height:300px;overflow-y:auto;margin:8px 0}
+.vlog-ok{color:#4a4}.vlog-fail{color:#f44}.vlog-info{color:#889}
+</style>
+</head><body>
+
+<div id="nav">
+  <a class="back" href="../">← MEDICAL</a>
+  <h1>🧬 NEUROBLASTOMA</h1>
+  <span class="tab on" data-t="overview">OVERVIEW</span>
+  <span class="tab" data-t="diagram">DIAGRAMS</span>
+  <span class="tab" data-t="refs">REFERENCES</span>
+  <span class="tab" data-t="verify">VERIFY</span>
+</div>
+
+<div id="main">
+
+<!-- ═══ OVERVIEW ═══ -->
+<div class="section on" id="s-overview">
+<h2>§1 — Pathology</h2>
+<p>Neuroblastoma arises from <strong>neural crest progenitor cells</strong> that fail to complete differentiation. Instead of maturing into sympathetic neurons, these cells retain proliferative capacity and form tumors along the sympathetic chain.</p>
+<table>
+<tr><th>Parameter</th><th>Value</th></tr>
+<tr><td>Most common extracranial solid tumor in children</td><td>Yes</td></tr>
+<tr><td>90% diagnosed before age 5</td><td>Median &lt;18 months</td></tr>
+<tr><td>Primary site</td><td>Adrenal medulla (40%)</td></tr>
+<tr><td>Diagnostic markers</td><td>Urinary VMA/HVA (~95% sensitivity)</td></tr>
+<tr><td>Stage 4S spontaneous regression</td><td>~50% without treatment</td></tr>
+</table>
+
+<h2>§2 — Neural Crest Architecture</h2>
+<p>A single progenitor population generates the entire autonomic infrastructure:</p>
+<pre>NEURAL CREST PROGENITOR
+├── Sympathetic neuron     → Bus A (sympathetic chain)
+├── Adrenal chromaffin     → Catecholamine factory
+├── Melanocyte             → OPN3 photoreceptors
+├── Schwann cell           → Myelin (Bus C waveguide)
+├── Enteric neuron         → Gut brain (vagal interface)
+└── Sensory neuron         → Peripheral sensors</pre>
+<p>The cell that builds the system IS the cell that becomes the cancer. Same cell, two outcomes: differentiate or proliferate.</p>
+
+<h2>§3 — Decision Logic</h2>
+<pre>if (TrkA HIGH &amp;&amp; NGF PRESENT)  → DIFFERENTIATE → neuron → HALT
+if (TrkA HIGH &amp;&amp; NGF ABSENT)   → APOPTOSE → regression
+if (MYCN AMPLIFIED &gt;10×)       → OVERRIDE → PROLIFERATE → TUMOR
+if (telomerase LOW)             → SENESCE → Hayflick limit
+if (SLIT3 → ROBO activated)    → DIFFERENTIATE → 4S regression</pre>
+
+<h2>§4 — Spontaneous Regression</h2>
+<p>Stage 4S implements <strong>triple-redundant rollback</strong>:</p>
+<ul>
+<li><strong>Neurotrophin deprivation</strong> — TrkA without NGF triggers apoptosis (same as developmental pruning)</li>
+<li><strong>Telomere shortening</strong> — cells without telomerase hit the Hayflick limit</li>
+<li><strong>SLIT3-ROBO signaling</strong> — intratumoral cells signal neighbors to differentiate (2024)</li>
+<li><strong>Immune destruction</strong> — GD2 recognition by T/NK cells</li>
+</ul>
+<p>The cure is already inside the tumor. The construction workers contain a foreman (SLIT3) who says "we're done, stop building."</p>
+
+<h2>§5 — MYCN Amplification</h2>
+<p>MYCN &gt;10 copies overrides all stop signals. It activates a neural crest de-differentiation gene program, rewires the epigenome via super-enhancer hijacking, and requires active telomere maintenance (TERT or ALT) for sustained proliferation.</p>
+<p><strong>ASS-OS:</strong> The installer's rollback function is disabled. <code>ctrl+Z</code> is broken.</p>
+
+<h2>§6 — AD/NB Parallel</h2>
+<table>
+<tr><th>Process</th><th>Alzheimer's</th><th>NB Regression</th></tr>
+<tr><td>Autophagy</td><td>Impaired</td><td>Impaired</td></tr>
+<tr><td>Outcome</td><td>Apoptosis (pathological)</td><td>Apoptosis (therapeutic)</td></tr>
+<tr><td>Valence</td><td>Disease (cells should live)</td><td>Cure (cells should die)</td></tr>
+<tr><td>κ</td><td>κ &lt; 1/φ (entropy deficit)</td><td>κ → 1/φ (correction)</td></tr>
+</table>
+
+<h2>§7 — UDT:NeuralCrestCell</h2>
+<pre>UDT:NeuralCrestCell {
+  origin:     neural_tube_dorsal
+  migration:  gestational_week_4-8
+  potency:    multipotent
+  signals: {
+    MYCN:       [1..100]   // &gt;10 = amplified
+    TrkA:       [0..1]     // differentiation receptor
+    NGF:        [0..1]     // growth factor
+    SLIT3:      [0..1]     // intratumoral correction
+    telomerase: [0..1]     // replication clock
+  }
+  entropy_map: {
+    differentiated: κ ≈ 1/φ
+    proliferating:  κ &gt; 1/φ
+    apoptosing:     κ → 0
+    regressing:     κ → 1/φ
+  }
+}</pre>
+</div>
+
+<!-- ═══ DIAGRAMS ═══ -->
+<div class="section" id="s-diagram">
+<h2>Neural Crest Decision Tree</h2>
+<svg class="dia" viewBox="0 0 700 420" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#dc143c" stroke-width="1"/>
+    </marker>
+    <marker id="ag" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#44aa44" stroke-width="1"/>
+    </marker>
+    <marker id="ar" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L8,3 L0,6" fill="none" stroke="#ff4444" stroke-width="1"/>
+    </marker>
+  </defs>
+  <style>
+    text{font-family:monospace;font-size:10px;fill:#998}
+    .box{fill:#0a0610;stroke:#dc143c33;stroke-width:1;rx:4}
+    .box-good{fill:#0a0610;stroke:#44aa44;stroke-width:1;rx:4}
+    .box-bad{fill:#0a0610;stroke:#ff4444;stroke-width:1;rx:4}
+    .box-gold{fill:#0a0610;stroke:#d4a94a;stroke-width:1;rx:4}
+    .label{font-size:9px;fill:#dc143c}
+    .good{fill:#44aa44}.bad{fill:#ff4444}.gold{fill:#d4a94a}
+  </style>
+  <!-- Neural Crest Progenitor -->
+  <rect class="box-gold" x="250" y="10" width="200" height="32"/>
+  <text class="gold" x="350" y="30" text-anchor="middle" font-weight="bold">NEURAL CREST PROGENITOR</text>
+  <!-- Decision gate -->
+  <line x1="350" y1="42" x2="350" y2="75" stroke="#d4a94a" marker-end="url(#ah)"/>
+  <rect class="box" x="275" y="75" width="150" height="28"/>
+  <text class="label" x="350" y="93" text-anchor="middle">DECISION GATE</text>
+  <!-- Branches -->
+  <!-- TrkA+NGF → Differentiate -->
+  <line x1="300" y1="103" x2="120" y2="165" stroke="#44aa44" marker-end="url(#ag)"/>
+  <rect class="box-good" x="30" y="165" width="180" height="45"/>
+  <text class="good" x="120" y="180" text-anchor="middle" font-size="9">TrkA HIGH + NGF PRESENT</text>
+  <text x="120" y="198" text-anchor="middle" font-size="8">→ DIFFERENTIATE → neuron → HALT</text>
+  <!-- TrkA-NGF → Apoptose -->
+  <line x1="320" y1="103" x2="200" y2="250" stroke="#44aa44" marker-end="url(#ag)"/>
+  <rect class="box-good" x="110" y="250" width="180" height="45"/>
+  <text class="good" x="200" y="265" text-anchor="middle" font-size="9">TrkA HIGH + NGF ABSENT</text>
+  <text x="200" y="283" text-anchor="middle" font-size="8">→ APOPTOSE → regression (4S)</text>
+  <!-- MYCN → Proliferate -->
+  <line x1="400" y1="103" x2="560" y2="165" stroke="#ff4444" marker-end="url(#ar)"/>
+  <rect class="box-bad" x="470" y="165" width="200" height="45"/>
+  <text class="bad" x="570" y="180" text-anchor="middle" font-size="9">MYCN AMPLIFIED &gt;10×</text>
+  <text x="570" y="198" text-anchor="middle" font-size="8">→ OVERRIDE → PROLIFERATE → TUMOR</text>
+  <!-- SLIT3 → Differentiate (4S) -->
+  <line x1="380" y1="103" x2="480" y2="250" stroke="#d4a94a" marker-end="url(#ah)"/>
+  <rect class="box-gold" x="390" y="250" width="180" height="45"/>
+  <text class="gold" x="480" y="265" text-anchor="middle" font-size="9">SLIT3 → ROBO (2024)</text>
+  <text x="480" y="283" text-anchor="middle" font-size="8">→ intratumoral self-correction</text>
+  <!-- Telomere -->
+  <line x1="350" y1="103" x2="350" y2="340" stroke="#998" stroke-dasharray="4,3"/>
+  <rect class="box" x="265" y="340" width="170" height="45"/>
+  <text x="350" y="355" text-anchor="middle" font-size="9" fill="#998">TELOMERASE LOW</text>
+  <text x="350" y="373" text-anchor="middle" font-size="8">→ SENESCE → Hayflick limit</text>
+  <!-- κ labels -->
+  <text x="30" y="230" font-size="8" fill="#44aa44">κ ≈ 1/φ</text>
+  <text x="115" y="315" font-size="8" fill="#44aa44">κ → 1/φ</text>
+  <text x="570" y="230" font-size="8" fill="#ff4444">κ &gt; 1/φ</text>
+  <text x="480" y="315" font-size="8" fill="#d4a94a">κ: high → 1/φ</text>
+</svg>
+
+<h2>Sefirot × Body Map</h2>
+<svg class="dia" viewBox="0 0 700 350" xmlns="http://www.w3.org/2000/svg">
+  <style>text{font-family:monospace;font-size:9px;fill:#998}</style>
+  <!-- Sympathetic chain (vertical) -->
+  <line x1="350" y1="30" x2="350" y2="320" stroke="#dc143c22" stroke-width="3"/>
+  <text x="370" y="175" fill="#dc143c33" font-size="8" transform="rotate(90,370,175)">SYMPATHETIC CHAIN</text>
+  <!-- Nodes -->
+  <circle cx="350" cy="40" r="12" fill="#dc143c22" stroke="#dc143c" stroke-width="1"/>
+  <text x="380" y="44" fill="#dc143c">Kether — Crown (head)</text>
+  <circle cx="350" cy="100" r="10" fill="#d4a94a22" stroke="#d4a94a" stroke-width="1"/>
+  <text x="380" y="104">Tiphereth — Heart (Bus A center)</text>
+  <circle cx="350" cy="160" r="14" fill="#ff444422" stroke="#ff4444" stroke-width="1"/>
+  <text x="380" y="164" fill="#ff4444">ADRENAL MEDULLA — tumor site</text>
+  <text x="380" y="176" font-size="7" fill="#ff444488">catecholamines · VMA/HVA · cortisol</text>
+  <circle cx="350" cy="220" r="8" fill="#44aa4422" stroke="#44aa44" stroke-width="1"/>
+  <text x="380" y="224">Yesod — Foundation (gut/pelvic)</text>
+  <circle cx="350" cy="280" r="10" fill="#aa44ff22" stroke="#aa44ff" stroke-width="1"/>
+  <text x="380" y="284">Malkuth — Kingdom (body/mouth)</text>
+  <!-- Neural crest migration arrow -->
+  <path d="M200,30 Q200,80 280,100 Q340,110 350,160" fill="none" stroke="#d4a94a" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#ah)"/>
+  <text x="170" y="25" fill="#d4a94a" font-size="8">neural crest migration</text>
+  <text x="170" y="35" fill="#d4a94a55" font-size="7">weeks 4-8</text>
+  <!-- Bus labels -->
+  <text x="30" y="100" fill="#dc143c44" font-size="8">Bus A — sympathetic</text>
+  <text x="30" y="220" fill="#44aa4444" font-size="8">Bus B — parasympathetic</text>
+  <text x="30" y="280" fill="#aa44ff44" font-size="8">Bus C — photonic/myelin</text>
+</svg>
+
+<h2>Regression Mechanisms</h2>
+<svg class="dia" viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg">
+  <style>text{font-family:monospace;font-size:9px;fill:#998}.mech{fill:#0a0610;stroke:#44aa4444;stroke-width:1;rx:4}</style>
+  <rect class="mech" x="20" y="20" width="150" height="60"/>
+  <text x="95" y="40" text-anchor="middle" fill="#44aa44" font-size="8">1. NGF WITHDRAWAL</text>
+  <text x="95" y="55" text-anchor="middle" font-size="7">TrkA → apoptosis</text>
+  <text x="95" y="67" text-anchor="middle" font-size="7">developmental pruning</text>
+
+  <rect class="mech" x="190" y="20" width="150" height="60"/>
+  <text x="265" y="40" text-anchor="middle" fill="#44aa44" font-size="8">2. TELOMERE EXPIRY</text>
+  <text x="265" y="55" text-anchor="middle" font-size="7">low telomerase</text>
+  <text x="265" y="67" text-anchor="middle" font-size="7">→ Hayflick limit</text>
+
+  <rect class="mech" x="360" y="20" width="150" height="60"/>
+  <text x="435" y="40" text-anchor="middle" fill="#d4a94a" font-size="8">3. SLIT3-ROBO (2024)</text>
+  <text x="435" y="55" text-anchor="middle" font-size="7">intratumoral signal</text>
+  <text x="435" y="67" text-anchor="middle" font-size="7">"grow up" → differentiate</text>
+
+  <rect class="mech" x="530" y="20" width="150" height="60"/>
+  <text x="605" y="40" text-anchor="middle" fill="#00aadd" font-size="8">4. IMMUNE (GD2)</text>
+  <text x="605" y="55" text-anchor="middle" font-size="7">T cells + NK cells</text>
+  <text x="605" y="67" text-anchor="middle" font-size="7">dinutuximab target</text>
+
+  <!-- Arrow to outcome -->
+  <line x1="350" y1="85" x2="350" y2="120" stroke="#44aa44" stroke-dasharray="3,3"/>
+  <rect x="230" y="120" width="240" height="35" rx="4" fill="#0a0610" stroke="#44aa4444"/>
+  <text x="350" y="138" text-anchor="middle" fill="#44aa44" font-size="9">TRIPLE REDUNDANT ROLLBACK</text>
+  <text x="350" y="150" text-anchor="middle" font-size="7">~50% Stage 4S → spontaneous regression</text>
+
+  <text x="350" y="185" text-anchor="middle" font-size="8" fill="#dc143c44">MYCN amplification defeats all four → high-risk progression</text>
+</svg>
+</div>
+
+<!-- ═══ REFERENCES ═══ -->
+<div class="section" id="s-refs">
+<h2>Peer-Reviewed References (15)</h2>
+<div id="ref-list"></div>
+</div>
+
+<!-- ═══ VERIFY ═══ -->
+<div class="section" id="s-verify">
+<h2>Reference Verification</h2>
+<p>Checks each PMC/DOI against PubMed Central API to confirm existence and metadata.</p>
+<button onclick="runVerify()" style="background:#dc143c15;border:1px solid #dc143c33;color:#dc143c;padding:6px 16px;font:10px monospace;cursor:pointer;border-radius:3px;margin:8px 0">RUN VERIFICATION</button>
+<div id="verify-log"></div>
+</div>
+
+</div>
+
+<script type="module">
+const REFS = [
+  {id:'PMC5920563',year:2018,title:'Mechanisms of neuroblastoma regression',finding:'Four independent spontaneous regression mechanisms identified'},
+  {id:'PMC12123822',year:2024,title:'SLIT3-ROBO intratumoral signaling in Stage 4S',finding:'Tumor subpopulation drives differentiation of neighbors via secreted SLIT3'},
+  {id:'PMC12582027',year:2025,title:'NB regression and AD neurodegeneration share apoptosis pathways',finding:'Same impaired autophagy → apoptosis mechanism, opposite clinical valence'},
+  {id:'PMC7323455',year:2020,title:'MYCN amplification prognostic context-dependence (INRG)',finding:'MYCN-A is independent adverse marker, weight modulated by co-occurring features'},
+  {id:'PMC7313726',year:2018,title:'Telomere maintenance mechanisms define clinical outcome',finding:'High-risk segregates into MYCN-amp, TERT-rearranged, or ALT/ATRX subtypes'},
+  {id:'PMC4238907',year:2009,title:'Trk receptor expression and inhibition in neuroblastomas',finding:'TrkA marks favorable/regression-prone; TrkB/BDNF drives aggressive MYCN+ tumors'},
+  {id:'PMC6306059',year:2018,title:'Dinutuximab (anti-GD2) immunotherapy',finding:'ch14.18 + GM-CSF/IL-2/isotretinoin raised EFS 46%→66% in high-risk NB'},
+  {id:'PMID:25581786',year:2015,title:'Sympathoadrenal neural crest specification',finding:'PHOX2B→HAND2→GATA3 cascade governs sympathoadrenal commitment from neural crest'},
+  {id:'PMC6329141',year:2019,title:'Stage 4S outcomes (n=268, Italian Registry)',finding:'~90% survival; MYCN-amp, diploidy, 1p/11q LOH mark poor subset'},
+  {id:'PMC10707345',year:2023,title:'Epigenetic dysregulation in MYCN-amplified NB',finding:'HOX hypermethylation, H3K27me3 loss, super-enhancer rewiring'},
+  {id:'PMC8201085',year:2021,title:'VMA/HVA diagnostic markers via LC-MS/MS',finding:'Combined catecholamine metabolites reach ~95% diagnostic sensitivity'},
+  {id:'PMC6561246',year:2019,title:'OPN3 in neural-crest-derived melanocytes',finding:'Non-visual opsin OPN3 couples light sensing to pigmentation in melanocytes'},
+  {id:'PMC11410271',year:2024,title:'MYCN expands neural crest gene signature',finding:'Ectopic MYCN directly activates developmental de-differentiation program'},
+  {id:'PMC4244231',year:2014,title:'NGF-withdrawal apoptosis in 4S regression',finding:'Neurotrophin deprivation triggers same pathway as developmental neuron pruning'},
+  {id:'DOI:10.3389/fonc.2020.00744',year:2020,title:'Autonomic regulation of tumor growth',finding:'Sympathetic vs vagal innervation exerts context-dependent tumor effects'}
+];
+
+// render refs
+const refList = document.getElementById('ref-list');
+REFS.forEach(r => {
+  const div = document.createElement('div');
+  div.className = 'ref';
+  div.innerHTML = `<div class="ref-id">${r.id}<br><span class="ref-year">${r.year}</span></div>
+    <div class="ref-body"><div class="ref-title">${r.title}</div><div class="ref-finding">${r.finding}</div></div>`;
+  refList.appendChild(div);
+});
+
+// tabs
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+    document.querySelectorAll('.section').forEach(x => x.classList.remove('on'));
+    t.classList.add('on');
+    document.getElementById('s-' + t.dataset.t).classList.add('on');
+  };
+});
+
+// verify function
+window.runVerify = async function() {
+  const log = document.getElementById('verify-log');
+  log.innerHTML = '<div class="vlog-info">Starting verification...</div>';
+  let ok = 0, fail = 0;
+  for (const r of REFS) {
+    const pmcMatch = r.id.match(/PMC(\d+)/);
+    if (pmcMatch) {
+      try {
+        const resp = await fetch(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pmc&id=${pmcMatch[1]}&retmode=json`);
+        const data = await resp.json();
+        const result = data.result?.[pmcMatch[1]];
+        if (result && result.title) {
+          log.innerHTML += `<div class="vlog-ok">✓ ${r.id} — ${result.title.substring(0, 80)}...</div>`;
+          ok++;
+        } else {
+          log.innerHTML += `<div class="vlog-fail">✗ ${r.id} — not found in PMC</div>`;
+          fail++;
+        }
+      } catch (e) {
+        log.innerHTML += `<div class="vlog-fail">✗ ${r.id} — fetch error</div>`;
+        fail++;
+      }
+    } else {
+      log.innerHTML += `<div class="vlog-info">⊘ ${r.id} — non-PMC (manual verify)</div>`;
+    }
+    await new Promise(r => setTimeout(r, 350));
+  }
+  log.innerHTML += `<div class="vlog-info">━━ Done: ${ok} verified, ${fail} failed, ${REFS.length - ok - fail} manual ━━</div>`;
+};
+</script>
+</body></html>
