@@ -1,78 +1,37 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Masquerade Masks — 3D Print</title>
+<title>Masquerade Masks — 3D Print STL</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:#06030a;color:#c8c0d0;font-family:'Courier New',monospace;overflow-y:auto}
-a{color:#dc143c;text-decoration:none}
-#nav{position:fixed;top:0;left:0;right:0;z-index:50;background:rgba(6,3,10,.95);
-  padding:8px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #dc143c15}
-.back{font-size:.5rem;color:#556;letter-spacing:2px}
-#nav h1{font-family:Georgia,serif;color:#dc143c;font-size:.8rem;letter-spacing:2px;flex:1}
-.tab{font-size:.45rem;color:#556;padding:3px 8px;cursor:pointer;border-radius:3px;letter-spacing:1px;transition:all .2s}
-.tab:hover,.tab.on{color:#dc143c;background:#dc143c12}
-#main{max-width:1000px;margin:0 auto;padding:52px 16px 40px}
-.mask-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin:16px 0}
-.mask-card{background:#0a0610;border:1px solid #dc143c12;border-radius:8px;padding:16px;text-align:center;transition:all .2s}
-.mask-card:hover{border-color:#dc143c44}
-.mask-card svg{max-width:100%;height:auto;margin:8px 0}
-.mask-card h3{font-size:.65rem;color:#d4a94a;letter-spacing:1.5px;margin-bottom:4px}
-.mask-card p{font-size:.45rem;color:#667;line-height:1.4;margin-bottom:8px}
-.mask-card button{background:#dc143c12;border:1px solid #dc143c33;color:#dc143c;padding:4px 12px;
-  font:8px monospace;cursor:pointer;border-radius:3px;margin:2px;letter-spacing:1px}
-.mask-card button:hover{background:#dc143c22}
-h2{font-size:.7rem;color:#dc143c;letter-spacing:2px;margin:20px 0 8px}
-p.info{font-size:.5rem;color:#778;line-height:1.6;margin-bottom:12px}
-#params{background:#0a0610;border:1px solid #dc143c12;border-radius:6px;padding:12px;margin:12px 0}
-#params label{font-size:.45rem;color:#889;display:block;margin:4px 0 1px}
-#params input[type=range]{width:100%;accent-color:#dc143c}
-#params .val{font-size:.45rem;color:#d4a94a;float:right}
-#preview{background:#0a0610;border:1px solid #dc143c12;border-radius:6px;padding:16px;text-align:center;margin:12px 0}
-#preview svg{max-width:100%}
+body{background:#06030a;color:#c8c0d0;font-family:'Courier New',monospace;overflow:hidden}
+canvas{display:block;cursor:grab}canvas:active{cursor:grabbing}
+#panel{position:fixed;top:0;right:0;width:240px;height:100%;z-index:20;background:rgba(6,3,10,.95);
+  border-left:1px solid #dc143c15;overflow-y:auto;padding:10px;pointer-events:auto}
+#panel h2{font-size:9px;color:#dc143c;letter-spacing:2px;margin:8px 0 4px}
+#panel label{font-size:7px;color:#889;display:block;margin:3px 0 1px}
+#panel input[type=range]{width:100%;accent-color:#dc143c;height:12px}
+#panel select{background:#0a0610;border:1px solid #dc143c22;color:#c8c0d0;padding:2px 4px;font:7px monospace;width:100%;border-radius:2px}
+.val{font-size:7px;color:#d4a94a;float:right}
+.btn{background:#dc143c15;border:1px solid #dc143c33;color:#dc143c;padding:5px 10px;font:8px monospace;
+  cursor:pointer;border-radius:3px;width:100%;margin:3px 0;text-align:center;letter-spacing:1px}
+.btn:hover{background:#dc143c25}
+.btn.green{background:#44aa4415;border-color:#44aa4433;color:#44aa44}
+.preset{padding:3px 5px;margin:1px 0;background:#0a0610;border:1px solid #dc143c10;border-radius:2px;
+  cursor:pointer;font-size:7px;color:#889;transition:all .2s}
+.preset:hover{border-color:#dc143c44;color:#dc143c}
+#hud{position:fixed;top:8px;left:10px;z-index:10;font-size:8px;color:rgba(220,20,60,.4);pointer-events:none;line-height:1.7}
+#back{position:fixed;bottom:6px;left:10px;z-index:20;font-size:8px;color:#556}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head><body>
+<div id="hud"></div>
+<a id="back" href="../">← cad</a>
 
-<div id="nav">
-  <a class="back" href="../">← CAD</a>
-  <h1>🎭 MASQUERADE MASKS</h1>
-  <span class="tab on" data-t="gallery">GALLERY</span>
-  <span class="tab" data-t="custom">CUSTOM</span>
-</div>
+<div id="panel">
+  <h2>🎭 MASK PARAMETERS</h2>
 
-<div id="main">
-
-<!-- GALLERY -->
-<div id="s-gallery">
-<h2>Victorian Elegance Collection</h2>
-<p class="info">Parametric masks designed for 3D printing. Download SVG for laser cutting or use the parametric editor to customize. All curves are cubic bezier — smooth at any scale.</p>
-
-<div class="mask-grid" id="gallery"></div>
-</div>
-
-<!-- CUSTOM -->
-<div id="s-custom" style="display:none">
-<h2>Parametric Mask Designer</h2>
-<p class="info">Adjust parameters to create your own mask. Export as SVG for laser cutting or import into CAD for 3D print extrusion.</p>
-
-<div id="params">
-  <label>Width <span class="val" id="v-w">180</span>mm</label>
-  <input type="range" id="p-w" min="140" max="220" value="180" oninput="updateCustom()">
-  <label>Height <span class="val" id="v-h">80</span>mm</label>
-  <input type="range" id="p-h" min="50" max="120" value="80" oninput="updateCustom()">
-  <label>Eye Width <span class="val" id="v-ew">28</span>mm</label>
-  <input type="range" id="p-ew" min="18" max="40" value="28" oninput="updateCustom()">
-  <label>Eye Height <span class="val" id="v-eh">16</span>mm</label>
-  <input type="range" id="p-eh" min="8" max="28" value="16" oninput="updateCustom()">
-  <label>Bridge Width <span class="val" id="v-bw">14</span>mm</label>
-  <input type="range" id="p-bw" min="8" max="24" value="14" oninput="updateCustom()">
-  <label>Sweep Angle <span class="val" id="v-sw">35</span>°</label>
-  <input type="range" id="p-sw" min="10" max="60" value="35" oninput="updateCustom()">
-  <label>Filigree Density <span class="val" id="v-fd">5</span></label>
-  <input type="range" id="p-fd" min="0" max="12" value="5" oninput="updateCustom()">
-  <label>Curl Intensity <span class="val" id="v-ci">0.6</span></label>
-  <input type="range" id="p-ci" min="0" max="100" value="60" oninput="updateCustom()">
   <label>Style</label>
-  <select id="p-style" onchange="updateCustom()" style="background:#0a0610;border:1px solid #dc143c22;color:#c8c0d0;padding:3px;font:8px monospace;width:100%;border-radius:3px">
+  <select id="p-style" onchange="rebuild()">
     <option value="filigree">Filigree</option>
     <option value="butterfly">Butterfly</option>
     <option value="venetian">Venetian</option>
@@ -80,246 +39,387 @@ p.info{font-size:.5rem;color:#778;line-height:1.6;margin-bottom:12px}
     <option value="geometric">Geometric</option>
     <option value="cats-eye">Cat's Eye</option>
   </select>
-</div>
-<div id="preview"></div>
-<button onclick="downloadSVG('custom')" style="background:#dc143c12;border:1px solid #dc143c33;color:#dc143c;padding:6px 16px;font:9px monospace;cursor:pointer;border-radius:3px;width:100%;margin:8px 0">⬇ DOWNLOAD SVG</button>
-</div>
 
+  <label>Width <span class="val" id="v-w">180</span>mm</label>
+  <input type="range" id="p-w" min="140" max="240" value="180" oninput="rebuild()">
+  <label>Height <span class="val" id="v-h">80</span>mm</label>
+  <input type="range" id="p-h" min="50" max="130" value="80" oninput="rebuild()">
+  <label>Depth (thickness) <span class="val" id="v-d">3</span>mm</label>
+  <input type="range" id="p-d" min="1" max="8" value="3" oninput="rebuild()">
+  <label>Face Curve <span class="val" id="v-cv">25</span>mm</label>
+  <input type="range" id="p-cv" min="5" max="50" value="25" oninput="rebuild()">
+  <label>Eye Width <span class="val" id="v-ew">28</span>mm</label>
+  <input type="range" id="p-ew" min="16" max="42" value="28" oninput="rebuild()">
+  <label>Eye Height <span class="val" id="v-eh">16</span>mm</label>
+  <input type="range" id="p-eh" min="8" max="30" value="16" oninput="rebuild()">
+  <label>Bridge Width <span class="val" id="v-bw">14</span>mm</label>
+  <input type="range" id="p-bw" min="6" max="26" value="14" oninput="rebuild()">
+  <label>Wing Sweep <span class="val" id="v-sw">35</span>°</label>
+  <input type="range" id="p-sw" min="10" max="65" value="35" oninput="rebuild()">
+  <label>Filigree Density <span class="val" id="v-fd">5</span></label>
+  <input type="range" id="p-fd" min="0" max="14" value="5" oninput="rebuild()">
+  <label>Curl Intensity <span class="val" id="v-ci">0.60</span></label>
+  <input type="range" id="p-ci" min="0" max="100" value="60" oninput="rebuild()">
+
+  <h2>EXPORT</h2>
+  <div class="btn green" onclick="exportSTL()">⬇ DOWNLOAD .STL</div>
+  <div class="btn" onclick="exportOBJ()">⬇ DOWNLOAD .OBJ</div>
+
+  <h2>PRESETS</h2>
+  <div class="preset" onclick="loadPreset('filigree',180,80,3,25,28,16,14,35,6,.7)">Filigree Elegance</div>
+  <div class="preset" onclick="loadPreset('butterfly',190,90,3,28,26,15,14,40,4,.5)">Butterfly Dreams</div>
+  <div class="preset" onclick="loadPreset('venetian',200,85,4,30,28,16,14,30,8,.8)">Venetian Night</div>
+  <div class="preset" onclick="loadPreset('floral',175,80,3,22,26,18,14,35,5,.6)">Garden Floral</div>
+  <div class="preset" onclick="loadPreset('geometric',185,78,3,25,30,14,16,32,0,.4)">Geometric Lattice</div>
+  <div class="preset" onclick="loadPreset('cats-eye',185,70,3,28,32,13,12,50,3,.5)">Cat's Eye</div>
+  <div class="preset" onclick="loadPreset('filigree',220,90,4,30,30,17,14,38,10,.9)">Grand Ball</div>
+  <div class="preset" onclick="loadPreset('butterfly',155,65,2,18,22,12,12,30,3,.4)">Petite</div>
 </div>
 
 <script>
-// ═══ MASK SVG GENERATOR ═══
-function generateMask(opts) {
-  const {w=180, h=80, ew=28, eh=16, bw=14, sweep=35, filigree=5, curl=0.6, style='filigree'} = opts
-  const cx=w/2, cy=h/2, svgW=w+40, svgH=h+40, ox=20, oy=20
+const TAU=Math.PI*2, PHI=(1+Math.sqrt(5))/2
 
-  let paths = ''
-  const sc = (x,y) => `${ox+x},${oy+y}`
+// ═══ THREE.JS ═══
+const scene=new THREE.Scene(), cam=new THREE.PerspectiveCamera(45,1,.1,500)
+cam.position.set(0,0,200)
+const renderer=new THREE.WebGLRenderer({antialias:true})
+renderer.setPixelRatio(Math.min(devicePixelRatio,2))
+renderer.toneMapping=THREE.ACESFilmicToneMapping
+document.body.prepend(renderer.domElement)
+scene.background=new THREE.Color(0x06030a)
 
-  // outer shape — flowing curves
-  const swRad = sweep * Math.PI / 180
-  const tipX = w, tipY = cy - Math.sin(swRad) * h * 0.4
-  const topCurl = curl * 20
-  const botCurl = curl * 15
+scene.add(new THREE.AmbientLight(0x334455,.6))
+const keyLight=new THREE.DirectionalLight(0xffeedd,.8);keyLight.position.set(50,80,100);scene.add(keyLight)
+const fillLight=new THREE.DirectionalLight(0xdc143c,.2);fillLight.position.set(-50,-30,50);scene.add(fillLight)
+const rimLight=new THREE.DirectionalLight(0xd4a94a,.3);rimLight.position.set(0,20,-80);scene.add(rimLight)
 
-  // main mask outline
-  paths += `<path d="M ${sc(cx-bw/2, cy-8)}
-    C ${sc(cx-bw/2-10, cy-h*0.5-topCurl)} ${sc(10, cy-h*0.4-topCurl*1.5)} ${sc(0, tipY)}
-    C ${sc(-5, tipY-topCurl)} ${sc(-3, tipY+botCurl)} ${sc(5, cy+h*0.35)}
-    C ${sc(10, cy+h*0.45+botCurl)} ${sc(cx-bw/2-15, cy+8+botCurl*0.5)} ${sc(cx-bw/2, cy+8)}
-    Z" fill="none" stroke="#d4a94a" stroke-width="1.5" opacity="0.8"/>`
-  // mirror right side
-  paths += `<path d="M ${sc(cx+bw/2, cy-8)}
-    C ${sc(cx+bw/2+10, cy-h*0.5-topCurl)} ${sc(w-10, cy-h*0.4-topCurl*1.5)} ${sc(w, tipY)}
-    C ${sc(w+5, tipY-topCurl)} ${sc(w+3, tipY+botCurl)} ${sc(w-5, cy+h*0.35)}
-    C ${sc(w-10, cy+h*0.45+botCurl)} ${sc(cx+bw/2+15, cy+8+botCurl*0.5)} ${sc(cx+bw/2, cy+8)}
-    Z" fill="none" stroke="#d4a94a" stroke-width="1.5" opacity="0.8"/>`
+let maskGroup=new THREE.Group();scene.add(maskGroup)
 
-  // bridge
-  paths += `<path d="M ${sc(cx-bw/2, cy-6)} Q ${sc(cx, cy-12)} ${sc(cx+bw/2, cy-6)}" fill="none" stroke="#d4a94a" stroke-width="1" opacity="0.6"/>`
-  paths += `<path d="M ${sc(cx-bw/2, cy+6)} Q ${sc(cx, cy+10)} ${sc(cx+bw/2, cy+6)}" fill="none" stroke="#d4a94a" stroke-width="1" opacity="0.6"/>`
+function resize(){
+  const w=innerWidth-240, h=innerHeight
+  cam.aspect=w/h;cam.updateProjectionMatrix()
+  renderer.setSize(w,h)
+}
+resize();addEventListener('resize',resize)
 
-  // eye cutouts
-  const leX = cx - bw/2 - ew/2 - 8, reX = cx + bw/2 + ew/2 + 8
-  paths += `<ellipse cx="${ox+leX}" cy="${oy+cy}" rx="${ew/2}" ry="${eh/2}" fill="#06030a" stroke="#dc143c" stroke-width="1" opacity="0.8"/>`
-  paths += `<ellipse cx="${ox+reX}" cy="${oy+cy}" rx="${ew/2}" ry="${eh/2}" fill="#06030a" stroke="#dc143c" stroke-width="1" opacity="0.8"/>`
+// ═══ ORBIT ═══
+let orbitTh=0,orbitPh=0,orbitR=200,dragging=false,mx=0,my=0
+renderer.domElement.addEventListener('pointerdown',e=>{dragging=true;mx=e.clientX;my=e.clientY})
+addEventListener('pointerup',()=>dragging=false)
+addEventListener('pointermove',e=>{if(!dragging)return;orbitTh-=(e.clientX-mx)*.005;orbitPh+=(e.clientY-my)*.005;
+  orbitPh=Math.max(-1,Math.min(1,orbitPh));mx=e.clientX;my=e.clientY})
+renderer.domElement.addEventListener('wheel',e=>{orbitR=Math.max(60,Math.min(400,orbitR+e.deltaY*.2))},{passive:true})
 
-  // style-specific decorations
-  if (style === 'filigree' || style === 'venetian') {
-    for (let i = 0; i < filigree; i++) {
-      const t = (i + 1) / (filigree + 1)
-      // left side scrollwork
-      const sx1 = leX - ew/2 - 5 - i * 6, sy1 = cy - eh * t
-      const sx2 = leX - ew/2 - 10 - i * 4, sy2 = cy + eh * t
-      paths += `<path d="M ${sc(sx1, sy1)} Q ${sc(sx1-curl*12, sy1-curl*8)} ${sc(sx1-curl*6, sy1-curl*15)}" fill="none" stroke="#d4a94a" stroke-width="0.6" opacity="0.4"/>`
-      paths += `<path d="M ${sc(sx1, sy1)} Q ${sc(sx1-curl*8, sy1+curl*5)} ${sc(sx2, sy2)}" fill="none" stroke="#d4a94a" stroke-width="0.5" opacity="0.3"/>`
-      // mirror right
-      const rx1 = w - sx1, rx2 = w - sx2
-      paths += `<path d="M ${sc(rx1, sy1)} Q ${sc(rx1+curl*12, sy1-curl*8)} ${sc(rx1+curl*6, sy1-curl*15)}" fill="none" stroke="#d4a94a" stroke-width="0.6" opacity="0.4"/>`
-      paths += `<path d="M ${sc(rx1, sy1)} Q ${sc(rx1+curl*8, sy1+curl*5)} ${sc(rx2, sy2)}" fill="none" stroke="#d4a94a" stroke-width="0.5" opacity="0.3"/>`
+// ═══ MASK GEOMETRY BUILDER ═══
+function getParams(){
+  const g=id=>+document.getElementById(id).value
+  return{style:document.getElementById('p-style').value,
+    w:g('p-w'),h:g('p-h'),depth:g('p-d'),curve:g('p-cv'),
+    ew:g('p-ew'),eh:g('p-eh'),bw:g('p-bw'),sweep:g('p-sw'),
+    filigree:g('p-fd'),curl:g('p-ci')/100}
+}
+
+function updateLabels(p){
+  document.getElementById('v-w').textContent=p.w
+  document.getElementById('v-h').textContent=p.h
+  document.getElementById('v-d').textContent=p.depth
+  document.getElementById('v-cv').textContent=p.curve
+  document.getElementById('v-ew').textContent=p.ew
+  document.getElementById('v-eh').textContent=p.eh
+  document.getElementById('v-bw').textContent=p.bw
+  document.getElementById('v-sw').textContent=p.sweep
+  document.getElementById('v-fd').textContent=p.filigree
+  document.getElementById('v-ci').textContent=p.curl.toFixed(2)
+}
+
+function buildMask(p){
+  // clear old
+  while(maskGroup.children.length)maskGroup.remove(maskGroup.children[0])
+
+  const {w,h,depth,curve,ew,eh,bw,sweep,filigree,curl,style}=p
+  const hw=w/2, hh=h/2
+
+  // main mask body — curved surface
+  const resX=48, resY=24
+  const bodyGeo=new THREE.PlaneGeometry(w,h,resX,resY)
+  const pos=bodyGeo.attributes.position
+  for(let i=0;i<pos.count;i++){
+    const x=pos.getX(i), y=pos.getY(i)
+    // face curvature — cylindrical wrap
+    const curveFactor=curve*(1-Math.pow(x/hw,2))
+    pos.setZ(i,curveFactor)
+
+    // wing sweep — outer edges tilt back
+    const edgeDist=Math.abs(x)/hw
+    if(edgeDist>.6){
+      const sweepZ=-(edgeDist-.6)/.4*sweep*.5
+      pos.setZ(i,pos.getZ(i)+sweepZ)
+      pos.setY(i,pos.getY(i)-(edgeDist-.6)/.4*sweep*.3)
+    }
+
+    // top/bottom edge shaping
+    const nx=x/hw, ny=y/hh
+    const mask=1-Math.pow(ny,4)*.3
+    // taper ends
+    if(Math.abs(nx)>.7){
+      const taper=1-((Math.abs(nx)-.7)/.3)*.4
+      pos.setY(i,y*taper)
     }
   }
 
-  if (style === 'butterfly') {
-    // wing curves above eyes
-    for (let side of [-1, 1]) {
-      const ex = side < 0 ? leX : reX
-      for (let i = 0; i < 4; i++) {
-        const a = (i / 4) * Math.PI * 0.6 + 0.3
-        const r1 = ew * 0.8 + i * 5, r2 = ew * 1.2 + i * 7
-        paths += `<path d="M ${sc(ex, cy-eh/2)}
-          Q ${sc(ex + side*Math.cos(a)*r1, cy - Math.sin(a)*r1)}
-          ${sc(ex + side*Math.cos(a+.3)*r2, cy - Math.sin(a+.3)*r2)}"
-          fill="none" stroke="#aa44ff" stroke-width="${0.8-i*0.1}" opacity="${0.5-i*0.1}"/>`
+  // cut eye holes by displacing vertices inward
+  for(let i=0;i<pos.count;i++){
+    const x=pos.getX(i), y=pos.getY(i)
+    // left eye center
+    const leX=-bw/2-ew/2-4, reX=bw/2+ew/2+4
+    for(const ecx of [leX,reX]){
+      const dx=(x-ecx)/(ew/2), dy=y/(eh/2)
+      const d=dx*dx+dy*dy
+      if(d<1){
+        // push vertices to edge of ellipse
+        const ang=Math.atan2(dy,dx)
+        const edgeX=ecx+Math.cos(ang)*ew/2*1.05
+        const edgeY=Math.sin(ang)*eh/2*1.05
+        const blend=Math.pow(1-d,.5)
+        pos.setX(i,x*(1-blend)+edgeX*blend)
+        pos.setY(i,y*(1-blend)+edgeY*blend)
       }
     }
-    // antennae
-    paths += `<path d="M ${sc(cx-3, cy-15)} Q ${sc(cx-15, cy-h*0.8)} ${sc(cx-20, cy-h*0.9)}" fill="none" stroke="#aa44ff" stroke-width="0.8" opacity="0.5"/>`
-    paths += `<path d="M ${sc(cx+3, cy-15)} Q ${sc(cx+15, cy-h*0.8)} ${sc(cx+20, cy-h*0.9)}" fill="none" stroke="#aa44ff" stroke-width="0.8" opacity="0.5"/>`
-    paths += `<circle cx="${ox+cx-20}" cy="${oy+cy-h*0.9}" r="2" fill="#aa44ff" opacity="0.4"/>`
-    paths += `<circle cx="${ox+cx+20}" cy="${oy+cy-h*0.9}" r="2" fill="#aa44ff" opacity="0.4"/>`
+  }
+  bodyGeo.computeVertexNormals()
+
+  // extrude — front face + back face + rim
+  const frontMat=new THREE.MeshPhongMaterial({color:0xd4a94a,emissive:0x221100,emissiveIntensity:.1,
+    side:THREE.FrontSide,shininess:60,specular:0x886633})
+  const backMat=new THREE.MeshPhongMaterial({color:0x553322,side:THREE.BackSide})
+
+  const front=new THREE.Mesh(bodyGeo.clone(),frontMat)
+  maskGroup.add(front)
+  const back=new THREE.Mesh(bodyGeo.clone(),backMat)
+  const backPos=back.geometry.attributes.position
+  for(let i=0;i<backPos.count;i++) backPos.setZ(i,backPos.getZ(i)-depth)
+  back.geometry.computeVertexNormals()
+  maskGroup.add(back)
+
+  // eye hole rims
+  for(const ecx of [-bw/2-ew/2-4, bw/2+ew/2+4]){
+    const rimGeo=new THREE.TorusGeometry(Math.max(ew,eh)/2,.8,8,32)
+    rimGeo.scale(ew/eh>1?1:eh/ew, ew/eh>1?eh/ew:1, 1)
+    const rim=new THREE.Mesh(rimGeo,new THREE.MeshPhongMaterial({color:0xdc143c,emissive:0x440000,emissiveIntensity:.2,shininess:40}))
+    rim.position.set(ecx,0,curve*(1-Math.pow(ecx/hw,2))-depth/2)
+    maskGroup.add(rim)
   }
 
-  if (style === 'floral') {
-    // flower petals around eyes
-    for (let side of [-1, 1]) {
-      const ex = side < 0 ? leX : reX
-      for (let i = 0; i < 6; i++) {
-        const a = i / 6 * Math.PI * 2
-        const pr = ew * 0.7
-        const px = ex + Math.cos(a) * pr, py = cy + Math.sin(a) * pr * 0.6
-        paths += `<ellipse cx="${ox+px}" cy="${oy+py}" rx="4" ry="2.5"
-          transform="rotate(${a*180/Math.PI+90} ${ox+px} ${oy+py})"
-          fill="none" stroke="#dc143c" stroke-width="0.6" opacity="0.35"/>`
+  // bridge arch
+  const bridgeGeo=new THREE.TorusGeometry(bw/2+2,1,6,16,Math.PI)
+  const bridge=new THREE.Mesh(bridgeGeo,new THREE.MeshPhongMaterial({color:0xd4a94a,shininess:40}))
+  bridge.position.set(0,eh/2+2,curve-depth/2)
+  bridge.rotation.z=Math.PI
+  maskGroup.add(bridge)
+
+  // ═══ STYLE DECORATIONS (3D) ═══
+  const decoMat=new THREE.MeshPhongMaterial({color:0xd4a94a,emissive:0x221100,emissiveIntensity:.15,shininess:50})
+  const accentMat=new THREE.MeshPhongMaterial({color:0xdc143c,emissive:0x440000,emissiveIntensity:.15,shininess:50})
+
+  if(style==='filigree'||style==='venetian'){
+    for(let i=0;i<filigree;i++){
+      for(const side of [-1,1]){
+        const baseX=side*(bw/2+ew+8+i*5)
+        const cy=0, cz=curve*(1-Math.pow(baseX/hw,2))
+        // scrollwork — torus knots
+        const scrollGeo=new THREE.TorusKnotGeometry(3+i*.5,.4,32,4,2,3)
+        const scroll=new THREE.Mesh(scrollGeo,decoMat)
+        scroll.position.set(baseX,cy-h*.1*(i/filigree),cz)
+        scroll.rotation.z=side*curl*2+i*.3
+        scroll.scale.setScalar(.6+curl*.4)
+        maskGroup.add(scroll)
       }
-      // center stamen
-      paths += `<circle cx="${ox+ex}" cy="${oy+cy-eh/2-6}" r="1.5" fill="#d4a94a" opacity="0.4"/>`
-      paths += `<circle cx="${ox+ex}" cy="${oy+cy+eh/2+6}" r="1.5" fill="#d4a94a" opacity="0.4"/>`
-    }
-    // vine curves along top
-    for (let i = 0; i < 3; i++) {
-      const vx = cx + (i - 1) * 30
-      paths += `<path d="M ${sc(vx, cy-h*0.35)} Q ${sc(vx+curl*15, cy-h*0.5)} ${sc(vx+8, cy-h*0.45)}" fill="none" stroke="#44aa44" stroke-width="0.5" opacity="0.3"/>`
     }
   }
 
-  if (style === 'geometric') {
-    // hexagonal lattice
-    const hexR = 6
-    for (let gx = -3; gx <= 3; gx++) {
-      for (let gy = -2; gy <= 2; gy++) {
-        const hx = cx + gx * hexR * 1.8 + (gy % 2) * hexR * 0.9
-        const hy = cy + gy * hexR * 1.5
-        const dL = Math.sqrt((hx-leX)**2+(hy-cy)**2), dR = Math.sqrt((hx-reX)**2+(hy-cy)**2)
-        if (dL < ew*0.7 || dR < ew*0.7) continue
-        if (hx < 5 || hx > w-5) continue
-        let hex = `M ${sc(hx+hexR, hy)}`
-        for (let k = 1; k <= 6; k++) hex += ` L ${sc(hx+Math.cos(k/6*Math.PI*2)*hexR, hy+Math.sin(k/6*Math.PI*2)*hexR)}`
-        paths += `<path d="${hex}" fill="none" stroke="#d4a94a" stroke-width="0.4" opacity="0.2"/>`
+  if(style==='butterfly'){
+    for(const side of [-1,1]){
+      const ecx=side*(bw/2+ew/2+4)
+      // upper wing
+      for(let i=0;i<4;i++){
+        const wingGeo=new THREE.TorusGeometry(12+i*4,.5,6,24,Math.PI*.6)
+        const wing=new THREE.Mesh(wingGeo,new THREE.MeshPhongMaterial({color:0xaa44ff,emissive:0x220044,emissiveIntensity:.2,shininess:40}))
+        wing.position.set(ecx+side*5,eh/2+3,curve*(1-Math.pow(ecx/hw,2))-i*1.5)
+        wing.rotation.z=side>0?Math.PI*.2:Math.PI*.8
+        maskGroup.add(wing)
+      }
+      // antenna
+      const antGeo=new THREE.CylinderGeometry(.3,.15,h*.5,4)
+      const ant=new THREE.Mesh(antGeo,decoMat)
+      ant.position.set(side*6,h*.3,curve-2)
+      ant.rotation.z=side*-.3
+      maskGroup.add(ant)
+      const tipGeo=new THREE.SphereGeometry(1.5,6,6)
+      const tip=new THREE.Mesh(tipGeo,new THREE.MeshPhongMaterial({color:0xaa44ff,emissive:0x440088,emissiveIntensity:.3}))
+      tip.position.set(side*8,h*.5,curve-4)
+      maskGroup.add(tip)
+    }
+  }
+
+  if(style==='floral'){
+    for(const side of [-1,1]){
+      const ecx=side*(bw/2+ew/2+4)
+      for(let i=0;i<6;i++){
+        const a=i/6*TAU
+        const petalGeo=new THREE.SphereGeometry(3,6,4)
+        petalGeo.scale(1,.3,.6)
+        const petal=new THREE.Mesh(petalGeo,accentMat)
+        const pr=ew/2+4
+        petal.position.set(ecx+Math.cos(a)*pr,Math.sin(a)*pr*.6,curve*(1-Math.pow(ecx/hw,2))+2)
+        petal.rotation.z=a
+        maskGroup.add(petal)
+      }
+      // stamen
+      const stamen=new THREE.Mesh(new THREE.SphereGeometry(1.5,6,6),decoMat)
+      stamen.position.set(ecx,eh/2+5,curve*(1-Math.pow(ecx/hw,2))+1)
+      maskGroup.add(stamen)
+    }
+    // vine along top
+    const vineGeo=new THREE.TorusGeometry(w*.3,.4,6,48,Math.PI*.8)
+    const vine=new THREE.Mesh(vineGeo,new THREE.MeshPhongMaterial({color:0x44aa44,emissive:0x002200,emissiveIntensity:.2}))
+    vine.position.set(0,hh*.6,curve-2)
+    vine.rotation.x=Math.PI*.5
+    maskGroup.add(vine)
+  }
+
+  if(style==='geometric'){
+    const hexR=5
+    for(let gx=-4;gx<=4;gx++){
+      for(let gy=-2;gy<=2;gy++){
+        const hx=gx*hexR*1.8+(gy%2)*hexR*.9
+        const hy=gy*hexR*1.5
+        const leX=-bw/2-ew/2-4, reX=bw/2+ew/2+4
+        const dL=Math.sqrt((hx-leX)**2+hy**2), dR=Math.sqrt((hx-reX)**2+hy**2)
+        if(dL<ew*.6||dR<ew*.6||Math.abs(hx)>hw*.85) continue
+        const hz=curve*(1-Math.pow(hx/hw,2))+depth/2+.5
+        const hexGeo=new THREE.CylinderGeometry(hexR*.8,hexR*.8,depth*.4,6)
+        const hex=new THREE.Mesh(hexGeo,new THREE.MeshPhongMaterial({color:0xd4a94a,wireframe:true,transparent:true,opacity:.6}))
+        hex.position.set(hx,hy,hz)
+        hex.rotation.x=Math.PI/2
+        maskGroup.add(hex)
       }
     }
   }
 
-  if (style === 'cats-eye') {
-    // dramatic upswept corners
-    for (let side of [-1, 1]) {
-      const ex = side < 0 ? leX : reX
-      const tipX = ex + side * ew * 0.9, tipY = cy - eh * 1.2
-      paths += `<path d="M ${sc(ex + side*ew/2, cy)} Q ${sc(tipX, cy-eh*0.5)} ${sc(tipX+side*10, tipY)}" fill="none" stroke="#dc143c" stroke-width="1" opacity="0.6"/>`
-      paths += `<path d="M ${sc(tipX+side*10, tipY)} Q ${sc(tipX+side*15, tipY-5)} ${sc(tipX+side*18, tipY-2)}" fill="none" stroke="#dc143c" stroke-width="0.8" opacity="0.4"/>`
-      // under-eye swoop
-      paths += `<path d="M ${sc(ex + side*ew/2, cy+2)} Q ${sc(ex + side*ew*0.7, cy+eh*0.6)} ${sc(ex + side*ew*0.3, cy+eh*0.8)}" fill="none" stroke="#d4a94a" stroke-width="0.6" opacity="0.35"/>`
+  if(style==='cats-eye'){
+    for(const side of [-1,1]){
+      const ecx=side*(bw/2+ew/2+4)
+      // dramatic upturn
+      const sweepGeo=new THREE.TorusGeometry(ew*.6,.6,6,16,Math.PI*.4)
+      const sweepMesh=new THREE.Mesh(sweepGeo,accentMat)
+      sweepMesh.position.set(ecx+side*ew*.4,eh*.4,curve*(1-Math.pow(ecx/hw,2)))
+      sweepMesh.rotation.z=side>0?-Math.PI*.2:Math.PI*1.2
+      maskGroup.add(sweepMesh)
+      // tip jewel
+      const jewel=new THREE.Mesh(new THREE.OctahedronGeometry(2,0),
+        new THREE.MeshPhongMaterial({color:0xdc143c,emissive:0x660000,emissiveIntensity:.4,shininess:80}))
+      jewel.position.set(ecx+side*ew*.9,eh*1.1,curve*(1-Math.pow((ecx+side*ew*.9)/hw,2))+2)
+      maskGroup.add(jewel)
     }
   }
 
-  // top decorative edge
-  if (style === 'venetian') {
-    for (let i = 0; i < 8; i++) {
-      const px = w * (i + 0.5) / 8
-      const peakH = 15 + Math.sin(i * 0.8) * 8
-      paths += `<path d="M ${sc(px-w/16, cy-h*0.35)} Q ${sc(px, cy-h*0.35-peakH)} ${sc(px+w/16, cy-h*0.35)}" fill="none" stroke="#d4a94a" stroke-width="0.7" opacity="0.4"/>`
+  if(style==='venetian'){
+    // crown scallops
+    for(let i=0;i<7;i++){
+      const px=(i-3)*w/7
+      const peakH=12+Math.sin(i*.9)*5
+      const crownGeo=new THREE.ConeGeometry(4,peakH,4)
+      const crown=new THREE.Mesh(crownGeo,decoMat)
+      crown.position.set(px,hh*.7+peakH/2,curve*(1-Math.pow(px/hw,2))-2)
+      maskGroup.add(crown)
+      // tip sphere
+      const tip=new THREE.Mesh(new THREE.SphereGeometry(1.5,6,6),accentMat)
+      tip.position.set(px,hh*.7+peakH+1,curve*(1-Math.pow(px/hw,2))-2)
+      maskGroup.add(tip)
     }
   }
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${svgW} ${svgH}" width="${svgW}" height="${svgH}">
-    <rect width="100%" height="100%" fill="#06030a"/>
-    ${paths}
-  </svg>`
+  // HUD
+  const verts=maskGroup.children.reduce((s,c)=>s+(c.geometry?.attributes?.position?.count||0),0)
+  const tris=maskGroup.children.reduce((s,c)=>s+(c.geometry?.index?.count||c.geometry?.attributes?.position?.count||0)/3,0)
+  document.getElementById('hud').innerHTML=
+    `🎭 MASK · ${style.toUpperCase()}\n${w}×${h}×${depth}mm\nverts: ${verts} · tris: ${Math.round(tris)}\ncurve: ${curve}mm · sweep: ${sweep}°`
 }
 
-// ═══ GALLERY MASKS ═══
-const MASKS = [
-  {name:'Filigree Elegance', style:'filigree', desc:'Classic Victorian scrollwork. Delicate curves frame almond-shaped eyes.', opts:{filigree:6,curl:0.7}},
-  {name:'Butterfly Dreams', style:'butterfly', desc:'Wings sweep upward from the eyes. Antennae curl toward the crown.', opts:{sweep:40,curl:0.5,w:190,h:90}},
-  {name:'Venetian Night', style:'venetian', desc:'Ornate top edge with scalloped peaks. Rich filigree detail.', opts:{filigree:8,curl:0.8,sweep:30}},
-  {name:'Garden Floral', style:'floral', desc:'Flower petals ring each eye. Vine curves along the brow line.', opts:{curl:0.6,ew:26,eh:18}},
-  {name:'Geometric Lattice', style:'geometric', desc:'Hexagonal honeycomb pattern fills the mask body. Modern meets vintage.', opts:{ew:30,eh:14,bw:16}},
-  {name:'Cat\'s Eye', style:'cats-eye', desc:'Dramatic upswept corners. Bold lines for maximum drama.', opts:{sweep:45,curl:0.5,ew:32,eh:14,h:70}},
-  {name:'Wide Filigree', style:'filigree', desc:'Extended width for fuller coverage. Dense scrollwork.', opts:{w:210,h:85,filigree:8,curl:0.9}},
-  {name:'Petite Butterfly', style:'butterfly', desc:'Smaller, delicate butterfly. Subtle wing curves.', opts:{w:160,h:65,sweep:30,curl:0.4}}
-]
-
-function renderGallery() {
-  const grid = document.getElementById('gallery')
-  grid.innerHTML = MASKS.map((m, i) => {
-    const svg = generateMask({...m.opts, style: m.style})
-    return `<div class="mask-card">
-      <h3>${m.name}</h3>
-      <p>${m.desc}</p>
-      ${svg}
-      <button onclick="downloadMaskSVG(${i})">⬇ SVG</button>
-      <button onclick="loadToCustom(${i})">✎ Edit</button>
-    </div>`
-  }).join('')
+function rebuild(){
+  const p=getParams();updateLabels(p);buildMask(p)
 }
 
-function downloadMaskSVG(idx) {
-  const m = MASKS[idx]
-  const svg = generateMask({...m.opts, style: m.style})
-  const blob = new Blob([svg], {type: 'image/svg+xml'})
-  const a = document.createElement('a')
-  a.href = URL.createObjectURL(blob)
-  a.download = `mask-${m.style}-${Date.now()}.svg`
-  a.click()
+function loadPreset(style,w,h,d,cv,ew,eh,bw,sw,fd,ci){
+  document.getElementById('p-style').value=style
+  document.getElementById('p-w').value=w;document.getElementById('p-h').value=h
+  document.getElementById('p-d').value=d;document.getElementById('p-cv').value=cv
+  document.getElementById('p-ew').value=ew;document.getElementById('p-eh').value=eh
+  document.getElementById('p-bw').value=bw;document.getElementById('p-sw').value=sw
+  document.getElementById('p-fd').value=fd;document.getElementById('p-ci').value=Math.round(ci*100)
+  rebuild()
 }
 
-function loadToCustom(idx) {
-  const m = MASKS[idx]
-  const o = {...{w:180,h:80,ew:28,eh:16,bw:14,sweep:35,filigree:5,curl:0.6}, ...m.opts}
-  document.getElementById('p-w').value = o.w
-  document.getElementById('p-h').value = o.h
-  document.getElementById('p-ew').value = o.ew
-  document.getElementById('p-eh').value = o.eh
-  document.getElementById('p-bw').value = o.bw
-  document.getElementById('p-sw').value = o.sweep
-  document.getElementById('p-fd').value = o.filigree
-  document.getElementById('p-ci').value = Math.round(o.curl * 100)
-  document.getElementById('p-style').value = m.style
-  switchTab('custom')
-  updateCustom()
+// ═══ STL EXPORT ═══
+function exportSTL(){
+  let stl='solid mask\n'
+  maskGroup.children.forEach(child=>{
+    if(!child.geometry)return
+    const geo=child.geometry.clone()
+    child.updateMatrixWorld()
+    geo.applyMatrix4(child.matrixWorld)
+    const pos=geo.attributes.position
+    const idx=geo.index
+    const triCount=idx?idx.count/3:pos.count/3
+    for(let i=0;i<triCount;i++){
+      const a=idx?idx.getX(i*3):i*3, b=idx?idx.getX(i*3+1):i*3+1, c=idx?idx.getX(i*3+2):i*3+2
+      const v0=new THREE.Vector3(pos.getX(a),pos.getY(a),pos.getZ(a))
+      const v1=new THREE.Vector3(pos.getX(b),pos.getY(b),pos.getZ(b))
+      const v2=new THREE.Vector3(pos.getX(c),pos.getY(c),pos.getZ(c))
+      const n=new THREE.Vector3().crossVectors(new THREE.Vector3().subVectors(v1,v0),new THREE.Vector3().subVectors(v2,v0)).normalize()
+      stl+=`facet normal ${n.x} ${n.y} ${n.z}\n outer loop\n`
+      stl+=`  vertex ${v0.x} ${v0.y} ${v0.z}\n  vertex ${v1.x} ${v1.y} ${v1.z}\n  vertex ${v2.x} ${v2.y} ${v2.z}\n`
+      stl+=` endloop\nendfacet\n`
+    }
+  })
+  stl+='endsolid mask\n'
+  const blob=new Blob([stl],{type:'application/sla'})
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob)
+  a.download=`mask-${document.getElementById('p-style').value}-${Date.now()}.stl`;a.click()
 }
 
-function updateCustom() {
-  const o = {
-    w: +document.getElementById('p-w').value,
-    h: +document.getElementById('p-h').value,
-    ew: +document.getElementById('p-ew').value,
-    eh: +document.getElementById('p-eh').value,
-    bw: +document.getElementById('p-bw').value,
-    sweep: +document.getElementById('p-sw').value,
-    filigree: +document.getElementById('p-fd').value,
-    curl: +document.getElementById('p-ci').value / 100,
-    style: document.getElementById('p-style').value
-  }
-  document.getElementById('v-w').textContent = o.w
-  document.getElementById('v-h').textContent = o.h
-  document.getElementById('v-ew').textContent = o.ew
-  document.getElementById('v-eh').textContent = o.eh
-  document.getElementById('v-bw').textContent = o.bw
-  document.getElementById('v-sw').textContent = o.sweep
-  document.getElementById('v-fd').textContent = o.filigree
-  document.getElementById('v-ci').textContent = o.curl.toFixed(2)
-  document.getElementById('preview').innerHTML = generateMask(o)
+// ═══ OBJ EXPORT ═══
+function exportOBJ(){
+  let obj='# Masquerade Mask\n',vOff=1
+  maskGroup.children.forEach(child=>{
+    if(!child.geometry)return
+    const geo=child.geometry.clone();child.updateMatrixWorld();geo.applyMatrix4(child.matrixWorld)
+    const pos=geo.attributes.position, idx=geo.index
+    obj+=`o ${child.geometry.type||'mesh'}\n`
+    for(let i=0;i<pos.count;i++) obj+=`v ${pos.getX(i)} ${pos.getY(i)} ${pos.getZ(i)}\n`
+    const triCount=idx?idx.count/3:pos.count/3
+    for(let i=0;i<triCount;i++){
+      const a=(idx?idx.getX(i*3):i*3)+vOff, b=(idx?idx.getX(i*3+1):i*3+1)+vOff, c=(idx?idx.getX(i*3+2):i*3+2)+vOff
+      obj+=`f ${a} ${b} ${c}\n`
+    }
+    vOff+=pos.count
+  })
+  const blob=new Blob([obj],{type:'text/plain'})
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob)
+  a.download=`mask-${document.getElementById('p-style').value}-${Date.now()}.obj`;a.click()
 }
 
-function downloadSVG() {
-  const svg = document.getElementById('preview').innerHTML
-  const blob = new Blob([svg], {type: 'image/svg+xml'})
-  const a = document.createElement('a')
-  a.href = URL.createObjectURL(blob)
-  a.download = `mask-custom-${Date.now()}.svg`
-  a.click()
+// ═══ ANIMATE ═══
+function animate(){
+  requestAnimationFrame(animate)
+  cam.position.x=Math.cos(orbitTh)*Math.cos(orbitPh)*orbitR
+  cam.position.y=Math.sin(orbitPh)*orbitR
+  cam.position.z=Math.sin(orbitTh)*Math.cos(orbitPh)*orbitR
+  cam.lookAt(0,0,0)
+  maskGroup.rotation.y+=.001
+  renderer.render(scene,cam)
 }
 
-// tabs
-function switchTab(t) {
-  document.querySelectorAll('.tab').forEach(b => b.classList.toggle('on', b.dataset.t === t))
-  document.getElementById('s-gallery').style.display = t === 'gallery' ? 'block' : 'none'
-  document.getElementById('s-custom').style.display = t === 'custom' ? 'block' : 'none'
-  if (t === 'custom') updateCustom()
-}
-document.querySelectorAll('.tab').forEach(t => t.onclick = () => switchTab(t.dataset.t))
-
-renderGallery()
+resize();rebuild();animate()
 </script>
 </body></html>
