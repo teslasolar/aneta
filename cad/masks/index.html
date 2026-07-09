@@ -1,425 +1,452 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Masquerade Masks — 3D Print STL</title>
+<title>Ornate Masks — 3D Lace STL</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#06030a;color:#c8c0d0;font-family:'Courier New',monospace;overflow:hidden}
 canvas{display:block;cursor:grab}canvas:active{cursor:grabbing}
-#panel{position:fixed;top:0;right:0;width:240px;height:100%;z-index:20;background:rgba(6,3,10,.95);
-  border-left:1px solid #dc143c15;overflow-y:auto;padding:10px;pointer-events:auto}
-#panel h2{font-size:9px;color:#dc143c;letter-spacing:2px;margin:8px 0 4px}
-#panel label{font-size:7px;color:#889;display:block;margin:3px 0 1px}
-#panel input[type=range]{width:100%;accent-color:#dc143c;height:12px}
-#panel select{background:#0a0610;border:1px solid #dc143c22;color:#c8c0d0;padding:2px 4px;font:7px monospace;width:100%;border-radius:2px}
+#panel{position:fixed;top:0;right:0;width:230px;height:100%;z-index:20;background:rgba(6,3,10,.96);
+  border-left:1px solid #dc143c15;overflow-y:auto;padding:8px;pointer-events:auto}
+#panel h2{font-size:8px;color:#dc143c;letter-spacing:2px;margin:6px 0 3px}
+#panel label{font-size:7px;color:#889;display:block;margin:2px 0 0}
+#panel input[type=range]{width:100%;accent-color:#dc143c;height:10px}
+#panel select{background:#0a0610;border:1px solid #dc143c22;color:#c8c0d0;padding:2px;font:7px monospace;width:100%;border-radius:2px}
 .val{font-size:7px;color:#d4a94a;float:right}
-.btn{background:#dc143c15;border:1px solid #dc143c33;color:#dc143c;padding:5px 10px;font:8px monospace;
-  cursor:pointer;border-radius:3px;width:100%;margin:3px 0;text-align:center;letter-spacing:1px}
+.btn{background:#dc143c15;border:1px solid #dc143c33;color:#dc143c;padding:4px 8px;font:8px monospace;
+  cursor:pointer;border-radius:3px;width:100%;margin:2px 0;text-align:center}
 .btn:hover{background:#dc143c25}
-.btn.green{background:#44aa4415;border-color:#44aa4433;color:#44aa44}
+.btn.grn{background:#44aa4415;border-color:#44aa4433;color:#44aa44}
 .preset{padding:3px 5px;margin:1px 0;background:#0a0610;border:1px solid #dc143c10;border-radius:2px;
   cursor:pointer;font-size:7px;color:#889;transition:all .2s}
 .preset:hover{border-color:#dc143c44;color:#dc143c}
-#hud{position:fixed;top:8px;left:10px;z-index:10;font-size:8px;color:rgba(220,20,60,.4);pointer-events:none;line-height:1.7}
-#back{position:fixed;bottom:6px;left:10px;z-index:20;font-size:8px;color:#556}
+#hud{position:fixed;top:6px;left:8px;z-index:10;font-size:8px;color:rgba(220,20,60,.4);pointer-events:none;line-height:1.6;white-space:pre}
+#back{position:fixed;bottom:5px;left:8px;z-index:20;font-size:8px;color:#556}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head><body>
-<div id="hud"></div>
-<a id="back" href="../">← cad</a>
-
+<div id="hud"></div><a id="back" href="../">← cad</a>
 <div id="panel">
-  <h2>🎭 MASK PARAMETERS</h2>
-
-  <label>Style</label>
+  <h2>🎭 ORNATE LACE MASKS</h2>
+  <label>Pattern</label>
   <select id="p-style" onchange="rebuild()">
-    <option value="filigree">Filigree</option>
-    <option value="butterfly">Butterfly</option>
-    <option value="venetian">Venetian</option>
-    <option value="floral">Floral</option>
-    <option value="geometric">Geometric</option>
-    <option value="cats-eye">Cat's Eye</option>
+    <option value="voronoi">Voronoi Organic</option>
+    <option value="filigree">Baroque Filigree</option>
+    <option value="floral-lace">Floral Lace</option>
+    <option value="butterfly-wing">Butterfly Wing</option>
+    <option value="gothic">Gothic Cathedral</option>
+    <option value="peacock">Peacock Feather</option>
   </select>
-
-  <label>Width <span class="val" id="v-w">180</span>mm</label>
-  <input type="range" id="p-w" min="140" max="240" value="180" oninput="rebuild()">
-  <label>Height <span class="val" id="v-h">80</span>mm</label>
-  <input type="range" id="p-h" min="50" max="130" value="80" oninput="rebuild()">
-  <label>Depth (thickness) <span class="val" id="v-d">3</span>mm</label>
-  <input type="range" id="p-d" min="1" max="8" value="3" oninput="rebuild()">
-  <label>Face Curve <span class="val" id="v-cv">25</span>mm</label>
-  <input type="range" id="p-cv" min="5" max="50" value="25" oninput="rebuild()">
-  <label>Eye Width <span class="val" id="v-ew">28</span>mm</label>
-  <input type="range" id="p-ew" min="16" max="42" value="28" oninput="rebuild()">
-  <label>Eye Height <span class="val" id="v-eh">16</span>mm</label>
-  <input type="range" id="p-eh" min="8" max="30" value="16" oninput="rebuild()">
-  <label>Bridge Width <span class="val" id="v-bw">14</span>mm</label>
-  <input type="range" id="p-bw" min="6" max="26" value="14" oninput="rebuild()">
-  <label>Wing Sweep <span class="val" id="v-sw">35</span>°</label>
-  <input type="range" id="p-sw" min="10" max="65" value="35" oninput="rebuild()">
-  <label>Filigree Density <span class="val" id="v-fd">5</span></label>
-  <input type="range" id="p-fd" min="0" max="14" value="5" oninput="rebuild()">
-  <label>Curl Intensity <span class="val" id="v-ci">0.60</span></label>
-  <input type="range" id="p-ci" min="0" max="100" value="60" oninput="rebuild()">
+  <label>Width <span class="val" id="v-w">170</span></label>
+  <input type="range" id="p-w" min="140" max="220" value="170" oninput="rebuild()">
+  <label>Height <span class="val" id="v-h">90</span></label>
+  <input type="range" id="p-h" min="60" max="130" value="90" oninput="rebuild()">
+  <label>Thickness <span class="val" id="v-d">1.6</span>mm</label>
+  <input type="range" id="p-d" min="8" max="40" value="16" oninput="rebuild()">
+  <label>Face Curve <span class="val" id="v-cv">22</span></label>
+  <input type="range" id="p-cv" min="5" max="45" value="22" oninput="rebuild()">
+  <label>Eye Width <span class="val" id="v-ew">28</span></label>
+  <input type="range" id="p-ew" min="20" max="40" value="28" oninput="rebuild()">
+  <label>Eye Height <span class="val" id="v-eh">16</span></label>
+  <input type="range" id="p-eh" min="10" max="28" value="16" oninput="rebuild()">
+  <label>Bridge <span class="val" id="v-bw">14</span></label>
+  <input type="range" id="p-bw" min="8" max="22" value="14" oninput="rebuild()">
+  <label>Gap % <span class="val" id="v-gap">55</span>%</label>
+  <input type="range" id="p-gap" min="20" max="80" value="55" oninput="rebuild()">
+  <label>Detail <span class="val" id="v-det">6</span></label>
+  <input type="range" id="p-det" min="2" max="12" value="6" oninput="rebuild()">
+  <label>Curl <span class="val" id="v-ci">0.65</span></label>
+  <input type="range" id="p-ci" min="10" max="100" value="65" oninput="rebuild()">
+  <label>Crest Height <span class="val" id="v-cr">15</span></label>
+  <input type="range" id="p-cr" min="0" max="40" value="15" oninput="rebuild()">
+  <label>Ribbon Width <span class="val" id="v-rw">3.0</span>mm</label>
+  <input type="range" id="p-rw" min="15" max="50" value="30" oninput="rebuild()">
 
   <h2>EXPORT</h2>
-  <div class="btn green" onclick="exportSTL()">⬇ DOWNLOAD .STL</div>
-  <div class="btn" onclick="exportOBJ()">⬇ DOWNLOAD .OBJ</div>
+  <div class="btn grn" onclick="exportSTL()">⬇ STL (3D Print)</div>
+  <div class="btn" onclick="exportOBJ()">⬇ OBJ (Blender)</div>
 
   <h2>PRESETS</h2>
-  <div class="preset" onclick="loadPreset('filigree',180,80,3,25,28,16,14,35,6,.7)">Filigree Elegance</div>
-  <div class="preset" onclick="loadPreset('butterfly',190,90,3,28,26,15,14,40,4,.5)">Butterfly Dreams</div>
-  <div class="preset" onclick="loadPreset('venetian',200,85,4,30,28,16,14,30,8,.8)">Venetian Night</div>
-  <div class="preset" onclick="loadPreset('floral',175,80,3,22,26,18,14,35,5,.6)">Garden Floral</div>
-  <div class="preset" onclick="loadPreset('geometric',185,78,3,25,30,14,16,32,0,.4)">Geometric Lattice</div>
-  <div class="preset" onclick="loadPreset('cats-eye',185,70,3,28,32,13,12,50,3,.5)">Cat's Eye</div>
-  <div class="preset" onclick="loadPreset('filigree',220,90,4,30,30,17,14,38,10,.9)">Grand Ball</div>
-  <div class="preset" onclick="loadPreset('butterfly',155,65,2,18,22,12,12,30,3,.4)">Petite</div>
+  <div class="preset" onclick="LP('voronoi',170,90,16,22,28,16,14,55,6,65,15,30)">Voronoi Organic</div>
+  <div class="preset" onclick="LP('filigree',180,95,18,25,26,15,14,50,8,80,20,25)">Baroque Filigree</div>
+  <div class="preset" onclick="LP('floral-lace',165,85,14,20,26,17,14,60,7,60,12,28)">Floral Lace</div>
+  <div class="preset" onclick="LP('butterfly-wing',190,100,16,28,28,14,12,55,5,50,25,30)">Butterfly Wing</div>
+  <div class="preset" onclick="LP('gothic',175,105,20,24,28,16,14,45,8,70,30,22)">Gothic Cathedral</div>
+  <div class="preset" onclick="LP('peacock',185,95,16,26,26,15,13,55,9,75,20,26)">Peacock Feather</div>
+  <div class="preset" onclick="LP('voronoi',200,110,20,30,30,18,16,65,10,50,0,35)">Voronoi Full Face</div>
+  <div class="preset" onclick="LP('filigree',155,75,12,18,24,14,12,60,10,90,10,20)">Delicate Filigree</div>
 </div>
 
 <script>
-const TAU=Math.PI*2, PHI=(1+Math.sqrt(5))/2
+const TAU=Math.PI*2,PHI=(1+Math.sqrt(5))/2
 
-// ═══ THREE.JS ═══
-const scene=new THREE.Scene(), cam=new THREE.PerspectiveCamera(45,1,.1,500)
+const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(45,1,.1,500)
 cam.position.set(0,0,200)
-const renderer=new THREE.WebGLRenderer({antialias:true})
-renderer.setPixelRatio(Math.min(devicePixelRatio,2))
-renderer.toneMapping=THREE.ACESFilmicToneMapping
-document.body.prepend(renderer.domElement)
+const R=new THREE.WebGLRenderer({antialias:true})
+R.setPixelRatio(Math.min(devicePixelRatio,2));R.toneMapping=THREE.ACESFilmicToneMapping
+document.body.prepend(R.domElement)
 scene.background=new THREE.Color(0x06030a)
+scene.add(new THREE.AmbientLight(0x334455,.5))
+const kL=new THREE.DirectionalLight(0xffeedd,.7);kL.position.set(40,60,100);scene.add(kL)
+const fL=new THREE.DirectionalLight(0xdc143c,.2);fL.position.set(-40,-20,60);scene.add(fL)
+const rL=new THREE.DirectionalLight(0xd4a94a,.25);rL.position.set(0,15,-60);scene.add(rL)
 
-scene.add(new THREE.AmbientLight(0x334455,.6))
-const keyLight=new THREE.DirectionalLight(0xffeedd,.8);keyLight.position.set(50,80,100);scene.add(keyLight)
-const fillLight=new THREE.DirectionalLight(0xdc143c,.2);fillLight.position.set(-50,-30,50);scene.add(fillLight)
-const rimLight=new THREE.DirectionalLight(0xd4a94a,.3);rimLight.position.set(0,20,-80);scene.add(rimLight)
+let MG=new THREE.Group();scene.add(MG)
 
-let maskGroup=new THREE.Group();scene.add(maskGroup)
-
-function resize(){
-  const w=innerWidth-240, h=innerHeight
-  cam.aspect=w/h;cam.updateProjectionMatrix()
-  renderer.setSize(w,h)
-}
+function resize(){const w=innerWidth-230,h=innerHeight;cam.aspect=w/h;cam.updateProjectionMatrix();R.setSize(w,h)}
 resize();addEventListener('resize',resize)
 
-// ═══ ORBIT ═══
-let orbitTh=0,orbitPh=0,orbitR=200,dragging=false,mx=0,my=0
-renderer.domElement.addEventListener('pointerdown',e=>{dragging=true;mx=e.clientX;my=e.clientY})
-addEventListener('pointerup',()=>dragging=false)
-addEventListener('pointermove',e=>{if(!dragging)return;orbitTh-=(e.clientX-mx)*.005;orbitPh+=(e.clientY-my)*.005;
-  orbitPh=Math.max(-1,Math.min(1,orbitPh));mx=e.clientX;my=e.clientY})
-renderer.domElement.addEventListener('wheel',e=>{orbitR=Math.max(60,Math.min(400,orbitR+e.deltaY*.2))},{passive:true})
+let oTh=0,oPh=0,oR=180,drag=false,mx=0,my=0
+R.domElement.addEventListener('pointerdown',e=>{drag=true;mx=e.clientX;my=e.clientY})
+addEventListener('pointerup',()=>drag=false)
+addEventListener('pointermove',e=>{if(!drag)return;oTh-=(e.clientX-mx)*.005;oPh+=(e.clientY-my)*.004;oPh=Math.max(-.8,Math.min(.8,oPh));mx=e.clientX;my=e.clientY})
+R.domElement.addEventListener('wheel',e=>{oR=Math.max(50,Math.min(350,oR+e.deltaY*.3))},{passive:true})
 
-// ═══ MASK GEOMETRY BUILDER ═══
-function getParams(){
-  const g=id=>+document.getElementById(id).value
-  return{style:document.getElementById('p-style').value,
-    w:g('p-w'),h:g('p-h'),depth:g('p-d'),curve:g('p-cv'),
-    ew:g('p-ew'),eh:g('p-eh'),bw:g('p-bw'),sweep:g('p-sw'),
-    filigree:g('p-fd'),curl:g('p-ci')/100}
+function P(){const g=id=>+document.getElementById(id).value;return{
+  style:document.getElementById('p-style').value,w:g('p-w'),h:g('p-h'),
+  depth:g('p-d')/10,curve:g('p-cv'),ew:g('p-ew'),eh:g('p-eh'),bw:g('p-bw'),
+  gap:g('p-gap')/100,detail:g('p-det'),curl:g('p-ci')/100,crest:g('p-cr'),
+  ribbon:g('p-rw')/10}}
+
+function UL(p){
+  const s=(id,v)=>document.getElementById(id).textContent=v
+  s('v-w',p.w);s('v-h',p.h);s('v-d',p.depth.toFixed(1));s('v-cv',p.curve);s('v-ew',p.ew);s('v-eh',p.eh)
+  s('v-bw',p.bw);s('v-gap',Math.round(p.gap*100));s('v-det',p.detail);s('v-ci',p.curl.toFixed(2))
+  s('v-cr',p.crest);s('v-rw',p.ribbon.toFixed(1))}
+
+// ═══ CURVED TUBE ALONG PATH ═══
+function tube(pts,radius,col,segs=8){
+  const curve=new THREE.CatmullRomCurve3(pts)
+  const geo=new THREE.TubeGeometry(curve,pts.length*4,radius,segs,false)
+  return new THREE.Mesh(geo,new THREE.MeshPhongMaterial({color:col,emissive:new THREE.Color(col).multiplyScalar(.15),shininess:50}))
 }
 
-function updateLabels(p){
-  document.getElementById('v-w').textContent=p.w
-  document.getElementById('v-h').textContent=p.h
-  document.getElementById('v-d').textContent=p.depth
-  document.getElementById('v-cv').textContent=p.curve
-  document.getElementById('v-ew').textContent=p.ew
-  document.getElementById('v-eh').textContent=p.eh
-  document.getElementById('v-bw').textContent=p.bw
-  document.getElementById('v-sw').textContent=p.sweep
-  document.getElementById('v-fd').textContent=p.filigree
-  document.getElementById('v-ci').textContent=p.curl.toFixed(2)
-}
+// project point onto curved face
+function faceZ(x,hw,curve){return curve*(1-Math.pow(x/hw,2))}
 
-function buildMask(p){
-  // clear old
-  while(maskGroup.children.length)maskGroup.remove(maskGroup.children[0])
+// ═══ MASK BUILDER ═══
+function build(p){
+  while(MG.children.length)MG.remove(MG.children[0])
+  const{w,h,depth,curve,ew,eh,bw,gap,detail,curl,crest,ribbon,style}=p
+  const hw=w/2,hh=h/2,rw=ribbon
+  const leX=-bw/2-ew/2-6,reX=bw/2+ew/2+6
+  const gold=0xd4a94a,crim=0xdc143c,dark=0x553322
 
-  const {w,h,depth,curve,ew,eh,bw,sweep,filigree,curl,style}=p
-  const hw=w/2, hh=h/2
+  function isInEye(x,y){
+    for(const ecx of[leX,reX]){if(((x-ecx)/(ew/2+2))**2+(y/(eh/2+2))**2<1)return true}
+    return false}
+  function isInMask(x,y){
+    const nx=x/hw,ny=y/hh
+    return nx*nx*.8+ny*ny*1.2<1}
 
-  // main mask body — curved surface
-  const resX=48, resY=24
-  const bodyGeo=new THREE.PlaneGeometry(w,h,resX,resY)
-  const pos=bodyGeo.attributes.position
-  for(let i=0;i<pos.count;i++){
-    const x=pos.getX(i), y=pos.getY(i)
-    // face curvature — cylindrical wrap
-    const curveFactor=curve*(1-Math.pow(x/hw,2))
-    pos.setZ(i,curveFactor)
+  // ═══ PERIMETER RIM ═══
+  const rimPts=[]
+  for(let i=0;i<=64;i++){
+    const a=i/64*TAU
+    const rx=Math.cos(a)*hw*.92,ry=Math.sin(a)*hh*.88
+    rimPts.push(new THREE.Vector3(rx,ry,faceZ(rx,hw,curve)))}
+  MG.add(tube(rimPts,rw*.6,gold))
 
-    // wing sweep — outer edges tilt back
-    const edgeDist=Math.abs(x)/hw
-    if(edgeDist>.6){
-      const sweepZ=-(edgeDist-.6)/.4*sweep*.5
-      pos.setZ(i,pos.getZ(i)+sweepZ)
-      pos.setY(i,pos.getY(i)-(edgeDist-.6)/.4*sweep*.3)
-    }
+  // eye rims
+  for(const ecx of[leX,reX]){
+    const ePts=[]
+    for(let i=0;i<=32;i++){
+      const a=i/32*TAU
+      const ex=ecx+Math.cos(a)*(ew/2+1),ey=Math.sin(a)*(eh/2+1)
+      ePts.push(new THREE.Vector3(ex,ey,faceZ(ex,hw,curve)+.5))}
+    MG.add(tube(ePts,rw*.5,crim))}
 
-    // top/bottom edge shaping
-    const nx=x/hw, ny=y/hh
-    const mask=1-Math.pow(ny,4)*.3
-    // taper ends
-    if(Math.abs(nx)>.7){
-      const taper=1-((Math.abs(nx)-.7)/.3)*.4
-      pos.setY(i,y*taper)
-    }
+  // bridge
+  const brPts=[]
+  for(let i=0;i<=12;i++){
+    const t=i/12,x=(leX+ew/2+2)*(1-t)+(reX-ew/2-2)*t
+    brPts.push(new THREE.Vector3(x,eh/2+3+Math.sin(t*Math.PI)*5,faceZ(x,hw,curve)+1))}
+  MG.add(tube(brPts,rw*.4,gold))
+  // lower bridge
+  const lbPts=brPts.map(p=>new THREE.Vector3(p.x,-p.y+eh*.3,p.z-.5))
+  MG.add(tube(lbPts,rw*.35,gold))
+
+  // ═══ PATTERN FILL ═══
+  if(style==='voronoi'){
+    // seeded voronoi-like cells
+    const seeds=[]
+    const cellCount=Math.round(15+detail*8)
+    for(let i=0;i<cellCount;i++){
+      const x=(Math.random()-.5)*w*.85,y=(Math.random()-.5)*h*.85
+      if(isInEye(x,y)||!isInMask(x,y))continue
+      seeds.push({x,y})}
+    // connect nearby seeds with curved tubes
+    seeds.forEach((s,i)=>{
+      seeds.forEach((t,j)=>{
+        if(j<=i)return
+        const d=Math.sqrt((s.x-t.x)**2+(s.y-t.y)**2)
+        if(d>w*(.15+gap*.15)||d<8)return
+        const mid={x:(s.x+t.x)/2+(Math.random()-.5)*d*.3,y:(s.y+t.y)/2+(Math.random()-.5)*d*.3}
+        MG.add(tube([
+          new THREE.Vector3(s.x,s.y,faceZ(s.x,hw,curve)),
+          new THREE.Vector3(mid.x,mid.y,faceZ(mid.x,hw,curve)+d*.05),
+          new THREE.Vector3(t.x,t.y,faceZ(t.x,hw,curve))
+        ],rw*.35,gold,4))
+      })
+      // node dot
+      const dot=new THREE.Mesh(new THREE.SphereGeometry(rw*.5,6,6),
+        new THREE.MeshPhongMaterial({color:gold,emissive:0x221100,shininess:60}))
+      dot.position.set(s.x,s.y,faceZ(s.x,hw,curve)+.3)
+      MG.add(dot)
+    })
   }
 
-  // cut eye holes by displacing vertices inward
-  for(let i=0;i<pos.count;i++){
-    const x=pos.getX(i), y=pos.getY(i)
-    // left eye center
-    const leX=-bw/2-ew/2-4, reX=bw/2+ew/2+4
-    for(const ecx of [leX,reX]){
-      const dx=(x-ecx)/(ew/2), dy=y/(eh/2)
-      const d=dx*dx+dy*dy
-      if(d<1){
-        // push vertices to edge of ellipse
-        const ang=Math.atan2(dy,dx)
-        const edgeX=ecx+Math.cos(ang)*ew/2*1.05
-        const edgeY=Math.sin(ang)*eh/2*1.05
-        const blend=Math.pow(1-d,.5)
-        pos.setX(i,x*(1-blend)+edgeX*blend)
-        pos.setY(i,y*(1-blend)+edgeY*blend)
+  if(style==='filigree'){
+    // C-scrolls and S-scrolls
+    for(let side of[-1,1]){
+      for(let i=0;i<detail;i++){
+        const baseX=side*(bw/2+ew+10+i*10),baseY=(i-detail/2)*8
+        if(!isInMask(baseX,baseY))continue
+        // C-scroll (log spiral)
+        const pts=[]
+        for(let t=0;t<20;t++){
+          const a=t*.4*curl*2,r=3+t*1.2*curl
+          pts.push(new THREE.Vector3(baseX+side*Math.cos(a)*r,baseY+Math.sin(a)*r,faceZ(baseX,hw,curve)+Math.sin(a)*2))}
+        MG.add(tube(pts,rw*.3,gold,4))
+        // mirror S-scroll
+        const pts2=pts.map(p=>new THREE.Vector3(p.x,p.y*-1+baseY*2,p.z))
+        MG.add(tube(pts2,rw*.25,gold,4))
+        // stud at terminus
+        const stud=new THREE.Mesh(new THREE.SphereGeometry(rw*.6,6,6),
+          new THREE.MeshPhongMaterial({color:crim,emissive:0x440000,shininess:80}))
+        stud.position.copy(pts[pts.length-1])
+        MG.add(stud)
       }
-    }
-  }
-  bodyGeo.computeVertexNormals()
-
-  // extrude — front face + back face + rim
-  const frontMat=new THREE.MeshPhongMaterial({color:0xd4a94a,emissive:0x221100,emissiveIntensity:.1,
-    side:THREE.FrontSide,shininess:60,specular:0x886633})
-  const backMat=new THREE.MeshPhongMaterial({color:0x553322,side:THREE.BackSide})
-
-  const front=new THREE.Mesh(bodyGeo.clone(),frontMat)
-  maskGroup.add(front)
-  const back=new THREE.Mesh(bodyGeo.clone(),backMat)
-  const backPos=back.geometry.attributes.position
-  for(let i=0;i<backPos.count;i++) backPos.setZ(i,backPos.getZ(i)-depth)
-  back.geometry.computeVertexNormals()
-  maskGroup.add(back)
-
-  // eye hole rims
-  for(const ecx of [-bw/2-ew/2-4, bw/2+ew/2+4]){
-    const rimGeo=new THREE.TorusGeometry(Math.max(ew,eh)/2,.8,8,32)
-    rimGeo.scale(ew/eh>1?1:eh/ew, ew/eh>1?eh/ew:1, 1)
-    const rim=new THREE.Mesh(rimGeo,new THREE.MeshPhongMaterial({color:0xdc143c,emissive:0x440000,emissiveIntensity:.2,shininess:40}))
-    rim.position.set(ecx,0,curve*(1-Math.pow(ecx/hw,2))-depth/2)
-    maskGroup.add(rim)
-  }
-
-  // bridge arch
-  const bridgeGeo=new THREE.TorusGeometry(bw/2+2,1,6,16,Math.PI)
-  const bridge=new THREE.Mesh(bridgeGeo,new THREE.MeshPhongMaterial({color:0xd4a94a,shininess:40}))
-  bridge.position.set(0,eh/2+2,curve-depth/2)
-  bridge.rotation.z=Math.PI
-  maskGroup.add(bridge)
-
-  // ═══ STYLE DECORATIONS (3D) ═══
-  const decoMat=new THREE.MeshPhongMaterial({color:0xd4a94a,emissive:0x221100,emissiveIntensity:.15,shininess:50})
-  const accentMat=new THREE.MeshPhongMaterial({color:0xdc143c,emissive:0x440000,emissiveIntensity:.15,shininess:50})
-
-  if(style==='filigree'||style==='venetian'){
-    for(let i=0;i<filigree;i++){
-      for(const side of [-1,1]){
-        const baseX=side*(bw/2+ew+8+i*5)
-        const cy=0, cz=curve*(1-Math.pow(baseX/hw,2))
-        // scrollwork — torus knots
-        const scrollGeo=new THREE.TorusKnotGeometry(3+i*.5,.4,32,4,2,3)
-        const scroll=new THREE.Mesh(scrollGeo,decoMat)
-        scroll.position.set(baseX,cy-h*.1*(i/filigree),cz)
-        scroll.rotation.z=side*curl*2+i*.3
-        scroll.scale.setScalar(.6+curl*.4)
-        maskGroup.add(scroll)
+      // connecting arcs between scrolls
+      for(let i=0;i<detail-1;i++){
+        const x1=side*(bw/2+ew+10+i*10),x2=side*(bw/2+ew+10+(i+1)*10)
+        const y1=(i-detail/2)*8,y2=(i+1-detail/2)*8
+        MG.add(tube([
+          new THREE.Vector3(x1,y1,faceZ(x1,hw,curve)),
+          new THREE.Vector3((x1+x2)/2,(y1+y2)/2+side*5,faceZ((x1+x2)/2,hw,curve)+3),
+          new THREE.Vector3(x2,y2,faceZ(x2,hw,curve))
+        ],rw*.2,gold,4))
       }
     }
   }
 
-  if(style==='butterfly'){
-    for(const side of [-1,1]){
-      const ecx=side*(bw/2+ew/2+4)
-      // upper wing
-      for(let i=0;i<4;i++){
-        const wingGeo=new THREE.TorusGeometry(12+i*4,.5,6,24,Math.PI*.6)
-        const wing=new THREE.Mesh(wingGeo,new THREE.MeshPhongMaterial({color:0xaa44ff,emissive:0x220044,emissiveIntensity:.2,shininess:40}))
-        wing.position.set(ecx+side*5,eh/2+3,curve*(1-Math.pow(ecx/hw,2))-i*1.5)
-        wing.rotation.z=side>0?Math.PI*.2:Math.PI*.8
-        maskGroup.add(wing)
+  if(style==='floral-lace'){
+    // flower rosettes connected by vine tendrils
+    const flowers=[]
+    for(let i=0;i<detail*3;i++){
+      const x=(Math.random()-.5)*w*.8,y=(Math.random()-.5)*h*.7
+      if(isInEye(x,y)||!isInMask(x,y))continue
+      flowers.push({x,y})
+      const z=faceZ(x,hw,curve)
+      // petals
+      for(let j=0;j<5;j++){
+        const a=j/5*TAU+i*.3
+        const px=x+Math.cos(a)*6,py=y+Math.sin(a)*6
+        MG.add(tube([
+          new THREE.Vector3(x,y,z+.5),
+          new THREE.Vector3((x+px)/2,(y+py)/2,z+2),
+          new THREE.Vector3(px,py,z+.5)
+        ],rw*.25,crim,4))
       }
-      // antenna
-      const antGeo=new THREE.CylinderGeometry(.3,.15,h*.5,4)
-      const ant=new THREE.Mesh(antGeo,decoMat)
-      ant.position.set(side*6,h*.3,curve-2)
-      ant.rotation.z=side*-.3
-      maskGroup.add(ant)
-      const tipGeo=new THREE.SphereGeometry(1.5,6,6)
-      const tip=new THREE.Mesh(tipGeo,new THREE.MeshPhongMaterial({color:0xaa44ff,emissive:0x440088,emissiveIntensity:.3}))
-      tip.position.set(side*8,h*.5,curve-4)
-      maskGroup.add(tip)
+      // center
+      const ctr=new THREE.Mesh(new THREE.SphereGeometry(rw*.4,6,6),
+        new THREE.MeshPhongMaterial({color:gold,emissive:0x221100,shininess:60}))
+      ctr.position.set(x,y,z+1);MG.add(ctr)
+    }
+    // vines connecting flowers
+    for(let i=0;i<flowers.length-1;i++){
+      const a=flowers[i],b=flowers[i+1]
+      const d=Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2)
+      if(d>50)continue
+      const mx=(a.x+b.x)/2+(Math.random()-.5)*10,my=(a.y+b.y)/2+(Math.random()-.5)*10
+      MG.add(tube([
+        new THREE.Vector3(a.x,a.y,faceZ(a.x,hw,curve)),
+        new THREE.Vector3(mx,my,faceZ(mx,hw,curve)+2),
+        new THREE.Vector3(b.x,b.y,faceZ(b.x,hw,curve))
+      ],rw*.2,0x44aa44,4))
     }
   }
 
-  if(style==='floral'){
-    for(const side of [-1,1]){
-      const ecx=side*(bw/2+ew/2+4)
-      for(let i=0;i<6;i++){
-        const a=i/6*TAU
-        const petalGeo=new THREE.SphereGeometry(3,6,4)
-        petalGeo.scale(1,.3,.6)
-        const petal=new THREE.Mesh(petalGeo,accentMat)
-        const pr=ew/2+4
-        petal.position.set(ecx+Math.cos(a)*pr,Math.sin(a)*pr*.6,curve*(1-Math.pow(ecx/hw,2))+2)
-        petal.rotation.z=a
-        maskGroup.add(petal)
+  if(style==='butterfly-wing'){
+    for(let side of[-1,1]){
+      const ecx=side*(bw/2+ew/2+6)
+      // wing veins radiating from eye
+      for(let i=0;i<detail+3;i++){
+        const a=(i/(detail+3))*(Math.PI*.7)+Math.PI*.15
+        const len=30+i*5+Math.random()*10
+        const pts=[]
+        for(let t=0;t<=10;t++){
+          const frac=t/10
+          const vx=ecx+side*Math.cos(a)*len*frac
+          const vy=Math.sin(a)*len*frac+Math.sin(frac*Math.PI)*curl*15
+          if(!isInMask(vx,vy)&&frac>.3)break
+          pts.push(new THREE.Vector3(vx,vy,faceZ(vx,hw,curve)+frac*3))}
+        if(pts.length>3) MG.add(tube(pts,rw*(.35-.02*i),gold,4))
+        // cross veins
+        if(i>0&&pts.length>5){
+          const p1=pts[Math.floor(pts.length*.4)],p2=pts[Math.floor(pts.length*.7)]
+          const prevA=((i-1)/(detail+3))*(Math.PI*.7)+Math.PI*.15
+          const px=ecx+side*Math.cos(prevA)*len*.55
+          const py=Math.sin(prevA)*len*.55
+          MG.add(tube([p1,new THREE.Vector3(px,py,faceZ(px,hw,curve)+2)],rw*.15,gold,3))
+        }
       }
-      // stamen
-      const stamen=new THREE.Mesh(new THREE.SphereGeometry(1.5,6,6),decoMat)
-      stamen.position.set(ecx,eh/2+5,curve*(1-Math.pow(ecx/hw,2))+1)
-      maskGroup.add(stamen)
-    }
-    // vine along top
-    const vineGeo=new THREE.TorusGeometry(w*.3,.4,6,48,Math.PI*.8)
-    const vine=new THREE.Mesh(vineGeo,new THREE.MeshPhongMaterial({color:0x44aa44,emissive:0x002200,emissiveIntensity:.2}))
-    vine.position.set(0,hh*.6,curve-2)
-    vine.rotation.x=Math.PI*.5
-    maskGroup.add(vine)
-  }
-
-  if(style==='geometric'){
-    const hexR=5
-    for(let gx=-4;gx<=4;gx++){
-      for(let gy=-2;gy<=2;gy++){
-        const hx=gx*hexR*1.8+(gy%2)*hexR*.9
-        const hy=gy*hexR*1.5
-        const leX=-bw/2-ew/2-4, reX=bw/2+ew/2+4
-        const dL=Math.sqrt((hx-leX)**2+hy**2), dR=Math.sqrt((hx-reX)**2+hy**2)
-        if(dL<ew*.6||dR<ew*.6||Math.abs(hx)>hw*.85) continue
-        const hz=curve*(1-Math.pow(hx/hw,2))+depth/2+.5
-        const hexGeo=new THREE.CylinderGeometry(hexR*.8,hexR*.8,depth*.4,6)
-        const hex=new THREE.Mesh(hexGeo,new THREE.MeshPhongMaterial({color:0xd4a94a,wireframe:true,transparent:true,opacity:.6}))
-        hex.position.set(hx,hy,hz)
-        hex.rotation.x=Math.PI/2
-        maskGroup.add(hex)
+      // wing edge scallops
+      for(let i=0;i<8;i++){
+        const a=(i/8)*(Math.PI*.6)+Math.PI*.2
+        const r1=hw*.7,r2=hw*.85
+        const x1=ecx+side*Math.cos(a)*r1*.5,y1=Math.sin(a)*hh*.7
+        const x2=ecx+side*Math.cos(a)*r2*.5,y2=Math.sin(a)*hh*.85
+        if(!isInMask(x2,y2))continue
+        MG.add(tube([
+          new THREE.Vector3(x1,y1,faceZ(x1,hw,curve)),
+          new THREE.Vector3((x1+x2)/2,(y1+y2)/2,faceZ((x1+x2)/2,hw,curve)+2),
+          new THREE.Vector3(x2,y2,faceZ(x2,hw,curve))
+        ],rw*.2,0xaa44ff,4))
       }
     }
   }
 
-  if(style==='cats-eye'){
-    for(const side of [-1,1]){
-      const ecx=side*(bw/2+ew/2+4)
-      // dramatic upturn
-      const sweepGeo=new THREE.TorusGeometry(ew*.6,.6,6,16,Math.PI*.4)
-      const sweepMesh=new THREE.Mesh(sweepGeo,accentMat)
-      sweepMesh.position.set(ecx+side*ew*.4,eh*.4,curve*(1-Math.pow(ecx/hw,2)))
-      sweepMesh.rotation.z=side>0?-Math.PI*.2:Math.PI*1.2
-      maskGroup.add(sweepMesh)
-      // tip jewel
-      const jewel=new THREE.Mesh(new THREE.OctahedronGeometry(2,0),
-        new THREE.MeshPhongMaterial({color:0xdc143c,emissive:0x660000,emissiveIntensity:.4,shininess:80}))
-      jewel.position.set(ecx+side*ew*.9,eh*1.1,curve*(1-Math.pow((ecx+side*ew*.9)/hw,2))+2)
-      maskGroup.add(jewel)
+  if(style==='gothic'){
+    // pointed arch tracery
+    for(let i=0;i<detail;i++){
+      for(let side of[-1,1]){
+        const baseX=side*(10+i*12),baseY=-hh*.2
+        if(!isInMask(baseX,hh*.6))continue
+        // pointed arch
+        const archPts=[]
+        for(let t=0;t<=16;t++){
+          const frac=t/16
+          const x=baseX+Math.sin(frac*Math.PI)*side*4
+          const y=baseY+frac*(h*.7+crest)
+          const peak=Math.sin(frac*Math.PI)*8
+          archPts.push(new THREE.Vector3(x,y,faceZ(x,hw,curve)+peak*.3))}
+        MG.add(tube(archPts,rw*.3,gold,4))
+        // trefoil at top
+        if(crest>5){
+          const topY=baseY+h*.7+crest
+          for(let j=0;j<3;j++){
+            const a=j/3*TAU-Math.PI/2
+            const lPts=[]
+            for(let t=0;t<=8;t++){
+              const la=a+t/8*TAU/3
+              lPts.push(new THREE.Vector3(baseX+Math.cos(la)*4,topY+Math.sin(la)*4+4,faceZ(baseX,hw,curve)+3))}
+            MG.add(tube(lPts,rw*.2,crim,3))}
+        }
+      }
+    }
+    // horizontal tracery bars
+    for(let i=0;i<3;i++){
+      const y=-hh*.2+i*h*.25
+      const barPts=[]
+      for(let t=0;t<=20;t++){
+        const x=(t/20-.5)*w*.8
+        if(!isInMask(x,y)||isInEye(x,y))continue
+        barPts.push(new THREE.Vector3(x,y,faceZ(x,hw,curve)+.5))}
+      if(barPts.length>3)MG.add(tube(barPts,rw*.25,gold,4))
     }
   }
 
-  if(style==='venetian'){
-    // crown scallops
-    for(let i=0;i<7;i++){
-      const px=(i-3)*w/7
-      const peakH=12+Math.sin(i*.9)*5
-      const crownGeo=new THREE.ConeGeometry(4,peakH,4)
-      const crown=new THREE.Mesh(crownGeo,decoMat)
-      crown.position.set(px,hh*.7+peakH/2,curve*(1-Math.pow(px/hw,2))-2)
-      maskGroup.add(crown)
-      // tip sphere
-      const tip=new THREE.Mesh(new THREE.SphereGeometry(1.5,6,6),accentMat)
-      tip.position.set(px,hh*.7+peakH+1,curve*(1-Math.pow(px/hw,2))-2)
-      maskGroup.add(tip)
+  if(style==='peacock'){
+    for(let side of[-1,1]){
+      const ecx=side*(bw/2+ew/2+6)
+      // feather spines radiating
+      for(let i=0;i<detail+2;i++){
+        const a=(i/(detail+2))*(Math.PI*.8)+Math.PI*.1
+        const len=25+i*4
+        const spine=[]
+        for(let t=0;t<=12;t++){
+          const f=t/12
+          const vx=ecx+side*Math.cos(a)*len*f
+          const vy=Math.sin(a)*len*f
+          if(!isInMask(vx,vy)&&f>.2)break
+          spine.push(new THREE.Vector3(vx,vy,faceZ(vx,hw,curve)+f*2))}
+        if(spine.length>4){
+          MG.add(tube(spine,rw*.25,gold,4))
+          // eye spot at tip
+          const tip=spine[spine.length-1]
+          const eye=new THREE.Mesh(new THREE.TorusGeometry(3,.6,6,12),
+            new THREE.MeshPhongMaterial({color:0x00aadd,emissive:0x004466,shininess:60}))
+          eye.position.copy(tip);eye.position.z+=1
+          MG.add(eye)
+          const pupil=new THREE.Mesh(new THREE.SphereGeometry(1.5,6,6),
+            new THREE.MeshPhongMaterial({color:0x44aa44,emissive:0x002200,shininess:80}))
+          pupil.position.copy(tip);pupil.position.z+=1.5
+          MG.add(pupil)
+          // barbs
+          for(let b=2;b<spine.length-1;b++){
+            const sp=spine[b]
+            const perpA=a+Math.PI/2
+            for(let bs of[-1,1]){
+              const barbEnd=new THREE.Vector3(sp.x+Math.cos(perpA)*bs*5*curl,sp.y+Math.sin(perpA)*bs*5*curl,sp.z+1)
+              MG.add(tube([sp.clone(),barbEnd],rw*.12,0x00aadd,3))}
+          }
+        }
+      }
+    }
+  }
+
+  // ═══ CREST ═══
+  if(crest>3){
+    for(let i=0;i<5;i++){
+      const x=(i-2)*8
+      const pts=[]
+      for(let t=0;t<=8;t++){
+        const f=t/8
+        pts.push(new THREE.Vector3(x+Math.sin(f*Math.PI)*curl*5,hh*.75+f*crest,faceZ(x,hw,curve)-f*3))}
+      MG.add(tube(pts,rw*(.3-.03*Math.abs(i-2)),gold,4))
     }
   }
 
   // HUD
-  const verts=maskGroup.children.reduce((s,c)=>s+(c.geometry?.attributes?.position?.count||0),0)
-  const tris=maskGroup.children.reduce((s,c)=>s+(c.geometry?.index?.count||c.geometry?.attributes?.position?.count||0)/3,0)
+  let vc=0,tc=0;MG.traverse(c=>{if(c.geometry){vc+=c.geometry.attributes.position.count
+    tc+=(c.geometry.index?.count||c.geometry.attributes.position.count)/3}})
   document.getElementById('hud').innerHTML=
-    `🎭 MASK · ${style.toUpperCase()}\n${w}×${h}×${depth}mm\nverts: ${verts} · tris: ${Math.round(tris)}\ncurve: ${curve}mm · sweep: ${sweep}°`
+    `🎭 ${style.toUpperCase()}\n${w}×${h} · ${p.depth.toFixed(1)}mm thick\ngap: ${Math.round(gap*100)}% · ribbon: ${ribbon.toFixed(1)}mm\nverts: ${vc} · tris: ${Math.round(tc)}\n${MG.children.length} elements`
 }
 
-function rebuild(){
-  const p=getParams();updateLabels(p);buildMask(p)
-}
+function rebuild(){const p=P();UL(p);build(p)}
+function LP(s,w,h,d,cv,ew,eh,bw,gap,det,ci,cr,rw){
+  document.getElementById('p-style').value=s
+  ;['w','h','d','cv','ew','eh','bw','gap','det','ci','cr','rw'].forEach((k,i)=>{
+    document.getElementById('p-'+k).value=[w,h,d,cv,ew,eh,bw,gap,det,ci,cr,rw][i]})
+  rebuild()}
 
-function loadPreset(style,w,h,d,cv,ew,eh,bw,sw,fd,ci){
-  document.getElementById('p-style').value=style
-  document.getElementById('p-w').value=w;document.getElementById('p-h').value=h
-  document.getElementById('p-d').value=d;document.getElementById('p-cv').value=cv
-  document.getElementById('p-ew').value=ew;document.getElementById('p-eh').value=eh
-  document.getElementById('p-bw').value=bw;document.getElementById('p-sw').value=sw
-  document.getElementById('p-fd').value=fd;document.getElementById('p-ci').value=Math.round(ci*100)
-  rebuild()
-}
-
-// ═══ STL EXPORT ═══
+// ═══ EXPORT ═══
 function exportSTL(){
   let stl='solid mask\n'
-  maskGroup.children.forEach(child=>{
-    if(!child.geometry)return
-    const geo=child.geometry.clone()
-    child.updateMatrixWorld()
-    geo.applyMatrix4(child.matrixWorld)
-    const pos=geo.attributes.position
-    const idx=geo.index
-    const triCount=idx?idx.count/3:pos.count/3
-    for(let i=0;i<triCount;i++){
-      const a=idx?idx.getX(i*3):i*3, b=idx?idx.getX(i*3+1):i*3+1, c=idx?idx.getX(i*3+2):i*3+2
+  MG.traverse(c=>{
+    if(!c.geometry||!c.isMesh)return
+    const geo=c.geometry.clone();c.updateMatrixWorld();geo.applyMatrix4(c.matrixWorld)
+    const pos=geo.attributes.position,idx=geo.index
+    const n=idx?idx.count/3:pos.count/3
+    for(let i=0;i<n;i++){
+      const a=idx?idx.getX(i*3):i*3,b=idx?idx.getX(i*3+1):i*3+1,cc=idx?idx.getX(i*3+2):i*3+2
       const v0=new THREE.Vector3(pos.getX(a),pos.getY(a),pos.getZ(a))
       const v1=new THREE.Vector3(pos.getX(b),pos.getY(b),pos.getZ(b))
-      const v2=new THREE.Vector3(pos.getX(c),pos.getY(c),pos.getZ(c))
-      const n=new THREE.Vector3().crossVectors(new THREE.Vector3().subVectors(v1,v0),new THREE.Vector3().subVectors(v2,v0)).normalize()
-      stl+=`facet normal ${n.x} ${n.y} ${n.z}\n outer loop\n`
-      stl+=`  vertex ${v0.x} ${v0.y} ${v0.z}\n  vertex ${v1.x} ${v1.y} ${v1.z}\n  vertex ${v2.x} ${v2.y} ${v2.z}\n`
-      stl+=` endloop\nendfacet\n`
-    }
-  })
+      const v2=new THREE.Vector3(pos.getX(cc),pos.getY(cc),pos.getZ(cc))
+      const nm=new THREE.Vector3().crossVectors(new THREE.Vector3().subVectors(v1,v0),new THREE.Vector3().subVectors(v2,v0)).normalize()
+      stl+=`facet normal ${nm.x} ${nm.y} ${nm.z}\n outer loop\n  vertex ${v0.x} ${v0.y} ${v0.z}\n  vertex ${v1.x} ${v1.y} ${v1.z}\n  vertex ${v2.x} ${v2.y} ${v2.z}\n endloop\nendfacet\n`}})
   stl+='endsolid mask\n'
-  const blob=new Blob([stl],{type:'application/sla'})
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob)
-  a.download=`mask-${document.getElementById('p-style').value}-${Date.now()}.stl`;a.click()
-}
+  const bl=new Blob([stl],{type:'application/sla'}),a=document.createElement('a')
+  a.href=URL.createObjectURL(bl);a.download=`mask-${document.getElementById('p-style').value}-${Date.now()}.stl`;a.click()}
 
-// ═══ OBJ EXPORT ═══
 function exportOBJ(){
-  let obj='# Masquerade Mask\n',vOff=1
-  maskGroup.children.forEach(child=>{
-    if(!child.geometry)return
-    const geo=child.geometry.clone();child.updateMatrixWorld();geo.applyMatrix4(child.matrixWorld)
-    const pos=geo.attributes.position, idx=geo.index
-    obj+=`o ${child.geometry.type||'mesh'}\n`
-    for(let i=0;i<pos.count;i++) obj+=`v ${pos.getX(i)} ${pos.getY(i)} ${pos.getZ(i)}\n`
-    const triCount=idx?idx.count/3:pos.count/3
-    for(let i=0;i<triCount;i++){
-      const a=(idx?idx.getX(i*3):i*3)+vOff, b=(idx?idx.getX(i*3+1):i*3+1)+vOff, c=(idx?idx.getX(i*3+2):i*3+2)+vOff
-      obj+=`f ${a} ${b} ${c}\n`
-    }
-    vOff+=pos.count
-  })
-  const blob=new Blob([obj],{type:'text/plain'})
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob)
-  a.download=`mask-${document.getElementById('p-style').value}-${Date.now()}.obj`;a.click()
-}
+  let obj='# Ornate Mask\n',vo=1
+  MG.traverse(c=>{
+    if(!c.geometry||!c.isMesh)return
+    const geo=c.geometry.clone();c.updateMatrixWorld();geo.applyMatrix4(c.matrixWorld)
+    const pos=geo.attributes.position,idx=geo.index
+    for(let i=0;i<pos.count;i++)obj+=`v ${pos.getX(i)} ${pos.getY(i)} ${pos.getZ(i)}\n`
+    const n=idx?idx.count/3:pos.count/3
+    for(let i=0;i<n;i++){const a=(idx?idx.getX(i*3):i*3)+vo,b=(idx?idx.getX(i*3+1):i*3+1)+vo,cc=(idx?idx.getX(i*3+2):i*3+2)+vo;obj+=`f ${a} ${b} ${cc}\n`}
+    vo+=pos.count})
+  const bl=new Blob([obj],{type:'text/plain'}),a=document.createElement('a')
+  a.href=URL.createObjectURL(bl);a.download=`mask-${document.getElementById('p-style').value}-${Date.now()}.obj`;a.click()}
 
-// ═══ ANIMATE ═══
-function animate(){
-  requestAnimationFrame(animate)
-  cam.position.x=Math.cos(orbitTh)*Math.cos(orbitPh)*orbitR
-  cam.position.y=Math.sin(orbitPh)*orbitR
-  cam.position.z=Math.sin(orbitTh)*Math.cos(orbitPh)*orbitR
-  cam.lookAt(0,0,0)
-  maskGroup.rotation.y+=.001
-  renderer.render(scene,cam)
-}
+function animate(){requestAnimationFrame(animate)
+  cam.position.x=Math.cos(oTh)*Math.cos(oPh)*oR;cam.position.y=Math.sin(oPh)*oR;cam.position.z=Math.sin(oTh)*Math.cos(oPh)*oR
+  cam.lookAt(0,0,0);MG.rotation.y+=.0008;R.render(scene,cam)}
 
-resize();rebuild();animate()
+rebuild();animate()
 </script>
 </body></html>
