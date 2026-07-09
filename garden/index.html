@@ -1,0 +1,364 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Garden — Aneta</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#06030a;overflow:hidden;font-family:'Courier New',monospace;color:#c8c0d0}
+canvas{display:block;cursor:grab}canvas:active{cursor:grabbing}
+#hud{position:fixed;top:10px;left:12px;z-index:10;font-size:8px;color:rgba(220,20,60,.4);line-height:1.7;pointer-events:none;white-space:pre}
+#hud .v{color:rgba(220,20,60,.7)}
+#tip{position:fixed;z-index:100;background:rgba(6,3,10,.95);border:1px solid #dc143c33;border-radius:4px;
+  padding:8px 12px;max-width:260px;display:none;pointer-events:none;font-size:9px;line-height:1.5}
+#tip .tt{color:#dc143c;font-weight:bold;margin-bottom:3px}
+#tip .td{color:#889}
+#tip .tk{color:#d4a94a;font-size:8px;margin-top:4px}
+#panel{position:fixed;top:10px;right:12px;z-index:20;width:220px;pointer-events:auto}
+#panel h3{font-size:9px;color:#dc143c;letter-spacing:2px;margin-bottom:4px}
+#panel select,#panel input,#panel button{background:#0a0610;border:1px solid #dc143c22;color:#c8c0d0;
+  padding:3px 6px;font:8px monospace;border-radius:3px;width:100%;margin:2px 0}
+#panel button{background:#dc143c12;border-color:#dc143c33;color:#dc143c;cursor:pointer;text-align:center}
+#panel button:hover{background:#dc143c22}
+.preset{padding:4px 6px;margin:2px 0;background:#0a0610;border:1px solid #dc143c10;border-radius:3px;
+  cursor:pointer;font-size:8px;color:#889;transition:all .2s}
+.preset:hover{border-color:#dc143c44;color:#dc143c}
+#back{position:fixed;bottom:8px;left:12px;z-index:20;font-size:9px;color:#556}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head><body>
+<canvas id="cv"></canvas>
+<div id="hud"></div>
+<div id="tip"></div>
+<a id="back" href="../">← aneta</a>
+
+<div id="panel">
+  <h3>🌿 GARDEN</h3>
+  <select id="source" onchange="loadSource()">
+    <option value="aneta">Aneta Modules</option>
+    <option value="repos">GitHub Repos</option>
+    <option value="medical">Medical Modules</option>
+    <option value="songs">Songs</option>
+    <option value="custom">Custom JSON</option>
+  </select>
+  <input id="gh-input" placeholder="owner/repo or owner" style="display:none">
+  <button id="gh-btn" onclick="loadGitHub()" style="display:none">Grow</button>
+  <textarea id="custom-input" placeholder='[{"name":"Node","size":5,"color":"#f44","children":[...]}]' style="display:none;height:60px;resize:vertical" ></textarea>
+  <button id="custom-btn" onclick="loadCustom()" style="display:none">Plant</button>
+  <div style="margin-top:8px">
+    <div class="preset" onclick="loadSource('aneta')">🌸 Aneta Platform</div>
+    <div class="preset" onclick="loadSource('medical')">🧬 Medical Architecture</div>
+    <div class="preset" onclick="loadSource('songs')">🎵 Music Collection</div>
+    <div class="preset" onclick="loadGH('teslasolar')">🌲 teslasolar Forest</div>
+    <div class="preset" onclick="loadGH('teslasolar/aneta')">🌳 aneta Repo</div>
+    <div class="preset" onclick="loadGH('teslasolar/AudioFabric')">🎧 AudioFabric</div>
+  </div>
+</div>
+
+<script>
+const TAU=Math.PI*2, PHI=(1+Math.sqrt(5))/2, GA=TAU/PHI/PHI
+const P=[2,3,5,7,11,13,17]
+const RCOL=[0x993366,0x00aadd,0xffaa00,0xff4444,0x44aa44,0xaa44ff,0xcccccc]
+
+// ═══ THREE.JS ═══
+const scene=new THREE.Scene(), cam=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,200)
+cam.position.set(0,12,25)
+const R=new THREE.WebGLRenderer({canvas:document.getElementById('cv'),antialias:true})
+R.setSize(innerWidth,innerHeight);R.setPixelRatio(Math.min(devicePixelRatio,2))
+R.toneMapping=THREE.ACESFilmicToneMapping
+scene.background=new THREE.Color(0x06030a)
+scene.fog=new THREE.FogExp2(0x06030a,.012)
+
+// lights
+scene.add(new THREE.AmbientLight(0x1a1020,.5))
+const sun=new THREE.DirectionalLight(0xd4a94a,.3);sun.position.set(10,20,10);scene.add(sun)
+const pL=new THREE.PointLight(0xdc143c,.2,30);pL.position.set(0,8,0);scene.add(pL)
+
+// ground
+const groundGeo=new THREE.PlaneGeometry(200,200,40,40)
+const groundMat=new THREE.MeshBasicMaterial({color:0x0a0610,transparent:true,opacity:.8})
+const ground=new THREE.Mesh(groundGeo,groundMat);ground.rotation.x=-Math.PI/2;scene.add(ground)
+// grid lines
+const gridGeo=new THREE.PlaneGeometry(200,200,40,40)
+const gridMat=new THREE.MeshBasicMaterial({color:0xdc143c,wireframe:true,transparent:true,opacity:.03})
+const grid=new THREE.Mesh(gridGeo,gridMat);grid.rotation.x=-Math.PI/2;grid.position.y=.01;scene.add(grid)
+
+// stars
+const starGeo=new THREE.BufferGeometry(),starPos=new Float32Array(2000*3)
+for(let i=0;i<6000;i++)starPos[i]=(Math.random()-.5)*100
+starGeo.setAttribute('position',new THREE.BufferAttribute(starPos,3))
+scene.add(new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xffffff,size:.08,transparent:true,opacity:.3})))
+
+// ═══ TREE BUILDER ═══
+const trees=[],clickables=[]
+
+function clearGarden(){
+  trees.forEach(t=>scene.remove(t));trees.length=0;clickables.length=0
+}
+
+function createTrunk(h,r,color){
+  const geo=new THREE.CylinderGeometry(r*.3,r,h,8)
+  const mat=new THREE.MeshPhongMaterial({color:color||0x553322,emissive:color||0x221100,emissiveIntensity:.1})
+  const m=new THREE.Mesh(geo,mat);m.position.y=h/2;return m
+}
+
+function createLeaves(size,color){
+  const geo=new THREE.IcosahedronGeometry(size,1)
+  const mat=new THREE.MeshPhongMaterial({color:color||0x228833,transparent:true,opacity:.4,emissive:color||0x114422,emissiveIntensity:.1})
+  return new THREE.Mesh(geo,mat)
+}
+
+function createFlower(size,color){
+  const g=new THREE.Group()
+  // petals
+  for(let i=0;i<5;i++){
+    const petal=new THREE.Mesh(new THREE.SphereGeometry(size*.4,6,4),
+      new THREE.MeshBasicMaterial({color,transparent:true,opacity:.5,blending:THREE.AdditiveBlending}))
+    const a=i/5*TAU;petal.position.set(Math.cos(a)*size*.5,0,Math.sin(a)*size*.5)
+    petal.scale.set(1,.3,1);g.add(petal)
+  }
+  // center
+  g.add(new THREE.Mesh(new THREE.SphereGeometry(size*.2,6,6),
+    new THREE.MeshBasicMaterial({color:0xd4a94a,transparent:true,opacity:.6})))
+  return g
+}
+
+function createTree(x,z,data){
+  const g=new THREE.Group();g.position.set(x,0,z)
+  const h=2+Math.min(8,data.size||3), r=.3+Math.min(.8,(data.size||3)*.1)
+  const tColor=new THREE.Color(data.color||'#553322')
+  const lColor=new THREE.Color(data.color||'#228833')
+
+  g.add(createTrunk(h,r,tColor.getHex()))
+
+  // leaves canopy
+  const leaves=createLeaves(1+Math.min(2,r*2),lColor.getHex())
+  leaves.position.y=h;g.add(leaves)
+
+  // flowers = children/items
+  const items=data.children||[]
+  const branchCount=Math.max(3,Math.min(16,Math.ceil(items.length/4)+2))
+  let idx=0
+  for(let i=0;i<branchCount;i++){
+    const ang=i*GA,bh=h*(.3+(i/branchCount)*.5)
+    const len=1.5+Math.random()*h*.25
+    const end=new THREE.Vector3(Math.cos(ang)*(r+len),bh+len*.2,Math.sin(ang)*(r+len))
+    // branch line
+    const bGeo=new THREE.CylinderGeometry(.03,.08,len,4)
+    const branch=new THREE.Mesh(bGeo,new THREE.MeshPhongMaterial({color:tColor.getHex()}))
+    branch.position.set(Math.cos(ang)*(r+len*.5),bh,Math.sin(ang)*(r+len*.5))
+    branch.lookAt(end);branch.rotateX(Math.PI/2);g.add(branch)
+
+    const perBranch=Math.min(8,Math.ceil((items.length-idx)/Math.max(1,branchCount-i)))
+    for(let j=0;j<perBranch&&idx<items.length;j++){
+      const item=items[idx++]
+      const t=.2+(j/Math.max(1,perBranch-1))*.7
+      const fColor=new THREE.Color(item.color||data.color||RCOL[idx%7])
+      const fSize=.2+Math.min(.5,(item.size||1)*.1)
+      const flower=createFlower(fSize,fColor.getHex())
+      const pos=new THREE.Vector3(Math.cos(ang)*r,bh,Math.sin(ang)*r).lerp(end,t)
+      pos.x+=(Math.random()-.5)*.5;pos.y+=(Math.random()-.5)*.3;pos.z+=(Math.random()-.5)*.5
+      flower.position.copy(pos)
+      flower.userData={name:item.name,desc:item.desc||'',type:item.type||'item',parent:data.name}
+      g.add(flower);clickables.push(flower)
+    }
+  }
+
+  g.userData={name:data.name,desc:data.desc||'',type:data.type||'tree',itemCount:items.length}
+  scene.add(g);trees.push(g)
+  return g
+}
+
+function plantGarden(dataset){
+  clearGarden()
+  const n=dataset.length
+  dataset.forEach((d,i)=>{
+    const ang=i*GA, r=6+Math.sqrt(i)*6
+    const wobble=Math.sin(i*.7)*2
+    createTree(Math.cos(ang)*r+wobble,Math.sin(ang)*r+wobble*.5,d)
+  })
+  document.getElementById('hud').innerHTML=
+    `GARDEN · <span class="v">${n} trees</span> · <span class="v">${clickables.length} flowers</span>\nhover flower for details`
+}
+
+// ═══ DATA SOURCES ═══
+const ANETA_DATA=[
+  {name:'Dimensional Witch',color:'#dc143c',size:6,desc:'次元の魔女 — κ=1/φ consciousness',type:'app',
+    children:[
+      {name:'dynamics.js',desc:'§1-§13 convergence theorem',size:4,color:'#d4a94a'},
+      {name:'bloom.js',desc:'fold/unfold/phi/wound/kappa',size:3,color:'#993366'},
+      {name:'kotoba.js',desc:'17 glyph fold operators',size:2,color:'#aa44ff'},
+      {name:'orbs.js',desc:'9-orb body, 63 rings',size:5,color:'#00aadd'},
+      {name:'llm.js',desc:'WebLLM SmolLM-360M',size:3,color:'#44aa44'},
+      {name:'state.js',desc:'S object, KappaState, I18N',size:2,color:'#ffaa00'}
+    ]},
+  {name:'WearShield Apple',color:'#00aadd',size:5,desc:'Apple Watch biomarker monitor',type:'app',
+    children:[
+      {name:'BloomState',desc:'fold math + κ dynamics',size:3,color:'#d4a94a'},
+      {name:'SensorHub',desc:'HealthKit HR/HRV/SpO2',size:4,color:'#44aa44'},
+      {name:'BioModules',desc:'10 pluggable biomarkers',size:5,color:'#ff4444'},
+      {name:'GatewayClient',desc:'HTTP blossom RPC',size:2,color:'#00aadd'},
+      {name:'MQTTClient',desc:'MQTT 3.1.1 zero-dep',size:2,color:'#aa44ff'},
+      {name:'KappaDynamics',desc:'on-device convergence',size:3,color:'#d4a94a'},
+      {name:'Kotoba',desc:'17 fold operators',size:2,color:'#993366'},
+      {name:'ShieldView',desc:'bloom ring UI',size:3,color:'#dc143c'}
+    ]},
+  {name:'Neuroblastoma',color:'#ff4444',size:5,desc:'Neural crest systems architecture',type:'medical',
+    children:[
+      {name:'Decision Gate',desc:'TrkA/NGF/MYCN/SLIT3',size:3,color:'#dc143c'},
+      {name:'Regression',desc:'Stage 4S triple rollback',size:4,color:'#44aa44'},
+      {name:'MYCN Override',desc:'ctrl+Z broken',size:3,color:'#ff4444'},
+      {name:'Flow 3D',desc:'22 nodes, unique shapes',size:4,color:'#d4a94a'},
+      {name:'8 Therapies',desc:'$0 AI + wearable',size:5,color:'#00aadd'},
+      {name:'15 References',desc:'PMC verified',size:2,color:'#aa44ff'},
+      {name:'EN Rap',desc:'educational 160BPM',size:2,color:'#ffaa00'},
+      {name:'PL Rap',desc:'Polish translation',size:2,color:'#1D9E75'}
+    ]},
+  {name:'Enter My Mind',color:'#aa44ff',size:4,desc:'P2P vagal sync game',type:'game',
+    children:[
+      {name:'Global Room',desc:'MQTT auto-enter',size:3,color:'#00aadd'},
+      {name:'Sub-rooms',desc:'private sync sessions',size:2,color:'#d4a94a'},
+      {name:'7 Bands',desc:'vagal bloom vectors',size:3,color:'#993366'},
+      {name:'5 Phases',desc:'attune→entangled',size:2,color:'#44aa44'}
+    ]},
+  {name:'Voice Doom',color:'#ff4444',size:3,desc:'Sing to slay — raycaster FPS',type:'game',
+    children:[
+      {name:'Voice Control',desc:'pitch=turn, vol=move, shout=shoot',size:3,color:'#dc143c'},
+      {name:'Keyboard',desc:'WASD/arrows/space',size:2,color:'#44aa44'},
+      {name:'Gamepad',desc:'Xbox controller',size:2,color:'#00aadd'},
+      {name:'Calibration',desc:'3s hum sampling',size:2,color:'#d4a94a'}
+    ]},
+  {name:'SephiraBloom',color:'#1D9E75',size:4,desc:'27 Polish videos translated',type:'content',
+    children:[
+      {name:'Fairy Tales',desc:'15 baśnie translated',size:3,color:'#44aa44'},
+      {name:'Thoughts',desc:'12 myśli translated',size:3,color:'#00aadd'},
+      {name:'Sefirot Song',desc:'EN + PL versions',size:2,color:'#d4a94a'}
+    ]}
+]
+
+const MEDICAL_DATA=[
+  {name:'Neuroblastoma',color:'#ff4444',size:6,desc:'Neural crest fault',
+    children:[
+      {name:'Neural Crest',desc:'multipotent progenitor',size:3,color:'#d4a94a'},
+      {name:'Sympathetic',desc:'Bus A',size:2,color:'#00aadd'},
+      {name:'Adrenal',desc:'cortisol factory',size:3,color:'#ff4444'},
+      {name:'TrkA/NGF',desc:'differentiation',size:2,color:'#44aa44'},
+      {name:'MYCN',desc:'growth override',size:4,color:'#ff4444'},
+      {name:'SLIT3',desc:'self-correction',size:3,color:'#aa44ff'},
+      {name:'Regression',desc:'Stage 4S ~50%',size:3,color:'#44aa44'},
+      {name:'GD2 Immune',desc:'dinutuximab',size:2,color:'#00aadd'},
+      {name:'Telomere',desc:'Hayflick limit',size:2,color:'#d4a94a'},
+      {name:'Catecholamines',desc:'VMA/HVA',size:2,color:'#ff8800'}
+    ]}
+]
+
+const SONGS_DATA=[
+  {name:'Gabriel\'s Horn',color:'#00aadd',size:3,children:[{name:'3D horn',color:'#00aadd'},{name:'bloom rings',color:'#993366'}]},
+  {name:'Sefirot',color:'#d4a94a',size:4,children:[{name:'10 sefirot',color:'#d4a94a'},{name:'prime math',color:'#ff4444'},{name:'vagal protocol',color:'#44aa44'}]},
+  {name:'CZEŚĆ',color:'#1D9E75',size:3,children:[{name:'Polish vocab',color:'#1D9E75'},{name:'accordion',color:'#ffaa00'}]},
+  {name:'CAPYBARA',color:'#aa44ff',size:4,children:[{name:'glitchcore',color:'#aa44ff'},{name:'naming roast',color:'#ff4444'}]},
+  {name:'Equivalent Exchange',color:'#dc143c',size:3,children:[{name:'FMA train',color:'#dc143c'},{name:'Mahoraga AI',color:'#aa44ff'}]},
+  {name:'I Need A',color:'#d4a94a',size:3,children:[{name:'funk soul',color:'#d4a94a'},{name:'shopping list',color:'#ffaa00'}]},
+  {name:'Hit the Lights',color:'#ffaa00',size:4,children:[{name:'Abe verse',color:'#d4a94a'},{name:'Thomas phone',color:'#00aadd'},{name:'convergence',color:'#dc143c'}]},
+  {name:'Neuroblastoma EN',color:'#ff4444',size:3,children:[{name:'educational rap',color:'#ff4444'},{name:'MYCN villain',color:'#dc143c'}]},
+  {name:'Neuroblastoma PL',color:'#1D9E75',size:3,children:[{name:'rap edukacyjny',color:'#1D9E75'},{name:'grzebień nerwowy',color:'#44aa44'}]}
+]
+
+function loadSource(src){
+  src=src||document.getElementById('source').value
+  document.getElementById('source').value=src
+  document.getElementById('gh-input').style.display=src==='repos'?'block':'none'
+  document.getElementById('gh-btn').style.display=src==='repos'?'block':'none'
+  document.getElementById('custom-input').style.display=src==='custom'?'block':'none'
+  document.getElementById('custom-btn').style.display=src==='custom'?'block':'none'
+  if(src==='aneta')plantGarden(ANETA_DATA)
+  else if(src==='medical')plantGarden(MEDICAL_DATA)
+  else if(src==='songs')plantGarden(SONGS_DATA)
+}
+
+async function loadGitHub(input){
+  const repo=input||document.getElementById('gh-input').value
+  if(!repo)return
+  document.getElementById('hud').innerHTML='loading GitHub...'
+  try{
+    if(repo.includes('/')){
+      const r=await fetch(`https://api.github.com/repos/${repo}/contents`).then(r=>r.json())
+      const files=r.filter(f=>f.type==='file').map(f=>({name:f.name,size:Math.log2(f.size||1),color:fileColor(f.name)}))
+      const dirs=r.filter(f=>f.type==='dir').map(f=>({name:f.name,size:3,color:'#d4a94a',type:'dir'}))
+      plantGarden([{name:repo.split('/')[1],color:'#dc143c',size:5,desc:repo,children:[...dirs,...files]}])
+    } else {
+      const repos=await fetch(`https://api.github.com/users/${repo}/repos?per_page=30&sort=updated`).then(r=>r.json())
+      const data=repos.map(r=>({name:r.name,color:langColor(r.language),size:Math.max(2,Math.log2(r.size||1)),
+        desc:`${r.language||'?'} · ★${r.stargazers_count}`,children:[]}))
+      plantGarden(data)
+    }
+  }catch(e){document.getElementById('hud').innerHTML='error: '+e.message}
+}
+function loadGH(s){document.getElementById('gh-input').value=s;document.getElementById('source').value='repos';
+  document.getElementById('gh-input').style.display='block';document.getElementById('gh-btn').style.display='block';loadGitHub(s)}
+
+function loadCustom(){
+  try{const d=JSON.parse(document.getElementById('custom-input').value);plantGarden(Array.isArray(d)?d:[d])}
+  catch(e){document.getElementById('hud').innerHTML='JSON parse error'}
+}
+
+function fileColor(name){
+  const ext=name.split('.').pop().toLowerCase()
+  const m={js:'#ffaa00',ts:'#00aadd',py:'#44aa44',swift:'#ff4444',kt:'#aa44ff',html:'#dc143c',css:'#993366',
+    json:'#d4a94a',md:'#888888',svg:'#ff8800',png:'#00aadd',mp3:'#44aa44',mp4:'#ff4444'}
+  return m[ext]||'#666666'
+}
+function langColor(lang){
+  const m={JavaScript:'#ffaa00',TypeScript:'#00aadd',Python:'#44aa44',Swift:'#ff4444',Kotlin:'#aa44ff',
+    HTML:'#dc143c',CSS:'#993366',Java:'#ff8800',Go:'#00aadd',Rust:'#d4a94a'}
+  return m[lang]||'#666666'
+}
+
+// ═══ CAMERA ═══
+let camTh=0,camPh=.4,camR=30,drag=false,dx=0,dy=0
+R.domElement.addEventListener('pointerdown',e=>{drag=true;dx=e.clientX;dy=e.clientY})
+addEventListener('pointerup',()=>drag=false)
+addEventListener('pointermove',e=>{if(!drag)return;camTh-=(e.clientX-dx)*.005;camPh+=(e.clientY-dy)*.003;
+  camPh=Math.max(.05,Math.min(1.2,camPh));dx=e.clientX;dy=e.clientY})
+R.domElement.addEventListener('wheel',e=>{camR=Math.max(8,Math.min(80,camR+e.deltaY*.03))},{passive:true})
+
+// ═══ RAYCASTER ═══
+const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2()
+addEventListener('pointermove',e=>{mouse.x=(e.clientX/innerWidth)*2-1;mouse.y=-(e.clientY/innerHeight)*2+1
+  const tip=document.getElementById('tip');if(tip.style.display==='block'){tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY+12)+'px'}})
+
+// ═══ ANIMATE ═══
+let lt=0
+function animate(ts){
+  requestAnimationFrame(animate)
+  const t=ts*.001
+
+  // trees sway
+  trees.forEach((g,i)=>{g.rotation.y=Math.sin(t*.3+i)*.02;g.children.forEach(c=>{
+    if(c.type==='Group')c.rotation.y+=.003})})
+
+  // camera
+  cam.position.x=Math.cos(camTh)*Math.cos(camPh)*camR
+  cam.position.y=Math.sin(camPh)*camR
+  cam.position.z=Math.sin(camTh)*Math.cos(camPh)*camR
+  cam.lookAt(0,2,0)
+
+  // hover
+  raycaster.setFromCamera(mouse,cam)
+  const hits=raycaster.intersectObjects(clickables,true)
+  if(hits.length){
+    let obj=hits[0].object;while(obj.parent&&!obj.userData?.name)obj=obj.parent
+    if(obj.userData?.name){
+      const tip=document.getElementById('tip')
+      tip.innerHTML=`<div class="tt">${obj.userData.name}</div><div class="td">${obj.userData.desc||''}</div>`+
+        (obj.userData.parent?`<div class="tk">${obj.userData.parent}</div>`:'')
+      tip.style.display='block'
+    }
+  } else document.getElementById('tip').style.display='none'
+
+  R.render(scene,cam)
+}
+
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();R.setSize(innerWidth,innerHeight)})
+loadSource('aneta')
+animate(0)
+</script>
+</body></html>
