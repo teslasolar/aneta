@@ -1,0 +1,295 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>31,736 — Dimensional Number Theory</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#060610;color:#ccc;font-family:'Courier New',monospace;overflow:hidden}
+canvas{display:block;cursor:grab}canvas:active{cursor:grabbing}
+#hud{position:fixed;top:8px;left:10px;z-index:10;font-size:8px;color:rgba(0,170,255,.4);line-height:1.7;pointer-events:none;white-space:pre}
+#hud .g{color:#fc0}
+#num{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:10;font-size:9px;color:#fc0;
+  letter-spacing:1px;text-shadow:0 0 12px rgba(255,204,0,.3);pointer-events:none;text-align:center;max-width:80%}
+#fact{font-size:8px;color:#0ad;margin-top:2px}
+#tip{position:fixed;z-index:100;background:rgba(6,6,16,.95);border:1px solid #0ad;border-radius:4px;
+  padding:8px 12px;font-size:9px;color:#0ad;max-width:250px;display:none;pointer-events:none}
+#views{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:3px}
+.vb{background:rgba(0,170,221,.06);border:1px solid rgba(0,170,221,.15);color:#068;padding:3px 8px;
+  font:8px monospace;cursor:pointer;border-radius:2px;letter-spacing:1px}
+.vb:hover,.vb.on{border-color:#fc0;color:#fc0;background:rgba(255,204,0,.08)}
+#back{position:fixed;bottom:8px;left:8px;z-index:20;font-size:8px;color:#445}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head><body>
+<div id="num">
+  31,736,846,399,216,804,645,406,807,161,448,227,806,067,941,438,500
+  <div id="fact">2² × 3⁸ × 5³ × 7⁷ × 11¹⁵ × 13⁶ × 17¹²</div>
+</div>
+<div id="hud"></div>
+<div id="tip"></div>
+<a id="back" href="./">← aneta</a>
+<div id="views">
+  <span class="vb on" onclick="setView(0)">PILLARS</span>
+  <span class="vb" onclick="setView(1)">ORBITAL</span>
+  <span class="vb" onclick="setView(2)">CONSTELLATION</span>
+  <span class="vb" onclick="setView(3)">HELIX</span>
+  <span class="vb" onclick="setView(4)">HYPERCUBE</span>
+  <span class="vb" onclick="setView(5)">BLOOM</span>
+</div>
+
+<script>
+const TAU=Math.PI*2, PHI=(1+Math.sqrt(5))/2, GA=TAU/PHI/PHI
+const NUM='31736846399216804645406807161448227806067941438500'
+const DIGITS=NUM.split('').map(Number)
+const P=[2,3,5,7,11,13,17], EXP=[2,8,3,7,15,6,12]
+const COL=[0x660044,0x00aadd,0xffaa00,0xff4444,0x44aa44,0xaa44ff,0xffffff]
+const COLCSS=['#604','#0ad','#fa0','#f44','#4a4','#a4f','#fff']
+const NAMES=['PILLARS','ORBITAL','CONSTELLATION','HELIX','HYPERCUBE','BLOOM']
+
+// ═══ THREE.JS ═══
+const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,.1,500)
+cam.position.set(0,5,40)
+const R=new THREE.WebGLRenderer({antialias:true})
+R.setSize(innerWidth,innerHeight);R.setPixelRatio(Math.min(devicePixelRatio,2))
+R.toneMapping=THREE.ACESFilmicToneMapping
+document.body.prepend(R.domElement)
+scene.background=new THREE.Color(0x060610)
+scene.fog=new THREE.FogExp2(0x060610,.008)
+scene.add(new THREE.AmbientLight(0x1a1a33,.5))
+const kL=new THREE.PointLight(0xfc0,.4,60);kL.position.set(0,20,15);scene.add(kL)
+const fL=new THREE.PointLight(0x0ad,.2,40);fL.position.set(-15,-5,10);scene.add(fL)
+
+// ═══ 7 PRIME PILLARS ═══
+const pillars=[],pillarGroup=new THREE.Group();scene.add(pillarGroup)
+P.forEach((p,i)=>{
+  const h=EXP[i]*1.2, r=.4+EXP[i]*.05
+  const col=new THREE.Color(COL[i])
+  // pillar body
+  const geo=new THREE.CylinderGeometry(r*.6,r,h,p*2)
+  const mat=new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.1,transparent:true,opacity:.35})
+  const mesh=new THREE.Mesh(geo,mat)
+  const x=(i-3)*5
+  mesh.position.set(x,h/2,0)
+  pillarGroup.add(mesh)
+  // exponent rings
+  for(let e=0;e<EXP[i];e++){
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(r*.8,.04,4,p*3),
+      new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.2}))
+    ring.position.set(x,e*1.2+.6,0);ring.rotation.x=Math.PI/2
+    pillarGroup.add(ring)
+  }
+  // cap
+  const cap=new THREE.Mesh(new THREE.IcosahedronGeometry(r*.5,0),
+    new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.3,transparent:true,opacity:.5}))
+  cap.position.set(x,h+r*.3,0)
+  pillarGroup.add(cap)
+  // label
+  pillars.push({x,h,r,p,exp:EXP[i],col,mesh,cap})
+})
+
+// ═══ 50 DIGIT SPHERES ═══
+const digitGroup=new THREE.Group();scene.add(digitGroup)
+const digitMeshes=[]
+DIGITS.forEach((d,i)=>{
+  const pi=i%7, col=new THREE.Color(COL[pi])
+  const sz=.15+d*.04
+  const geo=new THREE.SphereGeometry(sz,8,8)
+  const mat=new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.2,transparent:true,opacity:.6})
+  const mesh=new THREE.Mesh(geo,mat)
+  digitGroup.add(mesh)
+  digitMeshes.push({mesh,digit:d,prime:pi,target:{x:0,y:0,z:0}})
+})
+
+// ═══ CONNECTING LINES ═══
+const lineGroup=new THREE.Group();scene.add(lineGroup)
+let lineMeshes=[]
+
+function buildLines(positions){
+  lineGroup.children.forEach(c=>lineGroup.remove(c))
+  while(lineGroup.children.length)lineGroup.remove(lineGroup.children[0])
+  lineMeshes=[]
+  for(let i=0;i<positions.length-1;i++){
+    const geo=new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(...positions[i]),new THREE.Vector3(...positions[i+1])])
+    const mat=new THREE.LineBasicMaterial({color:COL[i%7],transparent:true,opacity:.1})
+    const line=new THREE.Line(geo,mat);lineGroup.add(line);lineMeshes.push(line)
+  }
+}
+
+// ═══ VIEW LAYOUTS ═══
+let curView=0
+const viewPositions=[]
+
+function layoutPillars(){
+  const pos=[]
+  DIGITS.forEach((d,i)=>{
+    const pi=i%7, pil=pillars[pi]
+    const slot=Math.floor(i/7)
+    const y=slot*1.5+.8
+    const ang=(slot*GA)
+    const r=pil.r*.4
+    pos.push([pil.x+Math.cos(ang)*r,y,Math.sin(ang)*r])
+  })
+  return pos
+}
+
+function layoutOrbital(){
+  const pos=[]
+  DIGITS.forEach((d,i)=>{
+    const pi=i%7
+    const ringR=3+pi*2.5
+    const ang=i/50*TAU*3+pi*.5
+    const y=Math.sin(ang*.3)*3
+    pos.push([Math.cos(ang)*ringR,y,Math.sin(ang)*ringR])
+  })
+  return pos
+}
+
+function layoutConstellation(){
+  const pos=[]
+  DIGITS.forEach((d,i)=>{
+    // fibonacci sphere
+    const y=1-(i/(50-1))*2
+    const r=Math.sqrt(1-y*y)
+    const ang=GA*i
+    const scale=12
+    pos.push([Math.cos(ang)*r*scale,y*scale,Math.sin(ang)*r*scale])
+  })
+  return pos
+}
+
+function layoutHelix(){
+  const pos=[]
+  DIGITS.forEach((d,i)=>{
+    const t=i/50
+    const ang=t*TAU*4
+    const r=4+d*.5
+    const y=t*30-15
+    // double helix
+    const strand=i%2
+    const offset=strand*Math.PI
+    pos.push([Math.cos(ang+offset)*r,y,Math.sin(ang+offset)*r])
+  })
+  return pos
+}
+
+function layoutHypercube(){
+  const pos=[]
+  DIGITS.forEach((d,i)=>{
+    // project 7D coordinates onto 3D
+    const coords=[]
+    for(let dim=0;dim<7;dim++){
+      coords.push((((i*P[dim]+d*EXP[dim])%17)/17-.5)*2)
+    }
+    // stereographic projection from 7D → 3D
+    const scale=8
+    const x=coords[0]*scale+coords[3]*scale*.3+coords[6]*scale*.1
+    const y=coords[1]*scale+coords[4]*scale*.3
+    const z=coords[2]*scale+coords[5]*scale*.3
+    pos.push([x,y,z])
+  })
+  return pos
+}
+
+function layoutBloom(){
+  const pos=[]
+  DIGITS.forEach((d,i)=>{
+    const pi=i%7
+    const ringR=1.5+pi*1.8
+    const seg=P[pi]
+    const slot=Math.floor(i/7)
+    const ang=(slot%seg)/seg*TAU + pi*.2
+    const y=(d-4.5)*.6
+    pos.push([Math.cos(ang)*ringR,y,Math.sin(ang)*ringR])
+  })
+  return pos
+}
+
+const layouts=[layoutPillars,layoutOrbital,layoutConstellation,layoutHelix,layoutHypercube,layoutBloom]
+
+function setView(v){
+  curView=v
+  const pos=layouts[v]()
+  pos.forEach((p,i)=>{digitMeshes[i].target={x:p[0],y:p[1],z:p[2]}})
+  buildLines(pos)
+  document.querySelectorAll('.vb').forEach((b,bi)=>b.classList.toggle('on',bi===v))
+}
+
+// ═══ STARS ═══
+const starGeo=new THREE.BufferGeometry(),starPos=new Float32Array(3000*3)
+for(let i=0;i<9000;i++)starPos[i]=(Math.random()-.5)*150
+starGeo.setAttribute('position',new THREE.BufferAttribute(starPos,3))
+scene.add(new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xffffff,size:.1,transparent:true,opacity:.2})))
+
+// ═══ CAMERA ═══
+let cTh=0,cPh=.15,cR=40,drag=false,mx=0,my=0
+R.domElement.addEventListener('pointerdown',e=>{drag=true;mx=e.clientX;my=e.clientY})
+addEventListener('pointerup',()=>drag=false)
+addEventListener('pointermove',e=>{if(!drag)return;cTh-=(e.clientX-mx)*.004;cPh+=(e.clientY-my)*.003;
+  cPh=Math.max(-.6,Math.min(.8,cPh));mx=e.clientX;my=e.clientY})
+R.domElement.addEventListener('wheel',e=>{cR=Math.max(10,Math.min(80,cR+e.deltaY*.03))},{passive:true})
+
+// ═══ RAYCASTER ═══
+const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2()
+addEventListener('pointermove',e=>{mouse.x=(e.clientX/innerWidth)*2-1;mouse.y=-(e.clientY/innerHeight)*2+1
+  const tip=document.getElementById('tip');if(tip.style.display==='block'){tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY+12)+'px'}})
+
+// ═══ ANIMATE ═══
+let lt=0, autoT=0
+function animate(ts){
+  requestAnimationFrame(animate)
+  const t=ts*.001
+
+  // auto-cycle views
+  autoT+=.001
+  if(autoT>12){autoT=0;setView((curView+1)%6)}
+
+  // lerp digits to targets
+  digitMeshes.forEach(dm=>{
+    dm.mesh.position.x+=(dm.target.x-dm.mesh.position.x)*.04
+    dm.mesh.position.y+=(dm.target.y-dm.mesh.position.y)*.04
+    dm.mesh.position.z+=(dm.target.z-dm.mesh.position.z)*.04
+    // pulse
+    const sc=1+Math.sin(t*2+dm.digit)*.1
+    dm.mesh.scale.setScalar(sc)
+  })
+
+  // pillars rotate slowly
+  pillars.forEach((p,i)=>{
+    p.mesh.rotation.y+=.002*(i%2?1:-1)
+    p.cap.rotation.y+=.01;p.cap.rotation.x+=.005
+  })
+
+  // camera orbit
+  cam.position.x=Math.cos(cTh)*Math.cos(cPh)*cR
+  cam.position.y=Math.sin(cPh)*cR+5
+  cam.position.z=Math.sin(cTh)*Math.cos(cPh)*cR
+  cam.lookAt(0,3,0)
+
+  // hover
+  raycaster.setFromCamera(mouse,cam)
+  const hits=raycaster.intersectObjects(digitMeshes.map(d=>d.mesh))
+  if(hits.length){
+    const idx=digitMeshes.findIndex(d=>d.mesh===hits[0].object)
+    if(idx>=0){
+      const dm=digitMeshes[idx]
+      const tip=document.getElementById('tip')
+      tip.innerHTML=`digit[${idx}] = <b style="color:#fc0">${dm.digit}</b><br>prime ring: <b style="color:${COLCSS[dm.prime]}">${P[dm.prime]}</b> (exp ${EXP[dm.prime]})<br>position: ${idx} of 50`
+      tip.style.display='block'
+    }
+  } else document.getElementById('tip').style.display='none'
+
+  // HUD
+  const expSum=EXP.reduce((a,b)=>a+b,0)
+  document.getElementById('hud').innerHTML=
+    `${NAMES[curView]}\n50 digits · 7 primes · <span class="g">Σexp=${expSum}</span>\n`+
+    P.map((p,i)=>`<span style="color:${COLCSS[i]}">${p}^${EXP[i]}</span>`).join(' × ')+
+    `\nbits: 165 · divisors: 1,257,984`
+
+  R.render(scene,cam)
+}
+
+setView(0)
+addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();R.setSize(innerWidth,innerHeight)})
+animate(0)
+</script>
+</body></html>
