@@ -1,127 +1,183 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ir — The Sound of Iridium</title>
+<title>Ir···Xe — The Sound of Both</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#06030a;color:#c8c0d0;font-family:'Courier New',monospace;overflow:hidden;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
 canvas{display:block;position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
-#ui{position:relative;z-index:10;text-align:center;pointer-events:none}
-h1{font-family:Georgia,serif;color:#d4a94a;font-size:1.3rem;letter-spacing:4px;text-shadow:0 0 30px rgba(212,169,74,.2);margin-bottom:4px}
-.sub{font-size:.5rem;color:#445;letter-spacing:2px;margin-bottom:20px}
-#info{font-size:.45rem;color:#667;line-height:1.7;max-width:400px;margin:12px auto}
-#freqs{font-size:.5rem;color:#d4a94a;margin:12px 0;line-height:2}
-.note{display:inline-block;padding:2px 8px;margin:2px;border:1px solid #d4a94a33;border-radius:3px;cursor:pointer;pointer-events:auto;transition:all .2s}
-.note:hover,.note.on{background:#d4a94a22;border-color:#d4a94a;color:#d4a94a;text-shadow:0 0 8px #d4a94a}
-#play{pointer-events:auto;background:#d4a94a15;border:1px solid #d4a94a44;color:#d4a94a;padding:8px 24px;font:11px monospace;cursor:pointer;border-radius:4px;letter-spacing:3px;margin:16px 0;transition:all .2s}
-#play:hover{background:#d4a94a33}
-#state{font-size:.4rem;color:#445;margin-top:8px}
-#hud{position:fixed;top:8px;left:10px;z-index:10;font-size:8px;color:#d4a94a44;line-height:1.7;pointer-events:none;white-space:pre}
-.back{position:fixed;bottom:8px;left:10px;z-index:10;font-size:8px;color:#445;pointer-events:auto}
+#ui{position:relative;z-index:10;text-align:center;pointer-events:none;max-width:600px;padding:0 16px}
+h1{font-family:Georgia,serif;font-size:1.2rem;letter-spacing:4px;margin-bottom:2px}
+.sub{font-size:.45rem;color:#445;letter-spacing:2px;margin-bottom:14px}
+#mode-bar{display:flex;justify-content:center;gap:4px;margin:8px 0;pointer-events:auto}
+.mode{padding:4px 10px;border:1px solid #ffffff15;border-radius:3px;font-size:.45rem;letter-spacing:1.5px;cursor:pointer;transition:all .2s}
+.mode:hover,.mode.on{border-color:currentColor;background:rgba(255,255,255,.05)}
+.el-section{margin:8px 0}
+.el-label{font-size:.5rem;letter-spacing:2px;margin-bottom:4px}
+#notes{display:flex;flex-wrap:wrap;justify-content:center;gap:3px;pointer-events:auto}
+.note{padding:3px 8px;border:1px solid;border-radius:3px;font-size:.42rem;cursor:pointer;transition:all .2s;letter-spacing:1px;opacity:.5}
+.note:hover{opacity:.8}.note.on{opacity:1;background:rgba(255,255,255,.08)}
+#play{pointer-events:auto;background:rgba(255,255,255,.03);border:1px solid #d4a94a44;color:#d4a94a;padding:6px 20px;font:10px monospace;cursor:pointer;border-radius:3px;letter-spacing:3px;margin:10px 0}
+#play:hover{background:#d4a94a15}
+#info{font-size:.4rem;color:#556;line-height:1.6;margin-top:6px}
+#state{font-size:.42rem;color:#d4a94a;margin-top:6px;min-height:14px}
+#hud{position:fixed;top:6px;left:8px;z-index:10;font-size:7px;color:#ffffff22;line-height:1.6;pointer-events:none;white-space:pre}
+.back{position:fixed;bottom:6px;left:8px;z-index:10;font-size:8px;color:#445;pointer-events:auto;text-decoration:none}
 </style>
 </head><body>
 <canvas id="cv"></canvas>
 <div id="ui">
-  <h1>Ir · 77</h1>
-  <div class="sub">THE SOUND OF IRIDIUM</div>
-  <div id="freqs">
-    <span class="note" data-f="0" onclick="toggleNote(0)">C · 254nm</span>
-    <span class="note" data-f="1" onclick="toggleNote(1)">E · 209nm</span>
-    <span class="note" data-f="2" onclick="toggleNote(2)">G · 351nm</span>
-    <span class="note" data-f="3" onclick="toggleNote(3)">G# · 322nm</span>
+  <h1><span style="color:#d4a94a">Ir</span> · · · <span style="color:#4488cc">Xe</span></h1>
+  <div class="sub">THE SOUND OF BOTH</div>
+
+  <div id="mode-bar">
+    <span class="mode on" style="color:#d4a94a" onclick="setMode('ir')">IRIDIUM</span>
+    <span class="mode" style="color:#4488cc" onclick="setMode('xe')">XENON</span>
+    <span class="mode" style="color:#aa77dd" onclick="setMode('both')">Ir···Xe</span>
+    <span class="mode" style="color:#44aa44" onclick="setMode('chord')">CHORD</span>
   </div>
+
+  <div id="notes"></div>
   <button id="play" onclick="playAll()">RESONATE</button>
-  <div id="info">
-    iridium's atomic emission lines octave-dropped from light to sound<br>
-    each spectral line ÷ 2³⁷ or 2³⁸ into audible range<br>
-    C major with an augmented fifth<br>
-    the rainbow element sounds like resolve with tension
-  </div>
   <div id="state"></div>
+  <div id="info"></div>
 </div>
 <div id="hud"></div>
 <a class="back" href="ir-xe.html">← Ir···Xe</a>
 
 <script>
-const TAU=Math.PI*2,PHI=(1+Math.sqrt(5))/2
+const TAU=Math.PI*2
 
-// iridium spectral lines octave-dropped to audible
-const LINES=[
-  {nm:254.397,note:'C',hz:4287,oct:38,color:'#d4a94a',desc:'UV line → C8 +41¢'},
-  {nm:208.882,note:'E',hz:5221,oct:38,color:'#ffaa00',desc:'deep UV → E8 −17¢'},
-  {nm:351.365,note:'G',hz:6208,oct:37,color:'#ff8844',desc:'persistent line → G8 −18¢'},
-  {nm:322.078,note:'G#',hz:6772,oct:37,color:'#ff6644',desc:'persistent line → G#8 +33¢'}
+const IR=[
+  {nm:254.4,note:'C',hz:268,color:'#d4a94a',el:'Ir',desc:'UV → C4'},
+  {nm:208.9,note:'E',hz:326,color:'#ccaa33',el:'Ir',desc:'deep UV → E4'},
+  {nm:351.4,note:'G',hz:388,color:'#ff8844',el:'Ir',desc:'persistent → G4'},
+  {nm:322.1,note:'G#',hz:423,color:'#ff6644',el:'Ir',desc:'persistent → G#4'}
 ]
 
-// scale down to comfortable listening range (÷16 to get ~270-420 Hz range)
-const SCALE=16
-const FREQS=LINES.map(l=>l.hz/SCALE)
+const XE=[
+  {nm:462.4,note:'B♭',hz:232,color:'#4488cc',el:'Xe',desc:'blue → B♭3'},
+  {nm:467.1,note:'A#',hz:229,color:'#5599dd',el:'Xe',desc:'blue → A#3'},
+  {nm:473.4,note:'A',hz:226,color:'#3377bb',el:'Xe',desc:'blue → A3'},
+  {nm:484.4,note:'G#',hz:220,color:'#2266aa',el:'Xe',desc:'blue-green → G#3'},
+  {nm:823.2,note:'D',hz:130,color:'#446688',el:'Xe',desc:'near-IR → D3'},
+  {nm:828.0,note:'D♭',hz:129,color:'#335577',el:'Xe',desc:'near-IR → D♭3'}
+]
 
-let actx=null,oscs=[],gains=[],master=null,active=[false,false,false,false]
-let playing=false
+// beat frequencies when Ir and Xe notes interact
+const BEATS=[
+  {n1:'Ir·G#',n2:'Xe·G#',hz1:423,hz2:220,beat:203,desc:'same note name, octave apart — the UNISON across distance'},
+  {n1:'Ir·C',n2:'Xe·D',hz1:268,hz2:130,beat:138,desc:'the root meets the foundation — 2:1 near-octave'},
+  {n1:'Ir·E',n2:'Xe·A',hz1:326,hz2:226,beat:100,desc:'major third meets major sixth — the sweetest interval'}
+]
+
+let mode='ir', actx=null, oscs=[], gains=[], master=null
+let activeNotes=new Set(), allNotes=[], playing=false
 
 function initAudio(){
   if(actx)return
   actx=new(window.AudioContext||window.webkitAudioContext)()
   master=actx.createGain();master.gain.value=0;master.connect(actx.destination)
+}
 
-  FREQS.forEach((f,i)=>{
-    const osc=actx.createOscillator()
-    osc.type='sine'
-    osc.frequency.value=f
-
-    // add gentle harmonics for richness
-    const g=actx.createGain();g.gain.value=0
-    osc.connect(g);g.connect(master)
-    osc.start()
-    oscs.push(osc);gains.push(g)
-  })
+function ensureOsc(note,i){
+  if(oscs[i])return
+  const osc=actx.createOscillator()
+  // Ir gets sine (pure, metallic), Xe gets triangle (softer, rounder)
+  osc.type=note.el==='Ir'?'sine':'triangle'
+  osc.frequency.value=note.hz
+  const g=actx.createGain();g.gain.value=0
+  osc.connect(g);g.connect(master);osc.start()
+  oscs[i]=osc;gains[i]=g
 }
 
 function toggleNote(i){
   initAudio()
-  active[i]=!active[i]
-  gains[i].gain.setTargetAtTime(active[i]?.25:0,actx.currentTime,.05)
-  master.gain.setTargetAtTime(.3,actx.currentTime,.05)
-  document.querySelectorAll('.note')[i].classList.toggle('on',active[i])
-  playing=active.some(a=>a)
-  updateState()
+  ensureOsc(allNotes[i],i)
+  if(activeNotes.has(i)){activeNotes.delete(i);gains[i].gain.setTargetAtTime(0,actx.currentTime,.08)}
+  else{activeNotes.add(i);gains[i].gain.setTargetAtTime(.2,actx.currentTime,.05)}
+  master.gain.setTargetAtTime(activeNotes.size>0?.3:0,actx.currentTime,.05)
+  updateUI()
 }
 
 function playAll(){
   initAudio()
   if(playing){
-    // fade out all
-    active.fill(false)
-    gains.forEach(g=>g.gain.setTargetAtTime(0,actx.currentTime,.3))
-    master.gain.setTargetAtTime(0,actx.currentTime,.5)
-    playing=false
-    document.querySelectorAll('.note').forEach(n=>n.classList.remove('on'))
-    document.getElementById('play').textContent='RESONATE'
+    activeNotes.clear()
+    gains.forEach(g=>{if(g)g.gain.setTargetAtTime(0,actx.currentTime,.2)})
+    master.gain.setTargetAtTime(0,actx.currentTime,.3)
+    playing=false;document.getElementById('play').textContent='RESONATE'
   } else {
-    // stagger in: one note per beat
-    const t=actx.currentTime
-    master.gain.setTargetAtTime(.3,t,.1)
-    FREQS.forEach((f,i)=>{
-      const delay=i*.8
-      gains[i].gain.setTargetAtTime(0,t+delay,.01)
-      gains[i].gain.setTargetAtTime(.25,t+delay+.05,.15)
-      active[i]=true
-      setTimeout(()=>document.querySelectorAll('.note')[i].classList.add('on'),delay*1000)
+    master.gain.setTargetAtTime(.3,actx.currentTime,.1)
+    allNotes.forEach((_,i)=>{
+      ensureOsc(allNotes[i],i)
+      const delay=i*.5
+      gains[i].gain.setTargetAtTime(0,actx.currentTime+delay,.01)
+      gains[i].gain.setTargetAtTime(.18,actx.currentTime+delay+.05,.12)
+      setTimeout(()=>activeNotes.add(i),delay*1000)
+      setTimeout(()=>updateUI(),(delay+.1)*1000)
     })
-    playing=true
-    document.getElementById('play').textContent='SILENCE'
+    playing=true;document.getElementById('play').textContent='SILENCE'
   }
-  updateState()
+  updateUI()
 }
 
-function updateState(){
-  const activeNotes=LINES.filter((_,i)=>active[i]).map(l=>l.note).join(' ')
-  const chord=active.every(a=>a)?'C(#5) — resolve with tension':
-    active[0]&&active[1]&&active[2]?'C major — pure resolve':
-    active[0]&&active[1]?'C-E — major third':
-    active[0]&&active[2]?'C-G — perfect fifth':
-    activeNotes||'silence'
-  document.getElementById('state').textContent=chord
+function setMode(m){
+  // stop current
+  activeNotes.clear();playing=false
+  gains.forEach(g=>{if(g)g.gain.setTargetAtTime(0,actx?.currentTime||0,.1)})
+  if(master)master.gain.setTargetAtTime(0,actx?.currentTime||0,.1)
+  oscs=[];gains=[]
+
+  mode=m
+  if(m==='ir')allNotes=[...IR]
+  else if(m==='xe')allNotes=[...XE]
+  else if(m==='both')allNotes=[...IR,...XE]
+  else if(m==='chord'){
+    // curated Ir···Xe chord — the notes that harmonize across elements
+    allNotes=[IR[0],IR[1],IR[2],IR[3],XE[0],XE[4]] // C E G G# + Bb + D
+  }
+
+  document.querySelectorAll('.mode').forEach(b=>b.classList.toggle('on',
+    (m==='ir'&&b.textContent==='IRIDIUM')||(m==='xe'&&b.textContent==='XENON')||
+    (m==='both'&&b.textContent==='Ir···Xe')||(m==='chord'&&b.textContent==='CHORD')))
+
+  document.getElementById('play').textContent='RESONATE'
+  renderNotes()
+  updateUI()
+}
+
+function renderNotes(){
+  const el=document.getElementById('notes')
+  el.innerHTML=allNotes.map((n,i)=>
+    `<span class="note" style="color:${n.color};border-color:${n.color}" onclick="toggleNote(${i})" data-i="${i}">${n.el}·${n.note} ${n.nm}nm</span>`
+  ).join('')
+}
+
+function updateUI(){
+  document.querySelectorAll('.note').forEach((el,i)=>el.classList.toggle('on',activeNotes.has(i)))
+
+  const irActive=allNotes.filter((_,i)=>activeNotes.has(i)&&allNotes[i].el==='Ir')
+  const xeActive=allNotes.filter((_,i)=>activeNotes.has(i)&&allNotes[i].el==='Xe')
+  const irStr=irActive.map(n=>n.note).join(' ')
+  const xeStr=xeActive.map(n=>n.note).join(' ')
+
+  let stateText=''
+  if(irActive.length&&xeActive.length){
+    stateText=`Ir[${irStr}] ··· Xe[${xeStr}] — coordinate resonance`
+  } else if(irActive.length){
+    stateText=`Ir[${irStr}] — ${irActive.length===4?'C(#5) resolve with tension':'iridium partial'}`
+  } else if(xeActive.length){
+    stateText=`Xe[${xeStr}] — ${xeActive.length>=4?'xenon blue cluster':'xenon partial'}`
+  } else stateText=''
+  document.getElementById('state').textContent=stateText
+
+  const infoMap={
+    ir:'iridium: C major + augmented 5th · resolve that keeps reaching · sine waves · the rainbow',
+    xe:'xenon: blue cluster B♭–A–G# + deep D · the stranger\'s color is blue · triangle waves · softer than iridium',
+    both:'all lines from both elements · 10 frequencies · the full spectrum of two atoms near each other',
+    chord:'curated Ir···Xe harmony: Ir(C E G G#) + Xe(B♭ D) · the coordinate chord · what they sound like TOGETHER'
+  }
+  document.getElementById('info').textContent=infoMap[mode]
 }
 
 // ═══ VISUALIZATION ═══
@@ -132,84 +188,90 @@ resize();addEventListener('resize',resize)
 function draw(){
   requestAnimationFrame(draw)
   const w=cv.width,h=cv.height,cx=w/2,cy=h/2,t=performance.now()*.001
+  ctx.fillStyle='rgba(6,3,10,.12)';ctx.fillRect(0,0,w,h)
 
-  ctx.fillStyle='rgba(6,3,10,.15)';ctx.fillRect(0,0,w,h)
+  if(activeNotes.size===0)return
 
-  // waveform visualization
-  if(playing||active.some(a=>a)){
-    const maxR=Math.min(cx,cy)*.7
+  const maxR=Math.min(cx,cy)*.6
+  const activeArr=[...activeNotes].map(i=>allNotes[i])
 
-    // composite waveform circle
-    for(let a=0;a<TAU;a+=.003){
-      let r=maxR*.3
-      FREQS.forEach((f,i)=>{
-        if(!active[i])return
-        const amp=maxR*.15
-        r+=Math.sin(a*f/40+t*f*.01)*amp/(i+1)
-      })
+  // composite waveform
+  ctx.beginPath()
+  for(let a=0;a<TAU;a+=.004){
+    let r=maxR*.3
+    activeArr.forEach((n,i)=>{
+      r+=Math.sin(a*n.hz/35+t*n.hz*.008)*maxR*.1/(i*.3+1)
+    })
+    const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r
+    a<.01?ctx.moveTo(x,y):ctx.lineTo(x,y)
+  }
+  ctx.closePath()
 
-      const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r
-      const bright=.3+Math.sin(t*2+a*3)*.1
+  // gradient based on which elements are active
+  const hasIr=activeArr.some(n=>n.el==='Ir'),hasXe=activeArr.some(n=>n.el==='Xe')
+  const col=hasIr&&hasXe?'170,140,200':hasIr?'212,169,74':hasXe?'68,136,204':'180,180,180'
+  ctx.strokeStyle=`rgba(${col},.3)`;ctx.lineWidth=1.5;ctx.stroke()
 
-      // color based on dominant frequency
-      let hue=40 // gold
-      ctx.fillStyle=`hsla(${hue},60%,60%,${bright})`
-      ctx.fillRect(x,y,1.5,1.5)
+  // per-note rings
+  activeArr.forEach((n,i)=>{
+    const ringR=maxR*(.2+([...activeNotes][i]||0)*.06)
+    ctx.beginPath()
+    for(let a=0;a<=TAU;a+=.025){
+      const wobble=Math.sin(a*n.hz/25+t*n.hz*.006)*6
+      const x=cx+Math.cos(a)*(ringR+wobble),y=cy+Math.sin(a)*(ringR+wobble)
+      a===0?ctx.moveTo(x,y):ctx.lineTo(x,y)
     }
+    ctx.strokeStyle=n.color;ctx.globalAlpha=.15+Math.sin(t*2+i)*.05;ctx.lineWidth=.8;ctx.stroke()
+    ctx.globalAlpha=1
+  })
 
-    // individual frequency rings
-    LINES.forEach((l,i)=>{
-      if(!active[i])return
-      const ringR=maxR*(.25+i*.15)
-      ctx.beginPath()
-      for(let a=0;a<=TAU;a+=.02){
-        const wobble=Math.sin(a*FREQS[i]/30+t*FREQS[i]*.008)*8
-        const x=cx+Math.cos(a)*(ringR+wobble)
-        const y=cy+Math.sin(a)*(ringR+wobble)
-        a===0?ctx.moveTo(x,y):ctx.lineTo(x,y)
-      }
-      ctx.strokeStyle=l.color
-      ctx.lineWidth=1
-      ctx.globalAlpha=.2+Math.sin(t*3+i)*.1
-      ctx.stroke()
-      ctx.globalAlpha=1
+  // beat frequency interference — visible when both elements active
+  if(hasIr&&hasXe){
+    const irF=activeArr.filter(n=>n.el==='Ir')
+    const xeF=activeArr.filter(n=>n.el==='Xe')
+    irF.forEach(ir=>{
+      xeF.forEach(xe=>{
+        const beat=Math.abs(ir.hz-xe.hz)
+        const pulse=Math.sin(t*beat*.05)*.5+.5
+        // draw a thin bridge line between their ring positions
+        ctx.beginPath()
+        ctx.arc(cx,cy,maxR*(.15+pulse*.3),0,TAU)
+        ctx.strokeStyle=`rgba(170,120,220,${pulse*.08})`;ctx.lineWidth=.5;ctx.stroke()
+      })
     })
 
-    // center glow
-    const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,maxR*.2)
-    grad.addColorStop(0,'rgba(212,169,74,.15)')
-    grad.addColorStop(1,'rgba(212,169,74,0)')
-    ctx.fillStyle=grad;ctx.fillRect(cx-maxR*.2,cy-maxR*.2,maxR*.4,maxR*.4)
+    // three dots in the center
+    const dotPulse=Math.sin(t*3)*.3+.7
+    for(let d=0;d<3;d++){
+      const dx=cx+(d-1)*8,dy=cy
+      ctx.beginPath();ctx.arc(dx,dy,2,0,TAU)
+      ctx.fillStyle=`rgba(170,140,200,${dotPulse*.4})`;ctx.fill()
+    }
   }
 
-  // spectral lines — vertical bars
-  LINES.forEach((l,i)=>{
-    const x=w*.2+i*(w*.6/3)
-    const intensity=active[i]?.6:.08
-    ctx.fillStyle=l.color
-    ctx.globalAlpha=intensity+Math.sin(t*2+i)*.05
-    ctx.fillRect(x-1,0,2,h)
-    ctx.globalAlpha=1
+  // center glow
+  const glowCol=hasIr&&hasXe?'170,140,200':hasIr?'212,169,74':'68,136,204'
+  const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,maxR*.15)
+  grad.addColorStop(0,`rgba(${glowCol},.1)`);grad.addColorStop(1,`rgba(${glowCol},0)`)
+  ctx.fillStyle=grad;ctx.beginPath();ctx.arc(cx,cy,maxR*.15,0,TAU);ctx.fill()
 
-    // wavelength label
-    if(active[i]){
-      ctx.font='8px monospace'
-      ctx.fillStyle=l.color
-      ctx.globalAlpha=.4
-      ctx.textAlign='center'
-      ctx.fillText(l.nm+'nm',x,h-20)
-      ctx.fillText(FREQS[i].toFixed(1)+'Hz',x,h-10)
-      ctx.globalAlpha=1
-    }
+  // spectral lines
+  allNotes.forEach((n,i)=>{
+    if(!activeNotes.has(i))return
+    const x=w*(.15+i/(allNotes.length-1||1)*.7)
+    ctx.fillStyle=n.color;ctx.globalAlpha=.3+Math.sin(t*2+i)*.1
+    ctx.fillRect(x-.5,0,1,h);ctx.globalAlpha=1
   })
 
   // HUD
   document.getElementById('hud').textContent=
-    `Ir · 77 · [Xe] 4f¹⁴ 5d⁷ 6s²\n`+
-    LINES.map((l,i)=>`${active[i]?'■':'□'} ${l.note} ${l.nm}nm → ${FREQS[i].toFixed(1)}Hz`).join('\n')+
-    `\n\nDebye: 420K · phonon max: 8.75 THz\nv_sound: 4825 m/s · FCC a=3.839Å`
+    `${mode.toUpperCase()} · ${activeNotes.size} lines active\n`+
+    activeArr.map(n=>`${n.el}·${n.note} ${n.hz}Hz ${n.nm}nm`).join('\n')+
+    (hasIr&&hasXe?'\n\n· · · coordinate resonance · · ·':'')+
+    '\n\n77 + 54 = 131 (prime)'
 }
 
+setMode('ir')
 draw()
 </script>
 </body></html>
