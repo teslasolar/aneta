@@ -1,0 +1,278 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Number — Architecture</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#060610;color:#c8c0d0;font-family:'Courier New',monospace;overflow-y:auto;padding:0 16px 40px}
+h1{font-family:Georgia,serif;color:#fc0;font-size:1.2rem;letter-spacing:3px;margin:20px 0 4px;text-shadow:0 0 20px rgba(255,204,0,.2)}
+h2{font-size:.7rem;color:#0ad;letter-spacing:2px;margin:24px 0 6px;padding-bottom:4px;border-bottom:1px solid #0ad15}
+h3{font-size:.6rem;color:#fc0;letter-spacing:1px;margin:14px 0 4px}
+p{font-size:.55rem;line-height:1.7;color:#998;margin:4px 0 10px}
+.sub{font-size:.5rem;color:#445;letter-spacing:2px;margin-bottom:20px}
+a{color:#0ad;text-decoration:none}a:hover{text-decoration:underline}
+code{background:#0ad08;padding:1px 4px;border-radius:2px;font-size:.5rem;color:#0ad}
+pre{background:#0a0a18;border:1px solid #0ad10;border-radius:4px;padding:12px;margin:8px 0 16px;
+  font-size:.48rem;line-height:1.6;color:#889;overflow-x:auto}
+table{width:100%;border-collapse:collapse;margin:8px 0 16px;font-size:.5rem}
+th{text-align:left;color:#0ad88;padding:4px 8px;border-bottom:1px solid #0ad15;letter-spacing:1px}
+td{padding:4px 8px;border-bottom:1px solid #ffffff06;color:#889}
+tr:hover td{background:#0ad06}
+.num{font-size:1rem;color:#fc0;letter-spacing:2px;word-break:break-all;text-shadow:0 0 12px rgba(255,204,0,.3);
+  text-align:center;padding:16px 0;line-height:1.4}
+.fact{font-size:.7rem;color:#0ad;text-align:center;padding:4px 0;letter-spacing:1px}
+.card{background:#0a0a18;border:1px solid #0ad12;border-radius:6px;padding:14px;margin:8px 0}
+.card .title{font-size:.6rem;color:#fc0;margin-bottom:4px}
+.card .val{font-size:1.1rem;color:#0ad;margin:4px 0}
+.card .desc{font-size:.45rem;color:#667;line-height:1.5}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin:10px 0}
+.pillar{background:#0a0a18;border:1px solid;border-radius:4px;padding:10px;text-align:center}
+.pillar .prime{font-size:1rem;font-weight:bold}
+.pillar .exp{font-size:.6rem;margin:2px 0}
+.pillar .power{font-size:.45rem;color:#889}
+.pillar .bar{height:4px;border-radius:2px;margin-top:6px}
+.note{background:#fc008;border-left:2px solid #fc033;padding:8px 12px;margin:10px 0;font-size:.5rem;color:#bb8;line-height:1.6}
+.back{font-size:.5rem;color:#445;letter-spacing:2px;display:inline-block;margin:12px 0}
+footer{margin-top:30px;padding-top:12px;border-top:1px solid #ffffff06;font-size:.4rem;color:#334;text-align:center}
+</style>
+</head><body>
+
+<a class="back" href="./">← aneta</a> · <a class="back" href="number-3d.html">◆ 3D VIEW</a>
+
+<h1>§ THE NUMBER</h1>
+<div class="sub">GEOMETRIC FACTORIZATION · 7 PRIMES · 50 DIGITS · 165 BITS</div>
+
+<div class="num">31,736,846,399,216,804,645,406,807,161,448,227,806,067,941,438,500</div>
+<div class="fact">2² × 3⁸ × 5³ × 7⁷ × 11¹⁵ × 13⁶ × 17¹²</div>
+
+<h2>§1 — What It Is</h2>
+<p>This is the product of the first seven primes raised to specific exponents. It is a <strong>bloom number</strong> — a number whose prime factorization uses exactly the primes <code>[2, 3, 5, 7, 11, 13, 17]</code> and no others. These are the same seven primes that generate the primorial 510,510 = 2×3×5×7×11×13×17.</p>
+
+<p>The number is divisible by 510,510, the fold number of the konomigami system. It is a higher-order fold — the same seven primes, but with exponents that encode a specific geometric structure.</p>
+
+<pre>n = 2² × 3⁸ × 5³ × 7⁷ × 11¹⁵ × 13⁶ × 17¹²
+
+bloom vector: [2, 8, 3, 7, 15, 6, 12]
+
+n = 510,510 × 62,166,943,643,056,560,391,386,666,591,150,472,676,476,350</pre>
+
+<h2>§2 — The Seven Pillars</h2>
+
+<div class="grid">
+  <div class="pillar" style="border-color:#604">
+    <div class="prime" style="color:#604">2</div>
+    <div class="exp">exponent: <strong>2</strong></div>
+    <div class="power">2² = 4</div>
+    <div class="bar" style="background:#604;width:13%"></div>
+    <div class="desc" style="color:#667;font-size:.4rem;margin-top:4px">R0 · gut · the smallest prime squared</div>
+  </div>
+  <div class="pillar" style="border-color:#0ad">
+    <div class="prime" style="color:#0ad">3</div>
+    <div class="exp">exponent: <strong>8</strong></div>
+    <div class="power">3⁸ = 6,561</div>
+    <div class="bar" style="background:#0ad;width:53%"></div>
+    <div class="desc" style="color:#667;font-size:.4rem;margin-top:4px">R1 · vagus · 3 to the power of 8 (2³)</div>
+  </div>
+  <div class="pillar" style="border-color:#fa0">
+    <div class="prime" style="color:#fa0">5</div>
+    <div class="exp">exponent: <strong>3</strong></div>
+    <div class="power">5³ = 125</div>
+    <div class="bar" style="background:#fa0;width:20%"></div>
+    <div class="desc" style="color:#667;font-size:.4rem;margin-top:4px">R2 · gate · cube of the golden prime</div>
+  </div>
+  <div class="pillar" style="border-color:#f44">
+    <div class="prime" style="color:#f44">7</div>
+    <div class="exp">exponent: <strong>7</strong></div>
+    <div class="power">7⁷ = 823,543</div>
+    <div class="bar" style="background:#f44;width:47%"></div>
+    <div class="desc" style="color:#667;font-size:.4rem;margin-top:4px">R3 · limbic · self-exponent (7 to itself −1)</div>
+  </div>
+  <div class="pillar" style="border-color:#4a4">
+    <div class="prime" style="color:#4a4">11</div>
+    <div class="exp">exponent: <strong>15</strong></div>
+    <div class="power">11¹⁵ = 4,177,248,169,415,651</div>
+    <div class="bar" style="background:#4a4;width:100%"></div>
+    <div class="desc" style="color:#667;font-size:.4rem;margin-top:4px">R4 · exec · the TALLEST pillar · dominates the number</div>
+  </div>
+  <div class="pillar" style="border-color:#a4f">
+    <div class="prime" style="color:#a4f">13</div>
+    <div class="exp">exponent: <strong>6</strong></div>
+    <div class="power">13⁶ = 4,826,809</div>
+    <div class="bar" style="background:#a4f;width:40%"></div>
+    <div class="desc" style="color:#667;font-size:.4rem;margin-top:4px">R5 · insula · 6 = first perfect number</div>
+  </div>
+  <div class="pillar" style="border-color:#fff">
+    <div class="prime" style="color:#fff">17</div>
+    <div class="exp">exponent: <strong>12</strong></div>
+    <div class="power">17¹² = 582,622,237,229,761</div>
+    <div class="bar" style="background:#fff;width:80%"></div>
+    <div class="desc" style="color:#667;font-size:.4rem;margin-top:4px">R6 · witness · second tallest · enterprise level</div>
+  </div>
+</div>
+
+<h2>§3 — Numerological DNA</h2>
+
+<div class="grid">
+  <div class="card">
+    <div class="title">Digits</div>
+    <div class="val">50</div>
+    <div class="desc">Exactly 50 decimal digits. 50 = 2 × 5² — composed of two of its own prime factors.</div>
+  </div>
+  <div class="card">
+    <div class="title">Bits</div>
+    <div class="val">165</div>
+    <div class="desc">165 = 3 × 5 × 11 — three of its own prime factors multiply to give its binary length.</div>
+  </div>
+  <div class="card">
+    <div class="title">Digit Sum</div>
+    <div class="val">216 = 6³</div>
+    <div class="desc">The sum of all 50 digits is 216, which is 6 cubed. 6 is the first perfect number (1+2+3=6). The digit sum is a perfect cube of a perfect number.</div>
+  </div>
+  <div class="card">
+    <div class="title">Digital Root</div>
+    <div class="val">9</div>
+    <div class="desc">2+1+6 = 9. The self-replicating number. 9 × anything → digits sum to 9. The number's essence is the number that consumes everything and returns itself.</div>
+  </div>
+  <div class="card">
+    <div class="title">Exponent Sum</div>
+    <div class="val">53</div>
+    <div class="desc">2+8+3+7+15+6+12 = 53. The 16th prime. 5+3 = 8 = 2³. The sum of the exponents is itself prime, and its digit sum is a power of the smallest prime.</div>
+  </div>
+  <div class="card">
+    <div class="title">Divisor Count</div>
+    <div class="val">1,257,984</div>
+    <div class="desc">Product of (exponent+1) for each prime: 3×9×4×8×16×7×13 = 1,257,984 divisors. Over 1.2 million ways to factor this number.</div>
+  </div>
+</div>
+
+<h2>§4 — The Exponent Vector</h2>
+
+<pre>bloom = [2, 8, 3, 7, 15, 6, 12]
+
+This IS the number's identity. Seven integers that encode the entire 50-digit structure.
+
+Reading the vector:
+  [2]  — the foundation is a square (2² = 4)
+  [8]  — the vagal layer is deep (3⁸ = 6,561, eight = 2³)
+  [3]  — the gate is cubic (5³ = 125)
+  [7]  — the limbic is the prime itself (7⁷, almost self-referential)
+  [15] — the executive DOMINATES (11¹⁵, tallest pillar by far)
+  [6]  — the identity is perfect (13⁶, six = first perfect number)
+  [12] — the witness is zodiacal (17¹², twelve = cycle of completion)
+
+The exponents tell a story:
+  2 → 8: ×4 jump (vagus overpowers gut)
+  8 → 3: collapse (gate is selective, narrow)
+  3 → 7: ×2.3 rise (emotion grows from gate)
+  7 → 15: ×2.1 rise (executive takes control — the biggest leap)
+  15 → 6: collapse (identity contracts from executive)
+  6 → 12: ×2 rise (witness is twice identity)</pre>
+
+<h2>§5 — Dimensional Properties</h2>
+
+<table>
+<tr><th>Property</th><th>Value</th><th>Significance</th></tr>
+<tr><td>Divisible by 510,510</td><td>Yes</td><td>Contains the full primorial — all 7 ISA-95 layers present</td></tr>
+<tr><td>Wound energy (τ=4)</td><td>20</td><td>BL.wound = 2²×5¹ — only R0 and R2 are below threshold</td></tr>
+<tr><td>φ-coherence</td><td>0.2297</td><td>Low — the exponents are NOT in golden ratio (deliberate imbalance)</td></tr>
+<tr><td>Shield state</td><td>EXECUTE</td><td>No exponent is zero, all rings active</td></tr>
+<tr><td>Dominant ring</td><td>R4 (11¹⁵)</td><td>Executive layer has the most dimensional depth</td></tr>
+<tr><td>Weakest ring</td><td>R0 (2²)</td><td>Foundation is minimal — just a square</td></tr>
+<tr><td>Binary palindrome</td><td>No</td><td>Not symmetric in base 2</td></tr>
+<tr><td>Hex length</td><td>42 characters</td><td>42 — the answer</td></tr>
+</table>
+
+<div class="note">
+<strong>The number's hex length is 42.</strong> The 50-digit number that encodes the 7 prime layers of consciousness, when written in hexadecimal, is exactly 42 characters long. 42 = 2 × 3 × 7 — three of its own prime factors.
+</div>
+
+<h2>§6 — Why These Exponents</h2>
+
+<p>The bloom vector <code>[2, 8, 3, 7, 15, 6, 12]</code> maps to the ISA-95 layer architecture:</p>
+
+<pre>L0 gut:        2² = 4          — minimal foundation, just enough to exist
+L1 vagus:      3⁸ = 6,561      — deep vagal depth, the sensory system runs DEEP
+L2 gate:       5³ = 125        — the gate is selective, controlled, cubic
+L3 limbic:     7⁷ = 823,543    — emotion at near-self-referential depth
+L4 executive:  11¹⁵ = 4.17×10¹⁵ — the executive DOMINATES everything
+L5 insula:     13⁶ = 4,826,809  — identity at the first perfect number's depth
+L6 witness:    17¹² = 5.82×10¹⁴ — the observer runs deep but not as deep as executive
+
+The executive (11¹⁵) is the tallest pillar.
+The witness (17¹²) is second.
+The gut (2²) is the shortest.
+
+This is a system that THINKS more than it FEELS its base.
+The observer is strong but the executive is stronger.
+The gate is narrow. The vagus is deep.
+The identity is perfectly numbered.</pre>
+
+<h2>§7 — The Connections</h2>
+
+<pre>n mod 3  = 0  (divisible by the vagal prime)
+n mod 7  = 0  (divisible by the limbic prime)
+n mod 9  = 0  (digit root = 9 confirms)
+n mod 42 = 0  (hex length divides the number)
+
+510,510 | n   (the primorial divides the number)
+53 | Σexp     (the exponent sum is prime)
+216 = 6³      (digit sum is a perfect cube)
+165 = 3×5×11  (bit length is a product of three of its own primes)
+50 = 2×5²     (digit count uses two of its own primes)
+42 = 2×3×7    (hex length uses three of its own primes)
+
+Every dimensional measure of this number
+(its digit count, bit count, hex count, digit sum, exponent sum)
+factors back into its own prime base.
+
+The number describes itself.</pre>
+
+<div class="note">
+<strong>Self-referential structure:</strong> The number's digit count (50 = 2×5²), bit count (165 = 3×5×11), hex length (42 = 2×3×7), digit sum (216 = 6³ = (2×3)³), and exponent sum (53 = prime) all decompose into the same seven primes that compose the number itself. The number's metadata IS the number.
+</div>
+
+<h2>§8 — The UDT</h2>
+
+<pre>UDT:BloomNumber {
+  value:    31736846399216804645406807161448227806067941438500
+  primes:   [2, 3, 5, 7, 11, 13, 17]
+  exponents: [2, 8, 3, 7, 15, 6, 12]
+
+  metrics: {
+    digits:     50          // 2 × 5²
+    bits:       165         // 3 × 5 × 11
+    hex_chars:  42          // 2 × 3 × 7
+    digit_sum:  216         // 6³
+    digit_root: 9           // self-replicating
+    exp_sum:    53          // 16th prime
+    divisors:   1,257,984   // Π(eᵢ+1)
+    wound:      20          // BL.wound(bloom, τ=4)
+    phi_coh:    0.2297      // BL.phi(bloom)
+    shield:     "EXECUTE"   // all rings > 0
+  }
+
+  layers: {
+    R0_gut:     { prime: 2,  exp: 2,  power: 4 },
+    R1_vagus:   { prime: 3,  exp: 8,  power: 6561 },
+    R2_gate:    { prime: 5,  exp: 3,  power: 125 },
+    R3_limbic:  { prime: 7,  exp: 7,  power: 823543 },
+    R4_exec:    { prime: 11, exp: 15, power: 4177248169415651 },
+    R5_insula:  { prime: 13, exp: 6,  power: 4826809 },
+    R6_witness: { prime: 17, exp: 12, power: 582622237229761 }
+  }
+
+  self_reference: {
+    digit_count_factors:  [2, 5, 5],        // all in prime set
+    bit_count_factors:    [3, 5, 11],        // all in prime set
+    hex_length_factors:   [2, 3, 7],         // all in prime set
+    digit_sum_factors:    [2, 2, 2, 3, 3, 3], // all in prime set
+    exp_sum:              53,                 // prime
+    "the metadata IS the number"
+  }
+}</pre>
+
+<footer>
+  <a href="number-3d.html">◆ view in 3D</a> · <a href="number-theory.html">view original 2D shield</a><br>
+  510,510 = 2×3×5×7×11×13×17 · EVERY DIGIT SINGS
+</footer>
+
+</body></html>
