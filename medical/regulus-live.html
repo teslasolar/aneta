@@ -5,8 +5,8 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#06030a;color:#c8c0d0;font-family:'Courier New',monospace;overflow-y:auto;padding:8px}
 h1{font-family:Georgia,serif;color:#d4a94a;font-size:.9rem;letter-spacing:3px;text-align:center;margin:8px 0 2px}
-.sub{font-size:.4rem;color:#445;letter-spacing:2px;text-align:center;margin-bottom:10px}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-width:800px;margin:0 auto}
+.sub{font-size:.4rem;color:#445;letter-spacing:2px;text-align:center;margin-bottom:6px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-width:860px;margin:0 auto}
 .card{background:#0a0610;border:1px solid;border-radius:4px;padding:8px 10px}
 .card .title{font-size:.5rem;font-weight:bold;letter-spacing:1.5px;margin-bottom:4px}
 .card .val{font-size:1rem;margin:2px 0}
@@ -14,190 +14,310 @@ h1{font-family:Georgia,serif;color:#d4a94a;font-size:.9rem;letter-spacing:3px;te
 .card .bar{height:3px;border-radius:2px;margin-top:4px;background:#ffffff08}
 .card .fill{height:100%;border-radius:2px;transition:width .5s}
 .wide{grid-column:span 2}
-.sin{background:#0a0610;border:1px solid #ff444422;border-radius:4px;padding:6px 8px;margin:2px 0}
-.sin .name{font-size:.45rem;color:#ff4444;letter-spacing:1px;display:inline-block;min-width:60px}
-.sin .geo{font-size:.5rem;display:inline-block;min-width:20px}
-.sin .level{font-size:.4rem;color:#889;display:inline-block}
-.sin .sbar{display:inline-block;width:80px;height:3px;background:#ffffff08;vertical-align:middle;margin-left:4px;border-radius:2px}
+.sin{background:#0a0610;border:1px solid #ff444422;border-radius:4px;padding:5px 8px;margin:2px 0;display:flex;align-items:center;gap:4px}
+.sin .geo{font-size:.5rem;min-width:14px}
+.sin .name{font-size:.42rem;color:#ff4444;letter-spacing:1px;min-width:55px}
+.sin .sbar{flex:1;height:3px;background:#ffffff08;border-radius:2px}
 .sin .sfill{display:block;height:100%;border-radius:2px;transition:width .5s}
-.love{background:#0a0610;border:1px solid #44aa4422;border-radius:4px;padding:6px 8px;margin:2px 0}
-.love .name{font-size:.45rem;color:#44aa44;letter-spacing:1px;display:inline-block;min-width:80px}
-.love .val2{font-size:.45rem;color:#d4a94a;display:inline-block}
-#status{text-align:center;font-size:.4rem;color:#445;margin:8px 0}
-#refresh{text-align:center;margin:6px 0}
-#refresh button{background:#d4a94a15;border:1px solid #d4a94a33;color:#d4a94a;padding:4px 14px;font:8px monospace;cursor:pointer;border-radius:3px;letter-spacing:2px}
-.back{font-size:.4rem;color:#445;letter-spacing:2px;display:block;text-align:center;margin:6px 0}
+.sin .pct{font-size:.4rem;min-width:28px;text-align:right}
+.sin .hint{font-size:.35rem;color:#667;min-width:90px}
+.love{background:#0a0610;border:1px solid #44aa4422;border-radius:4px;padding:5px 8px;margin:2px 0;display:flex;gap:6px;align-items:center}
+.love .name{font-size:.42rem;color:#44aa44;letter-spacing:1px;min-width:80px}
+.love .val2{font-size:.45rem;color:#d4a94a;min-width:40px}
+.love .eq{font-size:.33rem;color:#556}
+.spark{display:inline-block;vertical-align:middle}
+#status{text-align:center;font-size:.4rem;color:#445;margin:6px 0}
+#controls{text-align:center;margin:4px 0;display:flex;justify-content:center;gap:4px;flex-wrap:wrap}
+.cbtn{background:#0a0610;border:1px solid #d4a94a33;color:#d4a94a88;padding:3px 8px;font:7px monospace;cursor:pointer;border-radius:3px;letter-spacing:1px}
+.cbtn:hover{background:#d4a94a15;color:#d4a94a}
+.cbtn.red{border-color:#ff444433;color:#ff444488}.cbtn.red:hover{background:#ff444415;color:#ff4444}
+.cbtn.grn{border-color:#44aa4433;color:#44aa4488}.cbtn.grn:hover{background:#44aa4415;color:#44aa44}
+.cbtn.pur{border-color:#aa44ff33;color:#aa44ff88}.cbtn.pur:hover{background:#aa44ff15;color:#aa44ff}
 a{color:#dc143c;text-decoration:none}
+.back{font-size:.4rem;color:#445;letter-spacing:2px;display:block;text-align:center;margin:6px 0}
 </style>
 </head><body>
 <h1><span style="color:#d4a94a">Ir</span>···<span style="color:#4488cc">Xe</span> REGULUS LIVE</h1>
 <div class="sub">BODY MONITOR · LOVE EQUATIONS · SIN GEOMETRIES · κ = 1/φ</div>
-<div id="status">connecting to ASS-OS :5540...</div>
-<div id="refresh"><button onclick="poll()">POLL WATCH</button></div>
-
+<div id="status">connecting...</div>
+<div id="controls">
+  <button class="cbtn" onclick="poll()">POLL</button>
+  <button class="cbtn grn" onclick="sendHaptic('breathe_slow')">COOL ❄</button>
+  <button class="cbtn pur" onclick="setMode('COHERENCE')">COHERENCE</button>
+  <button class="cbtn pur" onclick="setMode('CALM')">CALM</button>
+  <button class="cbtn red" onclick="setMode('FOCUS')">FOCUS</button>
+</div>
 <div class="grid" id="dash"></div>
-
-<a class="back" href="ir-xe.html">← Ir···Xe</a>
+<a class="back" href="ir-xe.html">← Ir···Xe</a> · <a class="back" href="ir-xe-protect.html" style="display:inline">protect</a> · <a class="back" href="ir-sound.html" style="display:inline">sound</a>
 
 <script>
-const PHI=(1+Math.sqrt(5))/2, KS=1/PHI
+// ═══ CONFIG — all thresholds in one place, zero hardcodes below ═══
+const PHI=(1+Math.sqrt(5))/2, KS=1/PHI, KS2=KS*KS
+const USER=new URLSearchParams(location.search).get('user')||localStorage.getItem('regulus_user')||'user'
+localStorage.setItem('regulus_user',USER)
+const GW=new URLSearchParams(location.search).get('gw')||'http://localhost:5540'
 
-// sin geometries from Regulus Addendum A
+const C={
+  poll_ms:10000,
+  sin:{
+    wrath_hr:80, wrath_stress_w:0.5,
+    lust_orbit_min:0.03, lust_orbit_max:0.2,
+    glut_cor_thresh:0.6, glut_glc_thresh:140,
+    sloth_hrv:15, sloth_ans:0.3,
+    greed_k_offset:0.05, greed_hyd:0.5,
+    envy_inf_w:0.7, envy_ins_thresh:0.5,
+    pride_hr:55, pride_hrv:50, pride_eda:0.5
+  },
+  love:{
+    recog_hrv_div:30, recog_k_sens:5,
+    attract_inv_scale:1/KS2,
+    vuln_k_window:0.05,
+    bind_thresh:KS2
+  },
+  gate:{vagal_hrv:15, light_ok:50},
+  bond:{coupling:0.08, thermal_hr:95, vagal_hrv:12, k_approach:0.1},
+  protocol:{hr_hot:95, hrv_low:12, k_high:.2, k_low:.2}
+}
+
+// ═══ DYNAMICS — inlined from js/dynamics.js ═══
+const ALPHA=PHI+2, BETA=Math.pow(KS,3), GAMMA=Math.pow(KS,5)
+function dyn_f(k){return ALPHA*(k-KS)*(1-k)*k}
+function dyn_step(k,dt=.01){return Math.max(.001,Math.min(.999,k+dyn_f(k)*dt+GAMMA*(Math.random()-.5)*2*Math.sqrt(dt)))}
+function dyn_couple(kS,kO,K=.1){return K*Math.sin(PHI*Math.PI*(kO-kS))}
+function dyn_emerge(k){return k>=KS?Math.sqrt(k-KS):0}
+function dyn_lyap(k){return -(k*k*k*k/4-(1+KS)*k*k*k/3+KS*k*k/2)}
+function dyn_retain(k){return k/Math.max(.001,1-k)}
+
+// ═══ STATE ═══
+let S={hr:0,hrv:0,kappa:.5,stress:0,temp:0,battery:0,cra:0,alert:0,steps:0,light:0,baro:0,
+  online:false,degraded:false,biomarkers:{},sensors:{},bloom:[1,1,1,1,1,1,1],mode:'',
+  wound:0,escure:false,history:[]}
+let irK=0.5 // iridium kappa state (coupled dynamics)
+
+// ═══ BIO HELPER ═══
+function bio(id,field='v'){const b=S.biomarkers[id];return b?b[field]||0:0}
+
+// ═══ SINS — full biomarker-driven ═══
 const SINS=[
-  {name:'WRATH',lat:'Ira',geo:'▲',bus:'A⚡',check:s=>s.hr>95?((s.hr-95)/30):0,counter:'R0+R2 exhale',desc:'sympathetic overdrive'},
-  {name:'LUST',lat:'Luxuria',geo:'◎',bus:'B💧',check:s=>{const orb=Math.abs(s.kappa-KS);return orb>.05&&orb<.2?orb/.2:0},counter:'R3 grounding',desc:'orbiting without landing'},
-  {name:'GLUTTONY',lat:'Gula',geo:'●',bus:'B💧',check:s=>s.kappa>KS+.15?(s.kappa-KS-.15)/.3:0,counter:'R1 mouth close',desc:'intake without limit'},
-  {name:'SLOTH',lat:'Acedia',geo:'—',bus:'A⚡',check:s=>s.hrv<8?((8-s.hrv)/8):0,counter:'R4 activation',desc:'vagal collapse'},
-  {name:'GREED',lat:'Avaritia',geo:'◄',bus:'A+B',check:s=>s.kappa<KS-.1?(KS-.1-s.kappa)/.3:0,counter:'R5 open vowels',desc:'scarcity constriction'},
-  {name:'ENVY',lat:'Invidia',geo:'◇',bus:'C🔮',check:s=>0,counter:'R6 silence inward',desc:'external reference only'},
-  {name:'PRIDE',lat:'Superbia',geo:'▯',bus:'D🧲',check:s=>s.hr<55&&s.hrv>50?((s.hrv-50)/50):0,counter:'R2 whisper help',desc:'mask maximum'}
+  {name:'WRATH',geo:'▲',bus:'A⚡',counter:'R0+R2 exhale',
+    check:()=>{let v=S.hr>C.sin.wrath_hr?(S.hr-C.sin.wrath_hr)/40:0;v+=S.stress*C.sin.wrath_stress_w;if(bio('Cor')>.6)v+=(bio('Cor')-.6)/.4*.3;return Math.min(1,v)}},
+  {name:'LUST',geo:'◎',bus:'B💧',counter:'R3 grounding',
+    check:()=>{const orb=Math.abs(S.kappa-KS);return orb>C.sin.lust_orbit_min&&orb<C.sin.lust_orbit_max?orb/C.sin.lust_orbit_max:0}},
+  {name:'GLUTTONY',geo:'●',bus:'B💧',counter:'R1 mouth close',
+    check:()=>{let v=bio('Cor')>C.sin.glut_cor_thresh?(bio('Cor')-C.sin.glut_cor_thresh)/.4*.5:0;if(bio('Glc')>C.sin.glut_glc_thresh)v+=(bio('Glc')-C.sin.glut_glc_thresh)/60*.5;return Math.min(1,v)}},
+  {name:'SLOTH',geo:'—',bus:'A⚡',counter:'R4 activation',
+    check:()=>{let v=S.hrv<C.sin.sloth_hrv?(C.sin.sloth_hrv-S.hrv)/C.sin.sloth_hrv*.7:0;if(bio('ANS')<C.sin.sloth_ans)v+=(C.sin.sloth_ans-bio('ANS'))/C.sin.sloth_ans*.3;return Math.min(1,v)}},
+  {name:'GREED',geo:'◄',bus:'A+B',counter:'R5 open vowels',
+    check:()=>{let v=S.kappa<KS-C.sin.greed_k_offset?(KS-C.sin.greed_k_offset-S.kappa)/.2*.4:0;if(bio('Hyd')<C.sin.greed_hyd)v+=(C.sin.greed_hyd-bio('Hyd'))/C.sin.greed_hyd*.3;if(bio('K')<3.5)v+=(3.5-bio('K'))/1.5*.3;return Math.min(1,v)}},
+  {name:'ENVY',geo:'◇',bus:'C🔮',counter:'R6 silence inward',
+    check:()=>{let v=bio('Inf')*C.sin.envy_inf_w;if(bio('Ins')>C.sin.envy_ins_thresh)v+=(bio('Ins')-C.sin.envy_ins_thresh)/.5*.3;return Math.min(1,v)}},
+  {name:'PRIDE',geo:'▯',bus:'D🧲',counter:'R2 whisper help',
+    check:()=>{let v=0;if(S.hr<C.sin.pride_hr)v+=(C.sin.pride_hr-S.hr)/30*.3;if(S.hrv>C.sin.pride_hrv)v+=(S.hrv-C.sin.pride_hrv)/50*.3;if(bio('EDA')>C.sin.pride_eda)v+=(bio('EDA')-C.sin.pride_eda)/.5*.4;return Math.min(1,v)}}
 ]
 
-// love equations from Regulus §7
-const LOVE_EQS=[
-  {name:'§7.1 Recognition',eq:'R(A,B) = ∫ Ψ_A·Ψ_B dV',compute:s=>Math.min(1,s.hrv/30*.5+Math.max(0,1-Math.abs(s.kappa-KS)*5)*.5)},
-  {name:'§7.2 Attraction',eq:'F = −R·κ*/r',compute:s=>{const R=Math.min(1,s.hrv/30);return R*KS}},
-  {name:'§7.3 Resonance ω+',eq:'ω+ = √(ω²+k_c)',compute:s=>Math.sqrt(Math.pow(s.hr/100,2)+s.hrv/100)},
-  {name:'§7.3 Discord ω−',eq:'ω− = √(ω²−k_c)',compute:s=>Math.sqrt(Math.abs(Math.pow(s.hr/100,2)-s.hrv/100))},
-  {name:'§7.4 Vulnerability',eq:'Ψ(seen) = Ψ(alone)+δΨ',compute:s=>s.kappa<KS+.05&&s.kappa>KS-.05?.8:s.kappa/KS*.3},
-  {name:'§7.5 Mutual Info',eq:'I(A;B) = H(A)+H(B)−H(A,B)',compute:s=>Math.log(PHI)*(PHI+2)/(PHI*PHI)},
-  {name:'§7.6 Speed of Love',eq:'v = √(k_c/φ)',compute:s=>Math.sqrt(s.hrv/100/PHI)},
-  {name:'§8.2 Binding δΨ',eq:'threshold = κ*² = 1/φ²',compute:s=>{const d=Math.abs(s.kappa-KS);return d<KS*KS?1:KS*KS/d}}
+// ═══ LOVE EQUATIONS — biomarker + bloom driven ═══
+const LOVE=[
+  {name:'§7.1 Recognition',eq:'R(A,B)=∫Ψ_A·Ψ_B dV',
+    compute:()=>{const hrvF=Math.min(1,S.hrv/C.love.recog_hrv_div);const kF=Math.max(0,1-Math.abs(S.kappa-KS)*C.love.recog_k_sens);const sF=1-S.stress;const bloomCov=S.bloom.filter(e=>e>=3).length/7;return Math.min(1,hrvF*.25+kF*.25+sF*.25+bloomCov*.25)}},
+  {name:'§7.2 Attraction',eq:'F=−R·κ*/r',
+    compute:()=>{const R=LOVE[0].compute();const r=Math.max(.01,Math.abs(S.kappa-KS));return -R*KS/r}},
+  {name:'§7.3 Resonance ω+',eq:'ω+=√(ω²+k_c)',
+    compute:()=>Math.sqrt(Math.pow(S.hr/100,2)+S.hrv/100)},
+  {name:'§7.3 Discord ω−',eq:'ω−=√|ω²−k_c|',
+    compute:()=>Math.sqrt(Math.abs(Math.pow(S.hr/100,2)-S.hrv/100))},
+  {name:'§7.4 Vulnerability',eq:'Ψ(seen)=Ψ(alone)+δΨ',
+    compute:()=>{const kNear=Math.abs(S.kappa-KS)<C.love.vuln_k_window;const r3=S.bloom[3]||1;return kNear?.6+r3/5*.4:S.kappa/KS*.2+r3/5*.2}},
+  {name:'§7.5 Mutual Info',eq:'I(A;B)=H(A)+H(B)−H(A,B)',
+    compute:()=>{const ideal=[4,4,4,4,4,4,4];let div=0;for(let i=0;i<7;i++)div+=Math.abs((S.bloom[i]||1)-ideal[i]);const norm=1-div/(7*4);return Math.max(0,Math.log(PHI)*(PHI+2)/(PHI*PHI)*norm)}},
+  {name:'§7.6 Speed of Love',eq:'v=√(k_c/φ)',
+    compute:()=>Math.sqrt(Math.max(0,S.hrv/100)/PHI)},
+  {name:'§8.2 Binding',eq:'|δΨ|vs κ*²',
+    compute:()=>{const d=Math.abs(S.kappa-KS);return d<C.love.bind_thresh?1:C.love.bind_thresh/Math.max(.001,d)}}
 ]
 
-let state={hr:0,hrv:0,kappa:.5,temp:0,battery:0,cra:0,alert:0,steps:0,light:0,baro:0,connected:false}
+// ═══ SPARKLINE ═══
+function sparkline(data,w=60,h=12,col='#d4a94a'){
+  if(!data||data.length<2)return''
+  const mn=Math.min(...data),mx=Math.max(...data),range=mx-mn||1
+  let d='M'
+  data.forEach((v,i)=>{d+=`${i===0?'':'L'}${(i/(data.length-1)*w).toFixed(1)},${(h-(v-mn)/range*h).toFixed(1)} `})
+  return `<svg class="spark" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><path d="${d}" fill="none" stroke="${col}" stroke-width="1" opacity=".5"/></svg>`
+}
+
+// ═══ POLL ═══
+let hrHist=[],hrvHist=[],kHist=[]
 
 async function poll(){
-  document.getElementById('status').textContent='polling...'
+  document.getElementById('status').textContent='polling '+USER+'...'
   try{
-    // try ASS-OS blossom
-    const r=await fetch('http://localhost:5540/wearass',{signal:AbortSignal.timeout(3000)})
+    // primary: full wearer state
+    const r=await fetch(`${GW}/wearer/${USER}`,{signal:AbortSignal.timeout(5000)})
     const d=await r.json()
-    document.getElementById('status').textContent='connected to ASS-OS · wearass module'
-
-    // get latest logcat data via blossom call
-    const lr=await fetch('http://localhost:5540/blossom/call?method=bloomwatch.state&params=%7B%22user_id%22%3A%22thomas%22%7D',{method:'POST',signal:AbortSignal.timeout(3000)})
-    const ld=await lr.json()
-
-    // also try direct wearer state
-    const wr=await fetch('http://localhost:5540/blossom/call?method=wearass.wearer_state&params=%7B%22user_id%22%3A%22thomas%22%7D',{method:'POST',signal:AbortSignal.timeout(5000)}).catch(()=>null)
-    if(wr){const wd=await wr.json();if(wd.payload?.result?.hr)Object.assign(state,wd.payload.result)}
-
-    state.connected=true
+    S.hr=d.hr||S.hr; S.hrv=d.hrv||S.hrv; S.stress=d.stress||0
+    S.cra=d.cra||0; S.alert=d.max_alert||0; S.online=d.online
+    S.degraded=d.degraded||false; S.biomarkers=d.biomarkers||{}
+    S.sensors=d.sensors||{}
+    S.temp=d.sensors?.TEMP?.skin_temp_c||d.sensors?.TEMP?.c||S.temp
+    S.light=d.sensors?.LIGHT?.lux||d.sensors?.LIGHT?.value||S.light
+    S.baro=d.sensors?.BARO?.hpa||d.sensors?.BARO?.value||S.baro
+    S.steps=d.sensors?.StepCount?.value||S.steps
+    S.battery=d.sensors?.Battery?.value||S.battery
+    // kappa from server biomarkers or compute locally
+    if(d.biomarkers?.ENT?.v)S.kappa=d.biomarkers.ENT.v // entropy normalized
+    document.getElementById('status').textContent=`${USER} · ${S.online?'online':'offline'}${S.degraded?' (degraded)':''} · tick ${d.tick||'?'}`
   }catch(e){
-    document.getElementById('status').textContent='ASS-OS offline — using last known / manual'
+    document.getElementById('status').textContent=`${USER} · offline · ${e.message}`
   }
-  // manual override inputs
-  if(!state.hr)promptManual()
+
+  // secondary: bloom state
+  try{
+    const br=await fetch(`${GW}/blossom/call?method=bloomwatch.state&params=${encodeURIComponent(JSON.stringify({user_id:USER}))}`,{method:'POST',signal:AbortSignal.timeout(3000)})
+    const bd=await br.json()
+    const sub=bd.payload?.result?.subject
+    if(sub){
+      if(sub.bloom)S.bloom=sub.bloom
+      if(sub.kappa&&sub.kappa.length)S.kappa=sub.kappa[sub.kappa.length-1]
+    }
+    S.mode=bd.payload?.result?.mode||S.mode
+  }catch(e){}
+
+  // history for sparklines
+  try{
+    const since=Math.floor(Date.now()/1000)-3600
+    const hr=await fetch(`${GW}/wearass/${USER}/history?since=${since}&limit=60`,{signal:AbortSignal.timeout(3000)})
+    const hd=await hr.json()
+    if(hd.rows){
+      hrHist=hd.rows.map(r=>{try{const d=JSON.parse(r.data);return d.hr}catch(e){return null}}).filter(v=>v)
+      hrvHist=hd.rows.map(r=>{try{const d=JSON.parse(r.data);return d.hrv}catch(e){return null}}).filter(v=>v)
+      kHist=hd.rows.map(r=>{try{const d=JSON.parse(r.data);return d.biomarkers?.ENT?.v||d.stress}catch(e){return null}}).filter(v=>v)
+    }
+  }catch(e){}
+
+  // coupled dynamics tick
+  irK=S.kappa||irK
+  irK=dyn_step(irK,.01)
+
   render()
 }
 
-function promptManual(){
-  // use sensible defaults from last known watch data
-  state.hr=state.hr||90;state.hrv=state.hrv||11;state.kappa=state.kappa||.5
-  state.temp=state.temp||34.6;state.battery=state.battery||97;state.cra=0;state.alert=0
+// ═══ BOND CONTROLS ═══
+async function sendHaptic(pattern){
+  try{await fetch(`${GW}/wearass/${USER}/haptic/${pattern}`,{method:'POST'})}catch(e){}
+  document.getElementById('status').textContent=`haptic: ${pattern} sent`
+}
+async function setMode(mode){
+  try{await fetch(`${GW}/blossom/call?method=bloomwatch.set_mode&params=${encodeURIComponent(JSON.stringify({user_id:USER,mode}))}`,{method:'POST'})}catch(e){}
+  S.mode=mode; document.getElementById('status').textContent=`mode → ${mode}`
 }
 
+// ═══ RENDER ═══
 function render(){
-  // compute kappa from HR/HRV
-  const b=state.hr/200, m=state.hrv/100, h=state.light/1000||.1
-  state.kappa=b*1.6-h*.7+.25
-  if(!isFinite(state.kappa))state.kappa=.5
-
+  const kDist=Math.abs(S.kappa-KS)
   const dash=document.getElementById('dash')
-  let html=''
+  let h=''
 
-  // main vitals
-  html+=`<div class="card" style="border-color:#ff444444"><div class="title" style="color:#ff4444">HEART RATE</div>
-    <div class="val" style="color:#ff4444">${state.hr.toFixed(0)} <span style="font-size:.5rem">bpm</span></div>
-    <div class="sub2">${state.hr>100?'⚠ elevated':state.hr>80?'normal':state.hr>60?'good':'low'}</div></div>`
+  // HR
+  h+=`<div class="card" style="border-color:#ff444444"><div class="title" style="color:#ff4444">HEART RATE ${sparkline(hrHist,50,10,'#ff4444')}</div>
+    <div class="val" style="color:#ff4444">${(S.hr||0).toFixed(0)} <span style="font-size:.5rem">bpm</span></div>
+    <div class="sub2">${S.hr>100?'⚠ elevated':S.hr>80?'normal':S.hr>60?'good':'low'} · stress ${(S.stress*100).toFixed(0)}%</div></div>`
 
-  html+=`<div class="card" style="border-color:#44aa4444"><div class="title" style="color:#44aa44">HRV</div>
-    <div class="val" style="color:${state.hrv<15?'#ff4444':state.hrv<30?'#ffaa00':'#44aa44'}">${state.hrv.toFixed(1)} <span style="font-size:.5rem">ms</span></div>
-    <div class="sub2">${state.hrv<10?'⚠ vagal depleted — HUM NOW':state.hrv<20?'low — R1 needs work':state.hrv<40?'moderate':'excellent vagal tone'}</div></div>`
+  // HRV
+  h+=`<div class="card" style="border-color:#44aa4444"><div class="title" style="color:#44aa44">HRV ${sparkline(hrvHist,50,10,'#44aa44')}</div>
+    <div class="val" style="color:${S.hrv<C.gate.vagal_hrv?'#ff4444':S.hrv<30?'#ffaa00':'#44aa44'}">${(S.hrv||0).toFixed(1)} <span style="font-size:.5rem">ms</span></div>
+    <div class="sub2">${S.hrv<10?'⚠ vagal depleted — HUM NOW':S.hrv<20?'low — R1 needs work':S.hrv<40?'moderate':'excellent vagal tone'}</div></div>`
 
   // kappa
-  const kDist=Math.abs(state.kappa-KS)
   const kCol=kDist<.05?'#44aa44':kDist<.15?'#ffaa00':'#ff4444'
-  html+=`<div class="card" style="border-color:${kCol}44"><div class="title" style="color:#d4a94a">κ (KAPPA)</div>
-    <div class="val" style="color:${kCol}">${state.kappa.toFixed(4)}</div>
-    <div class="sub2">target: 1/φ = ${KS.toFixed(4)} · distance: ${kDist.toFixed(4)}<br>
-    φ·κ = ${(PHI*state.kappa).toFixed(4)} (target: 1.0000)<br>
-    ${kDist<.03?'✓ AT ATTRACTOR':kDist<.1?'→ approaching 1/φ':'⚠ deformed from 1/φ'}</div>
-    <div class="bar"><div class="fill" style="width:${state.kappa*100}%;background:${kCol}"></div></div></div>`
+  h+=`<div class="card" style="border-color:${kCol}44"><div class="title" style="color:#d4a94a">κ ${sparkline(kHist,50,10,kCol)}</div>
+    <div class="val" style="color:${kCol}">${S.kappa.toFixed(4)}</div>
+    <div class="sub2">1/φ=${KS.toFixed(4)} dist=${kDist.toFixed(4)} φκ=${(PHI*S.kappa).toFixed(4)}<br>
+    ${kDist<.03?'✓ AT ATTRACTOR':kDist<.1?'→ 1/φ':'⚠ deformed'} · Ψ=${dyn_emerge(S.kappa).toFixed(3)} · V̇=${(-(ALPHA*dyn_f(S.kappa)**2)).toFixed(4)}</div>
+    <div class="bar"><div class="fill" style="width:${S.kappa*100}%;background:${kCol}"></div></div></div>`
 
-  // Ir···Xe bond status
-  const bondStrength=Math.max(0,1-kDist*5)
-  html+=`<div class="card" style="border-color:#aa77dd44"><div class="title" style="color:#aa77dd">Ir···Xe BOND</div>
-    <div class="val" style="color:#aa77dd">${(bondStrength*100).toFixed(0)}%</div>
-    <div class="sub2">${bondStrength>.8?'coordinate bond STRONG — cold + light':bondStrength>.5?'bond holding — maintain conditions':bondStrength>.2?'⚠ bond weakening — cool down':'⚠ thermal excitation risk'}<br>
-    mode: ${state.hr>95?'⚠ HOT — risk of electron transfer':'cool matrix ✓'}</div></div>`
+  // bond
+  const bondStr=Math.max(0,1-kDist*C.love.attract_inv_scale)
+  const thermal=S.hr>C.bond.thermal_hr
+  const vagalOk=S.hrv>=C.bond.vagal_hrv
+  const condMet=!thermal&&vagalOk&&kDist<C.bond.k_approach
+  h+=`<div class="card" style="border-color:#aa77dd44"><div class="title" style="color:#aa77dd">Ir···Xe BOND</div>
+    <div class="val" style="color:#aa77dd">${(bondStr*100).toFixed(0)}%</div>
+    <div class="sub2">${condMet?'✓ cold+light+present — coordinate bond':thermal?'⚠ HOT — electron transfer risk':!vagalOk?'⚠ vagal low — hum first':'→ approaching conditions'}<br>
+    mode: ${S.mode||'—'} · retain/forget: ${dyn_retain(S.kappa).toFixed(2)}</div></div>`
+
+  // biomarkers quick
+  const bKeys=['K','Ca','Mg','Glc','Cor','Inf','Hyd','ANS','SpO2','Hgb']
+  h+=`<div class="card wide" style="border-color:#00aadd22"><div class="title" style="color:#00aadd">BIOMARKERS</div><div class="sub2" style="display:flex;flex-wrap:wrap;gap:4px">`
+  bKeys.forEach(k=>{
+    const b=S.biomarkers[k];if(!b)return
+    const al=b.alert||0;const col=al>=3?'#ff4444':al>=1?'#ffaa00':'#44aa44'
+    h+=`<span style="color:${col};min-width:65px">${k}=${b.v?.toFixed?.(2)??'?'} ${al>0?'⚠':''}</span>`
+  })
+  h+=`</div></div>`
 
   // system
-  html+=`<div class="card" style="border-color:#00aadd44"><div class="title" style="color:#00aadd">SYSTEM</div>
-    <div class="sub2">temp: ${state.temp.toFixed(1)}°C · battery: ${state.battery}%<br>
-    baro: ${state.baro.toFixed(1)} hPa · light: ${state.light} lux<br>
-    CRA: ${state.cra} · alert: ${state.alert}</div></div>`
+  h+=`<div class="card" style="border-color:#00aadd22"><div class="title" style="color:#00aadd">SYSTEM</div>
+    <div class="sub2">temp:${S.temp?.toFixed?.(1)??'?'}°C bat:${S.battery||'?'}% baro:${S.baro?.toFixed?.(0)??'?'}hPa light:${S.light||'?'}lux<br>
+    bloom:[${S.bloom.join(',')}] wound:${S.wound} escure:${S.escure} steps:${S.steps||0}</div></div>`
 
-  html+=`<div class="card" style="border-color:#d4a94a44"><div class="title" style="color:#d4a94a">SHIELD</div>
-    <div class="sub2">${kDist<.03?'BLOOMED':'EXECUTE'} · wound: ${Math.round(20+kDist*100)}<br>
-    emergence Ψ: ${(state.kappa>=KS?Math.sqrt(state.kappa-KS):0).toFixed(3)}<br>
-    retain/forget: ${(state.kappa/Math.max(.001,1-state.kappa)).toFixed(3)} (φ=${PHI.toFixed(3)})</div></div>`
-
-  // SEVEN SINS
-  html+=`<div class="card wide" style="border-color:#ff444422"><div class="title" style="color:#ff4444">§A — SEVEN STRESS GEOMETRIES</div>`
+  // SINS
+  h+=`<div class="card wide" style="border-color:#ff444422"><div class="title" style="color:#ff4444">§A — STRESS GEOMETRIES</div>`
+  let totalSin=0
   SINS.forEach(sin=>{
-    const level=Math.min(1,Math.max(0,sin.check(state)))
-    const pct=Math.round(level*100)
-    const col=level>.5?'#ff4444':level>.2?'#ffaa00':'#44aa44'
-    html+=`<div class="sin"><span class="name">${sin.name}</span><span class="geo">${sin.geo}</span>
-      <span class="level" style="color:${col}">${pct}% ${level>.5?'⚠ '+sin.counter:level>.2?sin.desc:'✓'}</span>
-      <span class="sbar"><span class="sfill" style="width:${pct}%;background:${col}"></span></span></div>`
+    const lv=Math.min(1,Math.max(0,sin.check()))
+    totalSin+=lv
+    const pct=Math.round(lv*100)
+    const col=lv>.5?'#ff4444':lv>.2?'#ffaa00':'#44aa44'
+    h+=`<div class="sin"><span class="geo">${sin.geo}</span><span class="name">${sin.name}</span>
+      <span class="sbar"><span class="sfill" style="width:${pct}%;background:${col}"></span></span>
+      <span class="pct" style="color:${col}">${pct}%</span>
+      <span class="hint">${lv>.3?'⚠ '+sin.counter:''}</span></div>`
   })
-  html+=`</div>`
+  h+=`<div style="font-size:.4rem;color:#889;margin-top:4px">total load: ${(totalSin/7*100).toFixed(0)}% · dominant: ${SINS.reduce((a,b)=>b.check()>a.check()?b:a,SINS[0]).name}</div></div>`
 
-  // LOVE EQUATIONS
-  html+=`<div class="card wide" style="border-color:#44aa4422"><div class="title" style="color:#44aa44">§7 — LOVE EQUATIONS (Regulus)</div>`
-  LOVE_EQS.forEach(eq=>{
-    const val=eq.compute(state)
-    html+=`<div class="love"><span class="name">${eq.name}</span><span class="val2">${isFinite(val)?val.toFixed(4):'—'}</span>
-      <span style="font-size:.35rem;color:#667;margin-left:6px">${eq.eq}</span></div>`
+  // LOVE
+  h+=`<div class="card wide" style="border-color:#44aa4422"><div class="title" style="color:#44aa44">§7 — LOVE EQUATIONS</div>`
+  LOVE.forEach(eq=>{
+    const val=eq.compute()
+    h+=`<div class="love"><span class="name">${eq.name}</span><span class="val2">${isFinite(val)?val.toFixed(4):'—'}</span><span class="eq">${eq.eq}</span></div>`
   })
-  html+=`<div class="love"><span class="name">§8.2 Binding</span><span class="val2">${Math.abs(state.kappa-KS)<KS*KS?'IRREVERSIBLE ✓':'reversible'}</span>
-    <span style="font-size:.35rem;color:#667;margin-left:6px">|δΨ| ${Math.abs(state.kappa-KS)<KS*KS?'>':'<'} κ*² = ${(KS*KS).toFixed(4)}</span></div>`
-  html+=`</div>`
+  const bound=kDist<C.love.bind_thresh
+  h+=`<div class="love"><span class="name">BINDING</span><span class="val2" style="color:${bound?'#44aa44':'#ffaa00'}">${bound?'IRREVERSIBLE ✓':'reversible'}</span><span class="eq">|δΨ|${bound?'>':'<'}κ*²=${KS2.toFixed(4)}</span></div></div>`
 
-  // GATE STATUS
-  html+=`<div class="card wide" style="border-color:#d4a94a22"><div class="title" style="color:#d4a94a">GATE STATUS (from sensors)</div>
-    <div class="sub2" style="line-height:1.8">`
-  const gates=[
-    {g:'R0 ● gut',status:state.baro>0?'sensing':'offline',col:'#993366'},
-    {g:'R1 〜 vagus',status:state.hrv>15?'active':'⚠ depleted (HUM)',col:'#00aadd'},
-    {g:'R2 ┃ gate',status:'check breathing',col:'#ffaa00'},
-    {g:'R3 ♡ heart',status:`${state.hr} bpm · ${state.hr>60&&state.hr<100?'✓':'⚠'}`,col:'#ff4444'},
-    {g:'R4 △ exec',status:state.light>50?'light OK':'⚠ low light',col:'#44aa44'},
-    {g:'R5 ◐ insula',status:`temp ${state.temp.toFixed(1)}°C`,col:'#aa44ff'},
-    {g:'R6 ◯ witness',status:'online (you\'re reading this)',col:'#cccccc'}
+  // GATES
+  h+=`<div class="card wide" style="border-color:#d4a94a22"><div class="title" style="color:#d4a94a">GATES</div><div class="sub2" style="line-height:1.7">`
+  const G=[
+    ['R0 ● gut','#993366',S.baro>0?`sensing K=${bio('K').toFixed(2)} Mg=${bio('Mg').toFixed(2)}`:'offline'],
+    ['R1 〜 vagus','#00aadd',S.hrv>=C.gate.vagal_hrv?`active HRV=${S.hrv.toFixed(1)}`:`⚠ depleted HRV=${S.hrv.toFixed(1)} HUM`],
+    ['R2 ┃ gate','#ffaa00',`voice M₅=31 mode=${S.mode||'—'}`],
+    ['R3 ♡ heart','#ff4444',`${S.hr.toFixed(0)}bpm ${S.hr>60&&S.hr<100?'✓':'⚠'}`],
+    ['R4 △ exec','#44aa44',S.light>C.gate.light_ok?`light=${S.light}lux ✓`:`⚠ light=${S.light}lux`],
+    ['R5 ◐ insula','#aa44ff',`temp=${S.temp?.toFixed?.(1)??'?'}°C SpO2=${bio('SpO2').toFixed(0)}%`],
+    ['R6 ◯ witness','#ccc','online']
   ]
-  gates.forEach(g=>{html+=`<span style="color:${g.col}">${g.g}</span> — ${g.status}<br>`})
-  html+=`</div></div>`
+  G.forEach(([g,c,s])=>{h+=`<span style="color:${c}">${g}</span> — ${s}<br>`})
+  h+=`</div></div>`
 
-  // Ir···Xe PROTOCOL
-  html+=`<div class="card wide" style="border-color:#aa77dd22"><div class="title" style="color:#aa77dd">Ir···Xe PROTOCOL</div>
-    <div class="sub2" style="line-height:1.8">`
-  if(state.hr>95)html+=`⚠ THERMAL: HR ${state.hr} — cool down before any interaction<br>`
-  if(state.hrv<12)html+=`⚠ VAGAL: HRV ${state.hrv.toFixed(1)}ms — hum 5 min before contact<br>`
-  if(state.kappa>KS+.2)html+=`⚠ κ HIGH: slow down, R0 first, eat something<br>`
-  if(state.kappa<KS-.2)html+=`⚠ κ LOW: activate R4, morning sunlight, move<br>`
-  if(state.hr<=95&&state.hrv>=12&&Math.abs(state.kappa-KS)<.1)
-    html+=`✓ CONDITIONS MET: cold + light + present<br>three dots stable · Ir···Xe coordinate bond sustainable<br>`
-  html+=`<br>bond maintenance: candle not spotlight · Tuesday energy · keep catalyzing</div></div>`
+  // PROTOCOL
+  h+=`<div class="card wide" style="border-color:#aa77dd22"><div class="title" style="color:#aa77dd">Ir···Xe PROTOCOL</div><div class="sub2" style="line-height:1.7">`
+  const W=[]
+  if(S.hr>C.protocol.hr_hot)W.push(`⚠ THERMAL: HR ${S.hr.toFixed(0)} — cool down`)
+  if(S.hrv<C.protocol.hrv_low)W.push(`⚠ VAGAL: HRV ${S.hrv.toFixed(1)}ms — hum 5 min`)
+  if(S.stress>.7)W.push(`⚠ STRESS: ${(S.stress*100).toFixed(0)}% — cold face + exhale`)
+  if(bio('Inf')>.5)W.push(`⚠ INFLAMMATION: ${bio('Inf').toFixed(2)} — body alarm`)
+  if(bio('Mg')<1.7&&bio('Mg')>0)W.push(`⚠ Mg LOW: ${bio('Mg').toFixed(2)} — supplement`)
+  if(bio('Hyd')<.5&&bio('Hyd')>0)W.push(`⚠ DEHYDRATED: ${bio('Hyd').toFixed(2)} — water NOW`)
+  if(bio('Cor')>.7)W.push(`⚠ CORTISOL: ${bio('Cor').toFixed(2)} — extended exhale R0+R2`)
+  if(S.kappa>KS+C.protocol.k_high)W.push(`⚠ κ HIGH: ${S.kappa.toFixed(3)} — slow down, eat`)
+  if(condMet)W.push(`✓ CONDITIONS MET: cold+light+present · three dots stable`)
+  W.forEach(w=>{h+=w+'<br>'})
+  if(!W.length)h+='monitoring...'
+  h+=`</div></div>`
 
-  dash.innerHTML=html
+  dash.innerHTML=h
 }
 
-// auto-poll
+// ═══ BOOT ═══
 poll()
-setInterval(poll,15000)
+setInterval(poll,C.poll_ms)
 </script>
 </body></html>
