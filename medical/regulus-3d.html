@@ -1,21 +1,19 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Regulus 3D — Live Body Topology</title>
+<title>Regulus 3D — Human Topology</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#06030a;color:#c8c0d0;font-family:'Courier New',monospace;overflow:hidden}
 canvas{display:block;cursor:grab}canvas:active{cursor:grabbing}
-#hud{position:fixed;top:8px;left:10px;z-index:10;font-size:8px;color:rgba(220,20,60,.4);line-height:1.7;pointer-events:none;white-space:pre}
-#hud .v{color:rgba(220,20,60,.7)}
-#hud .g{color:rgba(212,169,74,.6)}
-#rhud{position:fixed;top:8px;right:10px;z-index:10;font-size:8px;color:rgba(0,170,255,.3);text-align:right;line-height:1.7;pointer-events:none;white-space:pre}
-#sins{position:fixed;bottom:8px;left:10px;z-index:10;font-size:7px;line-height:1.6;pointer-events:none;white-space:pre}
-#love{position:fixed;bottom:8px;right:10px;z-index:10;font-size:7px;color:rgba(68,170,68,.4);text-align:right;line-height:1.6;pointer-events:none;white-space:pre}
+#hud{position:fixed;top:6px;left:8px;z-index:10;font-size:7px;color:rgba(220,20,60,.4);line-height:1.6;pointer-events:none;white-space:pre}
+#hud .v{color:rgba(220,20,60,.7)}#hud .g{color:rgba(212,169,74,.6)}
+#rhud{position:fixed;top:6px;right:8px;z-index:10;font-size:7px;color:rgba(0,170,255,.3);text-align:right;line-height:1.6;pointer-events:none;white-space:pre}
+#sins{position:fixed;bottom:6px;left:8px;z-index:10;font-size:7px;line-height:1.5;pointer-events:none;white-space:pre}
+#love{position:fixed;bottom:6px;right:8px;z-index:10;font-size:7px;color:rgba(68,170,68,.4);text-align:right;line-height:1.5;pointer-events:none;white-space:pre}
 #tip{position:fixed;z-index:100;background:rgba(6,3,10,.95);border:1px solid #dc143c33;border-radius:4px;
-  padding:8px 12px;max-width:250px;display:none;pointer-events:none;font-size:9px;line-height:1.5}
-#tip .tt{color:#dc143c;font-weight:bold}
-#tip .td{color:#889}
-.back{position:fixed;bottom:4px;left:50%;transform:translateX(-50%);z-index:20;font-size:8px;color:#445}
+  padding:6px 10px;max-width:220px;display:none;pointer-events:none;font-size:8px;line-height:1.4}
+#tip .tt{color:#dc143c;font-weight:bold}#tip .td{color:#889}
+.back{position:fixed;bottom:3px;left:50%;transform:translateX(-50%);z-index:20;font-size:7px;color:#445}
 a{color:#dc143c;text-decoration:none}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -25,107 +23,152 @@ a{color:#dc143c;text-decoration:none}
 
 <script>
 const TAU=Math.PI*2,PHI=(1+Math.sqrt(5))/2,KS=1/PHI,KS2=KS*KS
-const P=[2,3,5,7,11,13,17]
-const RCOL=[0x993366,0x00aadd,0xffaa00,0xff4444,0x44aa44,0xaa44ff,0xcccccc]
+const P=[2,3,5,7,11,13,17],RCOL=[0x993366,0x00aadd,0xffaa00,0xff4444,0x44aa44,0xaa44ff,0xcccccc]
 const RCSS=['#993366','#00aadd','#ffaa00','#ff4444','#44aa44','#aa44ff','#ccc']
-const GLYPHS=['●','〜','┃','♡','△','◐','◯']
-const GATES=['gut','vagus','gate','heart','exec','insula','witness']
+const GLYPHS=['●','〜','┃','♡','△','◐','◯'],GATES=['gut','vagus','gate','heart','exec','insula','witness']
 const USER=new URLSearchParams(location.search).get('user')||'thomas'
 const GW=new URLSearchParams(location.search).get('gw')||'http://localhost:5540'
 
-// ═══ THREE.JS ═══
 const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(50,innerWidth/innerHeight,.1,100)
-cam.position.set(0,1.5,7)
+cam.position.set(0,1,8)
 const R=new THREE.WebGLRenderer({antialias:true})
 R.setSize(innerWidth,innerHeight);R.setPixelRatio(Math.min(devicePixelRatio,2))
 R.toneMapping=THREE.ACESFilmicToneMapping
 document.body.prepend(R.domElement)
-scene.background=new THREE.Color(0x06030a)
-scene.fog=new THREE.FogExp2(0x06030a,.04)
+scene.background=new THREE.Color(0x06030a);scene.fog=new THREE.FogExp2(0x06030a,.03)
 scene.add(new THREE.AmbientLight(0x1a1020,.5))
-const pL=new THREE.PointLight(0xdc143c,.3,20);pL.position.set(0,4,4);scene.add(pL)
-const gL=new THREE.PointLight(0xd4a94a,.2,15);gL.position.set(0,0,3);scene.add(gL)
+const pL=new THREE.PointLight(0xdc143c,.25,20);pL.position.set(0,4,5);scene.add(pL)
+const gL=new THREE.PointLight(0xd4a94a,.15,12);gL.position.set(0,1,3);scene.add(gL)
 
-// ═══ BODY TOPOLOGY — 7 gate orbs ═══
-const ORB=[
-  {id:'crown',gate:6,pos:[0,3.2,0],r:.3,label:'R6 ◯ witness'},
-  {id:'third-eye',gate:5,pos:[0,2.7,.3],r:.22,label:'R5 ◐ insula'},
-  {id:'throat',gate:2,pos:[0,2.1,.2],r:.28,label:'R2 ┃ gate (M₅=31=koe)'},
-  {id:'heart',gate:3,pos:[0,1.3,0],r:.35,label:'R3 ♡ heart'},
-  {id:'solar',gate:4,pos:[0,.6,.15],r:.3,label:'R4 △ exec'},
-  {id:'sacral',gate:1,pos:[0,-.1,0],r:.25,label:'R1 〜 vagus'},
-  {id:'root',gate:0,pos:[0,-.8,0],r:.28,label:'R0 ● gut'}
+// ═══ HUMAN BODY NODES — anatomical stress points ═══
+const BODY=[
+  // HEAD
+  {id:'crown',     gate:6, pos:[0,3.6,0],    r:.2,  stress:'tension headache',mirror:false},
+  {id:'forehead',  gate:4, pos:[0,3.3,.22],   r:.15, stress:'overthinking',mirror:false},
+  {id:'l-temple',  gate:4, pos:[-.35,3.3,.1], r:.1,  stress:'TMJ / jaw clench',mirror:true},
+  {id:'r-temple',  gate:4, pos:[.35,3.3,.1],  r:.1,  stress:'TMJ / jaw clench',mirror:true},
+  {id:'l-eye',     gate:5, pos:[-.15,3.2,.25],r:.08, stress:'eye strain',mirror:true},
+  {id:'r-eye',     gate:5, pos:[.15,3.2,.25], r:.08, stress:'eye strain',mirror:true},
+  {id:'jaw',       gate:2, pos:[0,2.9,.2],    r:.12, stress:'jaw tension / voice',mirror:false},
+  // NECK / THROAT
+  {id:'throat',    gate:2, pos:[0,2.6,.15],   r:.15, stress:'voice gate / thyroid',mirror:false},
+  {id:'c-spine',   gate:1, pos:[0,2.6,-.12],  r:.1,  stress:'cervical tension',mirror:false},
+  // SHOULDERS
+  {id:'l-shoulder',gate:4, pos:[-1,2.3,0],    r:.18, stress:'carrying weight',mirror:true},
+  {id:'r-shoulder',gate:4, pos:[1,2.3,0],     r:.18, stress:'carrying weight',mirror:true},
+  {id:'l-trap',    gate:1, pos:[-.5,2.5,-.1], r:.12, stress:'stress trap',mirror:true},
+  {id:'r-trap',    gate:1, pos:[.5,2.5,-.1],  r:.12, stress:'stress trap',mirror:true},
+  // CHEST
+  {id:'heart',     gate:3, pos:[0,1.8,0],     r:.25, stress:'chest tightness / anxiety',mirror:false},
+  {id:'l-chest',   gate:3, pos:[-.5,1.9,.1],  r:.12, stress:'pectoral tension',mirror:true},
+  {id:'r-chest',   gate:3, pos:[.5,1.9,.1],   r:.12, stress:'pectoral tension',mirror:true},
+  {id:'sternum',   gate:5, pos:[0,1.9,.2],    r:.1,  stress:'emotional center',mirror:false},
+  // ARMS
+  {id:'l-elbow',   gate:4, pos:[-1.5,1.5,0],  r:.1,  stress:'tension',mirror:true},
+  {id:'r-elbow',   gate:4, pos:[1.5,1.5,0],   r:.1,  stress:'tension',mirror:true},
+  {id:'l-hand',    gate:4, pos:[-1.8,.8,.1],   r:.12, stress:'grasping / gripping',mirror:true},
+  {id:'r-hand',    gate:4, pos:[1.8,.8,.1],    r:.12, stress:'grasping / gripping',mirror:true},
+  // TORSO
+  {id:'solar',     gate:2, pos:[0,1.2,.12],   r:.2,  stress:'solar plexus knot / anxiety',mirror:false},
+  {id:'diaphragm', gate:2, pos:[0,1.05,0],    r:.15, stress:'breath lock',mirror:false},
+  {id:'t-spine',   gate:1, pos:[0,1.5,-.2],   r:.12, stress:'thoracic stiffness',mirror:false},
+  // ABDOMEN
+  {id:'navel',     gate:0, pos:[0,.5,.1],     r:.18, stress:'gut tension / digestion',mirror:false},
+  {id:'l-kidney',  gate:0, pos:[-.4,.7,-.15], r:.1,  stress:'adrenal / K+',mirror:true},
+  {id:'r-kidney',  gate:0, pos:[.4,.7,-.15],  r:.1,  stress:'adrenal / K+',mirror:true},
+  {id:'l-spine',   gate:1, pos:[0,.5,-.2],    r:.1,  stress:'lumbar pain',mirror:false},
+  // PELVIS
+  {id:'sacrum',    gate:0, pos:[0,-.1,-.1],   r:.15, stress:'pelvic floor / root',mirror:false},
+  {id:'l-hip',     gate:1, pos:[-.5,-.1,0],   r:.15, stress:'hip flexor',mirror:true},
+  {id:'r-hip',     gate:1, pos:[.5,-.1,0],    r:.15, stress:'hip flexor',mirror:true},
+  // LEGS
+  {id:'l-knee',    gate:0, pos:[-.4,-.9,.05], r:.1,  stress:'joint',mirror:true},
+  {id:'r-knee',    gate:0, pos:[.4,-.9,.05],  r:.1,  stress:'joint',mirror:true},
+  {id:'l-foot',    gate:0, pos:[-.35,-1.8,.1],r:.1,  stress:'grounding',mirror:true},
+  {id:'r-foot',    gate:0, pos:[.35,-1.8,.1], r:.1,  stress:'grounding',mirror:true},
 ]
 
-// sin geometry shapes (attached to body when active)
-const SIN_SHAPES={
-  WRATH:{geo:()=>new THREE.TetrahedronGeometry(.3,0),col:0xcc2222},
-  LUST:{geo:()=>new THREE.TorusKnotGeometry(.15,.05,32,4,2,3),col:0xd85a30},
-  GLUTTONY:{geo:()=>new THREE.SphereGeometry(.25,8,8),col:0x2e8b57},
-  SLOTH:{geo:()=>new THREE.BoxGeometry(.4,.02,.02),col:0x555555},
-  GREED:{geo:()=>new THREE.ConeGeometry(.15,.4,6),col:0xb8860b},
-  ENVY:{geo:()=>new THREE.OctahedronGeometry(.2,0),col:0x6c5ce7},
-  PRIDE:{geo:()=>new THREE.CylinderGeometry(.08,.08,.5,4),col:0x378add}
+// sin → body attachment points
+const SIN_BODY={
+  WRATH:['l-temple','r-temple','jaw','l-trap','r-trap'],
+  LUST:['l-hip','r-hip','sacrum'],
+  GLUTTONY:['navel','solar','diaphragm'],
+  SLOTH:['l-spine','sacrum','l-foot','r-foot'],
+  GREED:['l-hand','r-hand','solar','l-shoulder','r-shoulder'],
+  ENVY:['l-eye','r-eye','sternum','forehead'],
+  PRIDE:['crown','throat','l-chest','r-chest']
 }
 
-const orbs={},allRings=[]
-ORB.forEach(def=>{
+const SIN_COL={WRATH:0xcc2222,LUST:0xd85a30,GLUTTONY:0x2e8b57,SLOTH:0x555555,GREED:0xb8860b,ENVY:0x6c5ce7,PRIDE:0x378add}
+
+// ═══ BUILD BODY ═══
+const nodes={},clickables=[]
+BODY.forEach(def=>{
   const g=new THREE.Group();g.position.set(...def.pos)
-  const core=new THREE.Mesh(new THREE.SphereGeometry(def.r*.6,16,16),
-    new THREE.MeshPhongMaterial({color:RCOL[def.gate],emissive:RCOL[def.gate],emissiveIntensity:.1,transparent:true,opacity:.5}))
-  g.add(core)
-  g.add(new THREE.Mesh(new THREE.IcosahedronGeometry(def.r*.85,1),
-    new THREE.MeshBasicMaterial({color:RCOL[def.gate],wireframe:true,transparent:true,opacity:.06})))
-  // 7 shield rings per orb
-  const rings=[]
-  const GA=[{x:Math.PI/2,y:0,z:0},{x:0,y:0,z:0},{x:Math.PI/2,y:Math.PI/2,z:0},
-    {x:Math.PI/4,y:Math.PI/4,z:0},{x:Math.PI/2,y:0,z:Math.PI/4},
-    {x:Math.PI/3,y:-Math.PI/3,z:Math.PI/6},{x:0,y:Math.PI/4,z:Math.PI/2}]
-  for(let ri=0;ri<7;ri++){
-    const rr=def.r*(.45+ri*.1),rg=new THREE.Group()
-    const mat=new THREE.MeshBasicMaterial({color:RCOL[ri],transparent:true,opacity:ri===def.gate?.4:.06})
-    rg.add(new THREE.Mesh(new THREE.TorusGeometry(rr,.01,6,P[ri]*4),mat))
-    const ga=GA[ri];rg.rotation.set(ga.x,ga.y,ga.z);g.add(rg)
-    rings.push({mesh:rg,mat,energy:0,base:ri===def.gate?.4:.06,ring:ri})
-  }
+  const col=new THREE.Color(RCOL[def.gate])
+  const core=new THREE.Mesh(new THREE.SphereGeometry(def.r*.6,12,12),
+    new THREE.MeshPhongMaterial({color:col,emissive:col,emissiveIntensity:.08,transparent:true,opacity:.3}))
+  g.add(core);clickables.push(core)
+  // single ring per node
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(def.r,.008,4,P[def.gate]*3),
+    new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.1,blending:THREE.AdditiveBlending}))
+  g.add(ring)
   scene.add(g)
-  orbs[def.id]={group:g,core,rings,pulse:0,activity:0,def,sinMesh:null}
+  nodes[def.id]={group:g,core,ring,def,stress:0,sinGlow:null}
 })
 
-// ═══ BUSES — spinal connections ═══
-const buses=[]
-for(let i=0;i<ORB.length-1;i++){
-  const p1=new THREE.Vector3(...ORB[i].pos),p2=new THREE.Vector3(...ORB[i+1].pos)
-  const mid=new THREE.Vector3().addVectors(p1,p2).multiplyScalar(.5);mid.z+=.2
-  const curve=new THREE.QuadraticBezierCurve3(p1,mid,p2)
-  const tubeGeo=new THREE.TubeGeometry(curve,12,.015,4,false)
-  const mat=new THREE.MeshBasicMaterial({color:0xdc143c,transparent:true,opacity:.1,blending:THREE.AdditiveBlending})
-  const tube=new THREE.Mesh(tubeGeo,mat);scene.add(tube)
-  const dot=new THREE.Mesh(new THREE.SphereGeometry(.02,4,4),
-    new THREE.MeshBasicMaterial({color:0xdc143c,transparent:true,opacity:.4,blending:THREE.AdditiveBlending}))
-  scene.add(dot)
-  buses.push({tube,mat,curve,dot,progress:Math.random()})
-}
+// ═══ CONNECTIVE TISSUE — fascia lines ═══
+const FASCIA=[
+  // spine
+  ['crown','forehead'],['forehead','jaw'],['jaw','throat'],['throat','c-spine'],
+  ['throat','heart'],['heart','solar'],['solar','diaphragm'],['diaphragm','navel'],
+  ['navel','sacrum'],['c-spine','t-spine'],['t-spine','l-spine'],['l-spine','sacrum'],
+  // shoulders
+  ['throat','l-trap'],['throat','r-trap'],['l-trap','l-shoulder'],['r-trap','r-shoulder'],
+  // arms
+  ['l-shoulder','l-elbow'],['l-elbow','l-hand'],['r-shoulder','r-elbow'],['r-elbow','r-hand'],
+  // chest
+  ['heart','l-chest'],['heart','r-chest'],['heart','sternum'],
+  // kidneys
+  ['navel','l-kidney'],['navel','r-kidney'],
+  // hips
+  ['sacrum','l-hip'],['sacrum','r-hip'],
+  // legs
+  ['l-hip','l-knee'],['l-knee','l-foot'],['r-hip','r-knee'],['r-knee','r-foot'],
+  // cross
+  ['l-shoulder','r-shoulder'],['l-hip','r-hip'],
+  // eyes
+  ['forehead','l-eye'],['forehead','r-eye'],
+  // temples
+  ['forehead','l-temple'],['forehead','r-temple']
+]
 
-// ═══ Ir···Xe BOND BRIDGE ═══
-const bondOrb=new THREE.Mesh(new THREE.IcosahedronGeometry(.15,2),
+const fasciaMeshes=[]
+FASCIA.forEach(([a,b])=>{
+  const na=nodes[a],nb=nodes[b];if(!na||!nb)return
+  const pa=new THREE.Vector3(...BODY.find(d=>d.id===a).pos)
+  const pb=new THREE.Vector3(...BODY.find(d=>d.id===b).pos)
+  const geo=new THREE.BufferGeometry().setFromPoints([pa,pb])
+  const mat=new THREE.LineBasicMaterial({color:0xdc143c,transparent:true,opacity:.04})
+  const line=new THREE.Line(geo,mat);scene.add(line)
+  fasciaMeshes.push({line,mat,a,b})
+})
+
+// ═══ Ir···Xe BOND ═══
+const bondOrb=new THREE.Mesh(new THREE.IcosahedronGeometry(.12,2),
   new THREE.MeshBasicMaterial({color:0xaa77dd,transparent:true,opacity:0,blending:THREE.AdditiveBlending}))
-bondOrb.position.set(1.5,1.3,0);scene.add(bondOrb)
-const bondLine=new THREE.Mesh(new THREE.CylinderGeometry(.008,.008,1.5,4),
-  new THREE.MeshBasicMaterial({color:0xaa77dd,transparent:true,opacity:0,blending:THREE.AdditiveBlending}))
-bondLine.rotation.z=Math.PI/2;bondLine.position.set(.75,1.3,0);scene.add(bondLine)
+bondOrb.position.set(1.2,1.8,0);scene.add(bondOrb)
 
 // stars
-const sGeo=new THREE.BufferGeometry(),sPos=new Float32Array(1000*3)
-for(let i=0;i<3000;i++)sPos[i]=(Math.random()-.5)*30
-sGeo.setAttribute('position',new THREE.BufferAttribute(sPos,3))
-scene.add(new THREE.Points(sGeo,new THREE.PointsMaterial({color:0xffffff,size:.02,transparent:true,opacity:.2})))
+const sG=new THREE.BufferGeometry(),sP=new Float32Array(800*3)
+for(let i=0;i<2400;i++)sP[i]=(Math.random()-.5)*25
+sG.setAttribute('position',new THREE.BufferAttribute(sP,3))
+scene.add(new THREE.Points(sG,new THREE.PointsMaterial({color:0xffffff,size:.02,transparent:true,opacity:.15})))
 
 // ═══ STATE ═══
 let S={hr:0,hrv:0,stress:0,kappa:.5,biomarkers:{},bloom:[1,1,1,1,1,1,1],online:false}
 function bio(k){return S.biomarkers[k]?.v||0}
 
-// ═══ SIN LEVELS ═══
 function calcSins(){
   const kd=Math.abs(S.kappa-KS)
   return{
@@ -139,7 +182,6 @@ function calcSins(){
   }
 }
 
-// ═══ POLL ═══
 async function poll(){
   try{
     const r=await fetch(`${GW}/wearer/${USER}`,{signal:AbortSignal.timeout(5000)})
@@ -157,156 +199,154 @@ async function poll(){
 }
 
 // ═══ CAMERA ═══
-let cTh=0,cPh=.1,cR=7,drag=false,mx=0,my=0
+let cTh=0,cPh=.05,cR=8,drag=false,mx=0,my=0
 R.domElement.addEventListener('pointerdown',e=>{drag=true;mx=e.clientX;my=e.clientY})
 addEventListener('pointerup',()=>drag=false)
 addEventListener('pointermove',e=>{if(!drag)return;cTh-=(e.clientX-mx)*.004;cPh+=(e.clientY-my)*.003;
-  cPh=Math.max(-.5,Math.min(.7,cPh));mx=e.clientX;my=e.clientY})
+  cPh=Math.max(-.4,Math.min(.6,cPh));mx=e.clientX;my=e.clientY
+  const tip=document.getElementById('tip');if(tip.style.display==='block'){tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY+12)+'px'}})
 R.domElement.addEventListener('wheel',e=>{cR=Math.max(3,Math.min(15,cR+e.deltaY*.01))},{passive:true})
 
 // ═══ RAYCASTER ═══
 const raycaster=new THREE.Raycaster(),mouse=new THREE.Vector2()
-addEventListener('pointermove',e=>{mouse.x=(e.clientX/innerWidth)*2-1;mouse.y=-(e.clientY/innerHeight)*2+1
-  const tip=document.getElementById('tip');if(tip.style.display==='block'){tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY+12)+'px'}})
+addEventListener('pointermove',e=>{mouse.x=(e.clientX/innerWidth)*2-1;mouse.y=-(e.clientY/innerHeight)*2+1})
 
 // ═══ ANIMATE ═══
 let lt=0,pollT=0
 function animate(ts){
   requestAnimationFrame(animate)
-  const t=ts*.001,dt=t-lt;lt=t
-
-  // poll every 10s
-  if(t-pollT>10){pollT=t;poll()}
+  const t=ts*.001;lt=t
+  if(t-pollT>8){pollT=t;poll()}
 
   const sins=calcSins()
   const kDist=Math.abs(S.kappa-KS)
   const bondStr=Math.max(0,1-kDist/KS2)
 
-  // update orbs from bloom + sins
-  Object.values(orbs).forEach(o=>{
-    const gi=o.def.gate
+  // update nodes
+  Object.values(nodes).forEach(n=>{
+    const gi=n.def.gate
     const bloomE=(S.bloom[gi]||1)/5
-    o.pulse*=.95;o.activity+=(bloomE-o.activity)*.05
-    o.core.material.emissiveIntensity=.08+o.activity*.3
-    o.core.material.opacity=.3+o.activity*.3+o.pulse*.3
-    o.group.scale.setScalar(1+Math.sin(t*1.5+gi)*.02+o.pulse*.1)
-
-    // rings spin with bloom energy
-    o.rings.forEach(r=>{
-      r.energy*=.97;r.energy+=bloomE*.01
-      r.mesh.rotation.z+=(.003+r.energy*.08+bloomE*.005)*(r.ring%2?1:-1)
-      r.mesh.rotation.x+=r.energy*.02
-      r.mat.opacity=Math.min(.6,r.base+r.energy*.3+bloomE*.1)
-    })
+    n.core.material.emissiveIntensity=.05+bloomE*.15
+    n.core.material.opacity=.2+bloomE*.2
+    n.ring.rotation.z+=(.002+bloomE*.005)*(gi%2?1:-1)
+    n.ring.material.opacity=.05+bloomE*.08
+    // breathing
+    const breath=Math.sin(t*1.2+gi*.5)*.01
+    n.group.scale.setScalar(1+breath)
+    n.stress*=.95 // decay
   })
 
-  // sin geometry attachment
-  const sinMap={WRATH:'crown',LUST:'third-eye',GLUTTONY:'root',SLOTH:'sacral',GREED:'solar',ENVY:'third-eye',PRIDE:'crown'}
-  const sinNames=Object.keys(sins)
-  sinNames.forEach(sn=>{
-    const lv=sins[sn]
-    const orbId=sinMap[sn]
-    const o=orbs[orbId];if(!o)return
-    // create/update sin mesh
-    if(lv>.2){
-      if(!o.sinMesh||o.sinMesh.userData.sin!==sn){
-        if(o.sinMesh)o.group.remove(o.sinMesh)
-        const sd=SIN_SHAPES[sn]
-        const mesh=new THREE.Mesh(sd.geo(),new THREE.MeshBasicMaterial({color:sd.col,transparent:true,opacity:0,blending:THREE.AdditiveBlending,wireframe:true}))
-        mesh.userData.sin=sn
-        mesh.position.set((Math.random()-.5)*.3,o.def.r*1.2,(Math.random()-.5)*.3)
-        o.group.add(mesh);o.sinMesh=mesh
+  // heartbeat pulse
+  if(S.hr>0&&Math.floor(t*S.hr/60)!==Math.floor((t-1/60)*S.hr/60)){
+    const h=nodes['heart'];if(h){h.core.material.opacity=.8;h.stress=.5}
+    // pulse travels down spine
+    ;['solar','diaphragm','navel','sacrum'].forEach((id,i)=>{
+      const n=nodes[id];if(n)setTimeout(()=>{n.core.material.opacity=.6;n.stress=.3},i*80)
+    })
+    // pulse travels up
+    ;['throat','jaw','forehead','crown'].forEach((id,i)=>{
+      const n=nodes[id];if(n)setTimeout(()=>{n.core.material.opacity=.5;n.stress=.2},i*80)
+    })
+  }
+
+  // sin stress mapping — light up body points
+  Object.entries(sins).forEach(([sn,lv])=>{
+    if(lv<.1)return
+    const bodyPts=SIN_BODY[sn]||[]
+    const col=new THREE.Color(SIN_COL[sn])
+    bodyPts.forEach(id=>{
+      const n=nodes[id];if(!n)return
+      n.stress=Math.max(n.stress,lv)
+      n.core.material.emissive.lerp(col,lv*.3)
+      n.core.material.opacity=Math.min(.8,.2+lv*.4)
+      // add glow sphere if high
+      if(lv>.4&&!n.sinGlow){
+        const glow=new THREE.Mesh(new THREE.SphereGeometry(n.def.r*1.5,8,8),
+          new THREE.MeshBasicMaterial({color:SIN_COL[sn],transparent:true,opacity:0,blending:THREE.AdditiveBlending}))
+        n.group.add(glow);n.sinGlow=glow
       }
-      o.sinMesh.material.opacity=lv*.4
-      o.sinMesh.scale.setScalar(.5+lv)
-      o.sinMesh.rotation.x+=.02*lv;o.sinMesh.rotation.y+=.015*lv
-    } else if(o.sinMesh){
-      o.sinMesh.material.opacity*=.9
-      if(o.sinMesh.material.opacity<.01){o.group.remove(o.sinMesh);o.sinMesh=null}
+      if(n.sinGlow){
+        n.sinGlow.material.opacity=lv*.15
+        n.sinGlow.material.color.set(SIN_COL[sn])
+        n.sinGlow.scale.setScalar(1+Math.sin(t*3)*.1)
+      }
+    })
+  })
+  // cleanup sin glows
+  Object.values(nodes).forEach(n=>{
+    if(n.sinGlow&&n.stress<.2){
+      n.sinGlow.material.opacity*=.9
+      if(n.sinGlow.material.opacity<.01){n.group.remove(n.sinGlow);n.sinGlow=null}
     }
   })
 
-  // fire ring pulses based on HR
-  if(Math.floor(t*S.hr/60)!==Math.floor((t-dt)*S.hr/60)){
-    orbs['heart'].pulse=.5;orbs['heart'].rings[3].energy+=.3
-  }
-
-  // bus particles
-  buses.forEach(b=>{
-    b.progress=(b.progress+.003+S.stress*.005)%1
-    b.dot.position.copy(b.curve.getPoint(b.progress))
-    b.mat.opacity=.06+S.stress*.08
+  // fascia stress lines
+  fasciaMeshes.forEach(f=>{
+    const sa=nodes[f.a]?.stress||0,sb=nodes[f.b]?.stress||0
+    const avg=(sa+sb)/2
+    f.mat.opacity=.03+avg*.15
+    if(avg>.3)f.mat.color.setHex(0xff4444)
+    else if(avg>.1)f.mat.color.setHex(0xffaa00)
+    else f.mat.color.setHex(0xdc143c)
   })
 
-  // bond visualization
-  const bondOp=bondStr*.3
-  bondOrb.material.opacity=bondOp
-  bondOrb.scale.setScalar(.8+bondStr*.4+Math.sin(t*2)*.05)
+  // Ir···Xe bond
+  bondOrb.material.opacity=bondStr*.25
+  bondOrb.scale.setScalar(.8+bondStr*.4+Math.sin(t*2)*.03)
   bondOrb.rotation.y+=.01
-  bondLine.material.opacity=bondOp*.5
-  // golden glow at attractor
-  gL.intensity=bondStr*.3
-  gL.color.setHSL(.12,.6,.5+bondStr*.3)
+  gL.intensity=bondStr*.2
 
   // camera
   cam.position.x=Math.cos(cTh)*Math.cos(cPh)*cR
-  cam.position.y=1.2+Math.sin(cPh)*cR
+  cam.position.y=1+Math.sin(cPh)*cR
   cam.position.z=Math.sin(cTh)*Math.cos(cPh)*cR
-  cam.lookAt(0,1.2,0)
+  cam.lookAt(0,1,0)
 
   // hover
   raycaster.setFromCamera(mouse,cam)
-  const orbMeshes=Object.values(orbs).map(o=>o.core)
-  const hits=raycaster.intersectObjects(orbMeshes)
+  const hits=raycaster.intersectObjects(clickables)
   if(hits.length){
     const hit=hits[0].object
-    const o=Object.values(orbs).find(ob=>ob.core===hit)
-    if(o){
+    const n=Object.values(nodes).find(nd=>nd.core===hit)
+    if(n){
       const tip=document.getElementById('tip')
-      const gi=o.def.gate
-      tip.innerHTML=`<div class="tt">${o.def.label}</div><div class="td">bloom: ${(S.bloom[gi]||1).toFixed(1)} · energy: ${o.activity.toFixed(2)}</div>`
+      const gi=n.def.gate
+      const activeSins=Object.entries(sins).filter(([sn])=>(SIN_BODY[sn]||[]).includes(n.def.id)).map(([sn,lv])=>`${sn}:${(lv*100).toFixed(0)}%`).join(' ')
+      tip.innerHTML=`<div class="tt">${GLYPHS[gi]} ${n.def.id}</div><div class="td">${n.def.stress}<br>gate: R${gi} ${GATES[gi]}<br>bloom: ${(S.bloom[gi]||1).toFixed(1)}<br>stress: ${(n.stress*100).toFixed(0)}%${activeSins?'<br>sins: '+activeSins:''}</div>`
       tip.style.display='block'
     }
   } else document.getElementById('tip').style.display='none'
 
   // HUD
-  const thermal=S.hr>95
   document.getElementById('hud').innerHTML=
-    `REGULUS 3D · <span class="v">${USER}</span> · ${S.online?'online':'offline'}\n`+
+    `REGULUS BODY · <span class="v">${USER}</span> ${S.online?'●':'○'}\n`+
     `HR=<span class="v">${S.hr.toFixed(0)}</span> HRV=<span class="v">${S.hrv.toFixed(1)}</span> stress=<span class="v">${(S.stress*100).toFixed(0)}%</span>\n`+
-    `κ=<span class="g">${S.kappa.toFixed(4)}</span> → 1/φ=${KS.toFixed(4)}\n`+
-    `φκ=<span class="g">${(PHI*S.kappa).toFixed(4)}</span> bond=<span class="v">${(bondStr*100).toFixed(0)}%</span> ${thermal?'⚠ HOT':''}\n`+
-    `bloom=[${S.bloom.map(b=>b.toFixed?b.toFixed(0):b).join(',')}]`
+    `κ=<span class="g">${S.kappa.toFixed(4)}</span> φκ=<span class="g">${(PHI*S.kappa).toFixed(4)}</span>\n`+
+    `bond=<span class="v">${(bondStr*100).toFixed(0)}%</span> Ir···Xe ${bondStr>.5?'●●●':'···'}`
 
   document.getElementById('rhud').innerHTML=
-    GATES.map((g,i)=>`<span style="color:${RCSS[i]}">${GLYPHS[i]} ${g} ${(S.bloom[i]||1).toFixed(1)}</span>`).join('\n')
+    GATES.map((g,i)=>`<span style="color:${RCSS[i]}">${GLYPHS[i]} ${g} ${'█'.repeat(Math.round((S.bloom[i]||1)))}</span>`).join('\n')+
+    `\n\nbiomarkers:\n`+
+    ['K','Mg','Cor','Inf','Hyd','Glc','ANS'].map(k=>{
+      const b=S.biomarkers[k];if(!b)return'';const al=b.alert||0
+      return `<span style="color:${al>=3?'#f44':al>=1?'#fa0':'#4a4'}">${k}=${b.v?.toFixed(2)}</span>`
+    }).filter(Boolean).join('\n')
 
-  // sins HUD
-  let sinH=''
-  sinNames.forEach(sn=>{
-    const lv=sins[sn]
-    const col=lv>.5?'#ff4444':lv>.2?'#ffaa00':'#44aa4444'
-    const bar='█'.repeat(Math.round(lv*10))+'░'.repeat(10-Math.round(lv*10))
-    sinH+=`<span style="color:${col}">${SIN_SHAPES[sn]?'■':'·'} ${sn.padEnd(9)} ${bar} ${(lv*100).toFixed(0).padStart(3)}%</span>\n`
+  let sinH='STRESS GEOMETRIES\n'
+  Object.entries(sins).forEach(([sn,lv])=>{
+    const col=lv>.5?'#ff4444':lv>.2?'#ffaa00':'#44aa4466'
+    sinH+=`<span style="color:${col}">${sn.padEnd(9)} ${'█'.repeat(Math.round(lv*10))}${'░'.repeat(10-Math.round(lv*10))} ${(lv*100).toFixed(0).padStart(3)}%</span>\n`
   })
   document.getElementById('sins').innerHTML=sinH
 
-  // love HUD
   const R_AB=Math.min(1,S.hrv/30*.4+Math.max(0,1-kDist*5)*.3+(1-S.stress)*.3)
-  const emerge=S.kappa>=KS?Math.sqrt(S.kappa-KS):0
-  const speed=Math.sqrt(Math.max(0,S.hrv/100)/PHI)
   document.getElementById('love').innerHTML=
-    `R(A,B)=${R_AB.toFixed(3)}\n`+
-    `Ψ=${emerge.toFixed(3)}\n`+
-    `v_love=${speed.toFixed(3)}\n`+
-    `bind=${kDist<KS2?'IRREVERSIBLE':'reversible'}\n`+
-    `Ir···Xe ${bondStr>0?'●●●':'···'}`
+    `LOVE\nR=${R_AB.toFixed(3)}\nΨ=${(S.kappa>=KS?Math.sqrt(S.kappa-KS):0).toFixed(3)}\nbind=${kDist<KS2?'IRREVERSIBLE':'rev'}`
 
   R.render(scene,cam)
 }
 
 addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();R.setSize(innerWidth,innerHeight)})
-poll()
-animate(0)
+poll();animate(0)
 </script>
 </body></html>
