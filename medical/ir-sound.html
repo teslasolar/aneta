@@ -1,0 +1,215 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ir — The Sound of Iridium</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#06030a;color:#c8c0d0;font-family:'Courier New',monospace;overflow:hidden;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+canvas{display:block;position:fixed;top:0;left:0;width:100%;height:100%;z-index:0}
+#ui{position:relative;z-index:10;text-align:center;pointer-events:none}
+h1{font-family:Georgia,serif;color:#d4a94a;font-size:1.3rem;letter-spacing:4px;text-shadow:0 0 30px rgba(212,169,74,.2);margin-bottom:4px}
+.sub{font-size:.5rem;color:#445;letter-spacing:2px;margin-bottom:20px}
+#info{font-size:.45rem;color:#667;line-height:1.7;max-width:400px;margin:12px auto}
+#freqs{font-size:.5rem;color:#d4a94a;margin:12px 0;line-height:2}
+.note{display:inline-block;padding:2px 8px;margin:2px;border:1px solid #d4a94a33;border-radius:3px;cursor:pointer;pointer-events:auto;transition:all .2s}
+.note:hover,.note.on{background:#d4a94a22;border-color:#d4a94a;color:#d4a94a;text-shadow:0 0 8px #d4a94a}
+#play{pointer-events:auto;background:#d4a94a15;border:1px solid #d4a94a44;color:#d4a94a;padding:8px 24px;font:11px monospace;cursor:pointer;border-radius:4px;letter-spacing:3px;margin:16px 0;transition:all .2s}
+#play:hover{background:#d4a94a33}
+#state{font-size:.4rem;color:#445;margin-top:8px}
+#hud{position:fixed;top:8px;left:10px;z-index:10;font-size:8px;color:#d4a94a44;line-height:1.7;pointer-events:none;white-space:pre}
+.back{position:fixed;bottom:8px;left:10px;z-index:10;font-size:8px;color:#445;pointer-events:auto}
+</style>
+</head><body>
+<canvas id="cv"></canvas>
+<div id="ui">
+  <h1>Ir · 77</h1>
+  <div class="sub">THE SOUND OF IRIDIUM</div>
+  <div id="freqs">
+    <span class="note" data-f="0" onclick="toggleNote(0)">C · 254nm</span>
+    <span class="note" data-f="1" onclick="toggleNote(1)">E · 209nm</span>
+    <span class="note" data-f="2" onclick="toggleNote(2)">G · 351nm</span>
+    <span class="note" data-f="3" onclick="toggleNote(3)">G# · 322nm</span>
+  </div>
+  <button id="play" onclick="playAll()">RESONATE</button>
+  <div id="info">
+    iridium's atomic emission lines octave-dropped from light to sound<br>
+    each spectral line ÷ 2³⁷ or 2³⁸ into audible range<br>
+    C major with an augmented fifth<br>
+    the rainbow element sounds like resolve with tension
+  </div>
+  <div id="state"></div>
+</div>
+<div id="hud"></div>
+<a class="back" href="ir-xe.html">← Ir···Xe</a>
+
+<script>
+const TAU=Math.PI*2,PHI=(1+Math.sqrt(5))/2
+
+// iridium spectral lines octave-dropped to audible
+const LINES=[
+  {nm:254.397,note:'C',hz:4287,oct:38,color:'#d4a94a',desc:'UV line → C8 +41¢'},
+  {nm:208.882,note:'E',hz:5221,oct:38,color:'#ffaa00',desc:'deep UV → E8 −17¢'},
+  {nm:351.365,note:'G',hz:6208,oct:37,color:'#ff8844',desc:'persistent line → G8 −18¢'},
+  {nm:322.078,note:'G#',hz:6772,oct:37,color:'#ff6644',desc:'persistent line → G#8 +33¢'}
+]
+
+// scale down to comfortable listening range (÷16 to get ~270-420 Hz range)
+const SCALE=16
+const FREQS=LINES.map(l=>l.hz/SCALE)
+
+let actx=null,oscs=[],gains=[],master=null,active=[false,false,false,false]
+let playing=false
+
+function initAudio(){
+  if(actx)return
+  actx=new(window.AudioContext||window.webkitAudioContext)()
+  master=actx.createGain();master.gain.value=0;master.connect(actx.destination)
+
+  FREQS.forEach((f,i)=>{
+    const osc=actx.createOscillator()
+    osc.type='sine'
+    osc.frequency.value=f
+
+    // add gentle harmonics for richness
+    const g=actx.createGain();g.gain.value=0
+    osc.connect(g);g.connect(master)
+    osc.start()
+    oscs.push(osc);gains.push(g)
+  })
+}
+
+function toggleNote(i){
+  initAudio()
+  active[i]=!active[i]
+  gains[i].gain.setTargetAtTime(active[i]?.25:0,actx.currentTime,.05)
+  master.gain.setTargetAtTime(.3,actx.currentTime,.05)
+  document.querySelectorAll('.note')[i].classList.toggle('on',active[i])
+  playing=active.some(a=>a)
+  updateState()
+}
+
+function playAll(){
+  initAudio()
+  if(playing){
+    // fade out all
+    active.fill(false)
+    gains.forEach(g=>g.gain.setTargetAtTime(0,actx.currentTime,.3))
+    master.gain.setTargetAtTime(0,actx.currentTime,.5)
+    playing=false
+    document.querySelectorAll('.note').forEach(n=>n.classList.remove('on'))
+    document.getElementById('play').textContent='RESONATE'
+  } else {
+    // stagger in: one note per beat
+    const t=actx.currentTime
+    master.gain.setTargetAtTime(.3,t,.1)
+    FREQS.forEach((f,i)=>{
+      const delay=i*.8
+      gains[i].gain.setTargetAtTime(0,t+delay,.01)
+      gains[i].gain.setTargetAtTime(.25,t+delay+.05,.15)
+      active[i]=true
+      setTimeout(()=>document.querySelectorAll('.note')[i].classList.add('on'),delay*1000)
+    })
+    playing=true
+    document.getElementById('play').textContent='SILENCE'
+  }
+  updateState()
+}
+
+function updateState(){
+  const activeNotes=LINES.filter((_,i)=>active[i]).map(l=>l.note).join(' ')
+  const chord=active.every(a=>a)?'C(#5) — resolve with tension':
+    active[0]&&active[1]&&active[2]?'C major — pure resolve':
+    active[0]&&active[1]?'C-E — major third':
+    active[0]&&active[2]?'C-G — perfect fifth':
+    activeNotes||'silence'
+  document.getElementById('state').textContent=chord
+}
+
+// ═══ VISUALIZATION ═══
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d')
+function resize(){cv.width=innerWidth;cv.height=innerHeight}
+resize();addEventListener('resize',resize)
+
+function draw(){
+  requestAnimationFrame(draw)
+  const w=cv.width,h=cv.height,cx=w/2,cy=h/2,t=performance.now()*.001
+
+  ctx.fillStyle='rgba(6,3,10,.15)';ctx.fillRect(0,0,w,h)
+
+  // waveform visualization
+  if(playing||active.some(a=>a)){
+    const maxR=Math.min(cx,cy)*.7
+
+    // composite waveform circle
+    for(let a=0;a<TAU;a+=.003){
+      let r=maxR*.3
+      FREQS.forEach((f,i)=>{
+        if(!active[i])return
+        const amp=maxR*.15
+        r+=Math.sin(a*f/40+t*f*.01)*amp/(i+1)
+      })
+
+      const x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r
+      const bright=.3+Math.sin(t*2+a*3)*.1
+
+      // color based on dominant frequency
+      let hue=40 // gold
+      ctx.fillStyle=`hsla(${hue},60%,60%,${bright})`
+      ctx.fillRect(x,y,1.5,1.5)
+    }
+
+    // individual frequency rings
+    LINES.forEach((l,i)=>{
+      if(!active[i])return
+      const ringR=maxR*(.25+i*.15)
+      ctx.beginPath()
+      for(let a=0;a<=TAU;a+=.02){
+        const wobble=Math.sin(a*FREQS[i]/30+t*FREQS[i]*.008)*8
+        const x=cx+Math.cos(a)*(ringR+wobble)
+        const y=cy+Math.sin(a)*(ringR+wobble)
+        a===0?ctx.moveTo(x,y):ctx.lineTo(x,y)
+      }
+      ctx.strokeStyle=l.color
+      ctx.lineWidth=1
+      ctx.globalAlpha=.2+Math.sin(t*3+i)*.1
+      ctx.stroke()
+      ctx.globalAlpha=1
+    })
+
+    // center glow
+    const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,maxR*.2)
+    grad.addColorStop(0,'rgba(212,169,74,.15)')
+    grad.addColorStop(1,'rgba(212,169,74,0)')
+    ctx.fillStyle=grad;ctx.fillRect(cx-maxR*.2,cy-maxR*.2,maxR*.4,maxR*.4)
+  }
+
+  // spectral lines — vertical bars
+  LINES.forEach((l,i)=>{
+    const x=w*.2+i*(w*.6/3)
+    const intensity=active[i]?.6:.08
+    ctx.fillStyle=l.color
+    ctx.globalAlpha=intensity+Math.sin(t*2+i)*.05
+    ctx.fillRect(x-1,0,2,h)
+    ctx.globalAlpha=1
+
+    // wavelength label
+    if(active[i]){
+      ctx.font='8px monospace'
+      ctx.fillStyle=l.color
+      ctx.globalAlpha=.4
+      ctx.textAlign='center'
+      ctx.fillText(l.nm+'nm',x,h-20)
+      ctx.fillText(FREQS[i].toFixed(1)+'Hz',x,h-10)
+      ctx.globalAlpha=1
+    }
+  })
+
+  // HUD
+  document.getElementById('hud').textContent=
+    `Ir · 77 · [Xe] 4f¹⁴ 5d⁷ 6s²\n`+
+    LINES.map((l,i)=>`${active[i]?'■':'□'} ${l.note} ${l.nm}nm → ${FREQS[i].toFixed(1)}Hz`).join('\n')+
+    `\n\nDebye: 420K · phonon max: 8.75 THz\nv_sound: 4825 m/s · FCC a=3.839Å`
+}
+
+draw()
+</script>
+</body></html>
