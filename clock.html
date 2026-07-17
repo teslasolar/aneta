@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>⏰ DUAL CLOCK · US East ↔ Poland</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#08040e;color:#fff8e7;font:11px/1.6 'Courier New',monospace;overflow:hidden;display:flex;flex-direction:column;height:100vh}
+canvas{display:block;flex:1}
+#info{position:fixed;bottom:0;left:0;right:0;padding:8px 16px;background:rgba(8,4,14,.9);border-top:1px solid rgba(220,20,60,.15);display:flex;justify-content:space-between;gap:20px;font-size:10px}
+#info .col{flex:1}
+#info .hdr{color:rgba(220,20,60,.5);font-size:8px;letter-spacing:2px;margin-bottom:2px}
+#info .time{font-size:16px;letter-spacing:1px}
+#info .time-a{color:#dc143c}
+#info .time-b{color:#d4a94a}
+#info .win{color:rgba(100,255,160,.4);font-size:9px}
+.leg{display:flex;gap:14px;font-size:9px;color:rgba(255,248,231,.25)}
+.leg span{display:flex;align-items:center;gap:4px}
+.leg .dot{width:8px;height:8px;border-radius:2px;display:inline-block}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="info">
+  <div class="col">
+    <div class="hdr">US EASTERN</div>
+    <div class="time time-a" id="ta">--:--</div>
+  </div>
+  <div class="col">
+    <div class="hdr">POLAND (CEST)</div>
+    <div class="time time-b" id="tb">--:--</div>
+  </div>
+  <div class="col" id="status"></div>
+  <div class="col">
+    <div class="hdr">TALK WINDOWS (daily)</div>
+    <div class="win" id="wins"></div>
+  </div>
+  <div class="col">
+    <div class="leg">
+      <span><i class="dot" style="background:#1a1040"></i>sleep</span>
+      <span><i class="dot" style="background:#8a5a20"></i>work</span>
+      <span><i class="dot" style="background:#2a8a4a"></i>free</span>
+      <span><i class="dot" style="background:#44ffaa"></i>talk</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const cv=document.getElementById('c'),ctx=cv.getContext('2d'),TAU=Math.PI*2
+let W,H,cx,cy,R
+function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight-60;cx=W/2;cy=H/2;R=Math.min(W,H)*.4}
+resize();addEventListener('resize',resize)
+
+// ═══ SCHEDULES (local times) ═══
+const A={
+  name:'THOMAS · US EAST',tz:'America/New_York',color:'#dc143c',
+  blocks:[
+    {s:0,e:8,type:'sleep'},
+    {s:8,e:11,type:'free'},
+    {s:11,e:14,type:'talk'},
+    {s:14,e:20,type:'work'},
+    {s:20,e:24,type:'free'}
+  ]
+}
+const B={
+  name:'ANETA · POLAND',tz:'Europe/Warsaw',color:'#d4a94a',
+  blocks:[
+    {s:0,e:7,type:'sleep'},
+    {s:7,e:9,type:'free'},
+    {s:9,e:17,type:'work'},
+    {s:17,e:20,type:'talk'},
+    {s:20,e:23,type:'free'},
+    {s:23,e:24,type:'sleep'}
+  ]
+}
+
+const OFFSET=6 // Poland is 6 hours ahead of US East
+
+const COLORS={
+  sleep:'rgba(20,12,50,.6)',
+  work:'rgba(140,90,30,.45)',
+  free:'rgba(40,140,70,.45)',
+  talk:'rgba(68,255,170,.35)'
+}
+const STROKE={
+  sleep:'rgba(60,40,100,.3)',
+  work:'rgba(200,140,40,.4)',
+  free:'rgba(60,200,100,.5)',
+  talk:'rgba(68,255,170,.7)'
+}
+
+// ═══ GEOMETRY ═══
+function hToA(h){return(h/24)*TAU-TAU/4}
+function drawArc(cx,cy,r,w,startH,endH,fill,stroke){
+  const a1=hToA(startH),a2=hToA(endH)
+  ctx.beginPath();ctx.arc(cx,cy,r,a1,a2)
+  ctx.lineWidth=w;ctx.strokeStyle=fill;ctx.stroke()
+  ctx.lineWidth=1;ctx.strokeStyle=stroke;ctx.beginPath();ctx.arc(cx,cy,r-w/2,a1,a2);ctx.stroke()
+  ctx.beginPath();ctx.arc(cx,cy,r+w/2,a1,a2);ctx.stroke()
+}
+
+// map B's local hours to A's reference (ET) for overlap calc
+function bToET(h){return(h-OFFSET+24)%24}
+
+// ═══ TALK WINDOWS ═══
+// find hours where both have type 'free' or 'work' (potential break)
+function getTypeAt(blocks,h){
+  const hm=((h%24)+24)%24
+  for(const b of blocks)if(hm>=b.s&&hm<b.e)return b.type
+  return'sleep'
+}
+
+function findTalkWindows(){
+  const wins=[]
+  for(let h=0;h<24;h++){
+    const aType=getTypeAt(A.blocks,h)
+    const bLocalH=(h+OFFSET)%24
+    const bType=getTypeAt(B.blocks,bLocalH)
+    let quality=0
+    if(aType==='talk'&&bType==='talk')quality=4
+    else if(aType==='talk'||bType==='talk')quality=3
+    else if((aType==='free'||aType==='talk')&&(bType==='free'||bType==='talk'))quality=3
+    else if((aType==='free'&&bType==='work')||(bType==='free'&&aType==='work'))quality=2
+    else if(aType!=='sleep'&&bType!=='sleep')quality=1
+    wins.push({h,aType,bType,bLocalH,quality})
+  }
+  return wins
+}
+
+const talkWins=findTalkWindows()
+
+// ═══ DRAW ═══
+function draw(){
+  ctx.clearRect(0,0,W,H)
+
+  // bg glow
+  const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,R*1.5)
+  bg.addColorStop(0,'rgba(30,10,40,.3)');bg.addColorStop(1,'rgba(8,4,14,0)')
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H)
+
+  const bandW=R*.14
+  const rA=R*.88 // outer — US East
+  const rB=R*.68 // inner — Poland
+  const rOv=R*.50 // overlap indicator
+
+  // ═══ PERSON A — outer ring (US Eastern, hours in ET) ═══
+  A.blocks.forEach(b=>{
+    drawArc(cx,cy,rA,bandW,b.s,b.e,COLORS[b.type],STROKE[b.type])
+  })
+
+  // ═══ PERSON B — inner ring (Poland, hours mapped to ET) ═══
+  B.blocks.forEach(b=>{
+    const s=bToET(b.s),e=bToET(b.e)
+    if(s<e){
+      drawArc(cx,cy,rB,bandW,s,e,COLORS[b.type],STROKE[b.type])
+    }else{
+      drawArc(cx,cy,rB,bandW,s,24,COLORS[b.type],STROKE[b.type])
+      drawArc(cx,cy,rB,bandW,0,e,COLORS[b.type],STROKE[b.type])
+    }
+  })
+
+  // ═══ OVERLAP / TALK WINDOWS — center ring ═══
+  talkWins.forEach(w=>{
+    if(w.quality>=3){
+      const col=w.quality===4?'rgba(68,255,170,.4)':COLORS.talk
+      const stk=w.quality===4?'rgba(68,255,170,.8)':STROKE.talk
+      drawArc(cx,cy,rOv,bandW*.7,w.h,w.h+1,col,stk)
+      // glow for prime window
+      if(w.quality===4){
+        const ga=hToA(w.h+.5)
+        const gx=cx+Math.cos(ga)*rOv,gy=cy+Math.sin(ga)*rOv
+        const glow=ctx.createRadialGradient(gx,gy,0,gx,gy,bandW)
+        glow.addColorStop(0,'rgba(68,255,170,.08)')
+        glow.addColorStop(1,'rgba(68,255,170,0)')
+        ctx.beginPath();ctx.arc(gx,gy,bandW,0,TAU);ctx.fillStyle=glow;ctx.fill()
+      }
+    }else if(w.quality===2){
+      drawArc(cx,cy,rOv,bandW*.4,w.h,w.h+1,'rgba(255,200,60,.1)','rgba(255,200,60,.2)')
+    }
+  })
+
+  // ═══ HOUR MARKERS ═══
+  for(let h=0;h<24;h++){
+    const a=hToA(h)
+    const isMajor=h%6===0
+    const r1=R*1.02,r2=R*(isMajor?1.06:1.04)
+
+    ctx.beginPath()
+    ctx.moveTo(cx+Math.cos(a)*r1,cy+Math.sin(a)*r1)
+    ctx.lineTo(cx+Math.cos(a)*r2,cy+Math.sin(a)*r2)
+    ctx.strokeStyle=isMajor?'rgba(255,248,231,.2)':'rgba(255,248,231,.06)'
+    ctx.lineWidth=isMajor?1.5:1;ctx.stroke()
+
+    // ET hour labels (outer)
+    if(h%3===0){
+      const lr=R*1.12
+      ctx.font=isMajor?'10px monospace':'8px monospace'
+      ctx.textAlign='center';ctx.textBaseline='middle'
+      ctx.fillStyle='rgba(220,20,60,.35)'
+      ctx.fillText(String(h).padStart(2,'0'),cx+Math.cos(a)*lr,cy+Math.sin(a)*lr)
+    }
+
+    // PL hour labels (inner)
+    if(h%3===0){
+      const plH=(h+OFFSET)%24
+      const lr=R*.48
+      ctx.font='8px monospace'
+      ctx.fillStyle='rgba(212,169,74,.3)'
+      ctx.fillText(String(plH).padStart(2,'0'),cx+Math.cos(a)*lr,cy+Math.sin(a)*lr)
+    }
+  }
+
+  // ring labels
+  ctx.font='7px monospace';ctx.textAlign='center'
+  ctx.fillStyle='rgba(220,20,60,.25)'
+  ctx.fillText('US EAST',cx,cy-rA-bandW/2-8)
+  ctx.fillStyle='rgba(212,169,74,.25)'
+  ctx.fillText('POLAND',cx,cy-rB-bandW/2-8)
+  ctx.fillStyle='rgba(68,255,170,.2)'
+  ctx.fillText('TALK',cx,cy-rOv-bandW*.3-6)
+
+  // ═══ CURRENT TIME HANDS ═══
+  const now=new Date()
+  const etH=parseFloat(now.toLocaleString('en-US',{timeZone:'America/New_York',hour:'numeric',minute:'numeric',hour12:false}).replace(':','.'))
+  const plH=parseFloat(now.toLocaleString('en-US',{timeZone:'Europe/Warsaw',hour:'numeric',minute:'numeric',hour12:false}).replace(':','.'))
+  const etFrac=(() => {
+    const d=new Date(now.toLocaleString('en-US',{timeZone:'America/New_York'}))
+    return d.getHours()+d.getMinutes()/60+d.getSeconds()/3600
+  })()
+  const plFrac=(()=>{
+    const d=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Warsaw'}))
+    return d.getHours()+d.getMinutes()/60+d.getSeconds()/3600
+  })()
+
+  // ET hand
+  const aA=hToA(etFrac)
+  ctx.beginPath()
+  ctx.moveTo(cx+Math.cos(aA)*(rA-bandW),cy+Math.sin(aA)*(rA-bandW))
+  ctx.lineTo(cx+Math.cos(aA)*(rA+bandW*.8),cy+Math.sin(aA)*(rA+bandW*.8))
+  ctx.strokeStyle='rgba(220,20,60,.6)';ctx.lineWidth=2;ctx.stroke()
+  // dot
+  ctx.beginPath();ctx.arc(cx+Math.cos(aA)*(rA+bandW),cy+Math.sin(aA)*(rA+bandW),3,0,TAU)
+  ctx.fillStyle='#dc143c';ctx.fill()
+
+  // PL hand (at ET-mapped position)
+  const plMapped=bToET(plFrac)
+  const bA=hToA(plMapped)
+  ctx.beginPath()
+  ctx.moveTo(cx+Math.cos(bA)*(rB-bandW),cy+Math.sin(bA)*(rB-bandW))
+  ctx.lineTo(cx+Math.cos(bA)*(rB+bandW*.8),cy+Math.sin(bA)*(rB+bandW*.8))
+  ctx.strokeStyle='rgba(212,169,74,.6)';ctx.lineWidth=2;ctx.stroke()
+  ctx.beginPath();ctx.arc(cx+Math.cos(bA)*(rB+bandW),cy+Math.sin(bA)*(rB+bandW),3,0,TAU)
+  ctx.fillStyle='#d4a94a';ctx.fill()
+
+  // both hands should point to same position (they're at the same moment)
+  // connecting line between the two hand tips
+  ctx.beginPath()
+  ctx.moveTo(cx+Math.cos(aA)*(rA-bandW*.5),cy+Math.sin(aA)*(rA-bandW*.5))
+  ctx.lineTo(cx+Math.cos(bA)*(rB+bandW*.5),cy+Math.sin(bA)*(rB+bandW*.5))
+  ctx.strokeStyle='rgba(255,255,255,.06)';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.stroke()
+  ctx.setLineDash([])
+
+  // ═══ CENTER INFO ═══
+  ctx.textAlign='center';ctx.textBaseline='middle'
+  ctx.font='8px monospace';ctx.fillStyle='rgba(255,248,231,.08)'
+  ctx.fillText('outer hours = ET',cx,cy-6)
+  ctx.fillText('inner hours = PL',cx,cy+6)
+
+  // ═══ TALK WINDOW LABELS on the ring ═══
+  talkWins.forEach(w=>{
+    if(w.quality>=2){
+      const a=hToA(w.h+.5)
+      const lr=rOv
+      ctx.font='5px monospace';ctx.textAlign='center';ctx.textBaseline='middle'
+      ctx.fillStyle=w.quality===3?'rgba(68,255,170,.4)':'rgba(255,200,60,.2)'
+      const etStr=String(w.h).padStart(2,'0')
+      const plStr=String(w.bLocalH).padStart(2,'0')
+      ctx.fillText(`${etStr}/${plStr}`,cx+Math.cos(a)*lr,cy+Math.sin(a)*lr)
+    }
+  })
+
+  // ═══ UPDATE INFO BAR ═══
+  const etStr=now.toLocaleTimeString('en-GB',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit'})
+  const plStr=now.toLocaleTimeString('en-GB',{timeZone:'Europe/Warsaw',hour:'2-digit',minute:'2-digit',second:'2-digit'})
+  document.getElementById('ta').textContent=etStr
+  document.getElementById('tb').textContent=plStr
+
+  // current status
+  const aType=getTypeAt(A.blocks,Math.floor(etFrac))
+  const bType=getTypeAt(B.blocks,Math.floor(plFrac))
+  const statusEl=document.getElementById('status')
+  statusEl.innerHTML=`<div class="hdr">STATUS NOW</div>`
+  statusEl.innerHTML+=`<span style="color:#dc143c">${A.name}: ${aType.toUpperCase()}</span><br>`
+  statusEl.innerHTML+=`<span style="color:#d4a94a">${B.name}: ${bType.toUpperCase()}</span><br>`
+  const q=talkWins.find(w=>w.h===Math.floor(etFrac))
+  if(q&&q.quality>=4){
+    statusEl.innerHTML+=`<span style="color:#44ffaa">★ TALK WINDOW — both reserved</span>`
+  }else if(q&&q.quality>=3){
+    statusEl.innerHTML+=`<span style="color:#44ffaa">● CAN TALK</span>`
+  }else if(aType==='sleep'||bType==='sleep'){
+    statusEl.innerHTML+=`<span style="color:rgba(255,60,60,.4)">● someone sleeping</span>`
+  }else{
+    statusEl.innerHTML+=`<span style="color:rgba(255,200,60,.3)">● both awake — possible</span>`
+  }
+
+  // talk windows list
+  const winsEl=document.getElementById('wins')
+  const goodWins=talkWins.filter(w=>w.quality>=2)
+  let winHTML=''
+  let streak=null
+  goodWins.forEach((w,i)=>{
+    if(!streak)streak={start:w.h,startPL:w.bLocalH,q:w.quality}
+    const next=goodWins[i+1]
+    if(!next||next.h!==w.h+1||next.quality!==w.quality){
+      const endH=(w.h+1)%24
+      const endPL=(w.bLocalH+1)%24
+      const label=streak.q===3?'★':'○'
+      winHTML+=`${label} ${String(streak.start).padStart(2,'0')}–${String(endH).padStart(2,'0')} ET = ${String(streak.startPL).padStart(2,'0')}–${String(endPL).padStart(2,'0')} PL · `
+      streak=null
+    }
+  })
+  winsEl.innerHTML=winHTML||'no overlap windows found'
+}
+
+function loop(){requestAnimationFrame(loop);draw()}
+loop()
+</script>
+</body></html>
