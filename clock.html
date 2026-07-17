@@ -56,8 +56,10 @@ resize();addEventListener('resize',resize)
 const A={
   name:'THOMAS · US EAST',tz:'America/New_York',color:'#dc143c',
   blocks:[
-    {s:0,e:8,type:'sleep'},
-    {s:8,e:11,type:'free'},
+    {s:0,e:1,type:'free'},
+    {s:1,e:3,type:'talk'},
+    {s:3,e:9,type:'sleep'},
+    {s:9,e:11,type:'free'},
     {s:11,e:14,type:'talk'},
     {s:14,e:20,type:'work'},
     {s:20,e:24,type:'free'}
@@ -67,7 +69,7 @@ const B={
   name:'ANETA · POLAND',tz:'Europe/Warsaw',color:'#d4a94a',
   blocks:[
     {s:0,e:7,type:'sleep'},
-    {s:7,e:9,type:'free'},
+    {s:7,e:9,type:'talk'},
     {s:9,e:17,type:'work'},
     {s:17,e:20,type:'talk'},
     {s:20,e:23,type:'free'},
