@@ -98,7 +98,7 @@ const COLORS={
   free:'rgba(30,100,55,.5)',
   talk:'rgba(68,255,170,.5)',
   busy:'rgba(160,80,40,.5)',
-  burn:'rgba(200,40,20,.45)'
+  burn:'rgba(220,30,15,.6)'
 }
 const STROKE={
   sleep:'rgba(80,50,140,.5)',
@@ -106,7 +106,7 @@ const STROKE={
   free:'rgba(50,180,90,.6)',
   talk:'rgba(68,255,170,.85)',
   busy:'rgba(220,120,50,.6)',
-  burn:'rgba(255,60,30,.7)'
+  burn:'rgba(255,40,20,.9)'
 }
 
 // ═══ GEOMETRY ═══
@@ -197,17 +197,27 @@ function draw(){
     }
   })
 
+  // ═══ BURN ZONE MARKERS — 14:00 and 20:00 ET ═══
+  const burnStart=hToA(14),burnEnd=hToA(20)
+  for(const ba of [burnStart,burnEnd]){
+    ctx.beginPath()
+    ctx.moveTo(cx+Math.cos(ba)*(rA-bandW),cy+Math.sin(ba)*(rA-bandW))
+    ctx.lineTo(cx+Math.cos(ba)*(rA+bandW*.6),cy+Math.sin(ba)*(rA+bandW*.6))
+    ctx.strokeStyle='rgba(255,40,20,.4)';ctx.lineWidth=1.5;ctx.stroke()
+  }
+
   // ═══ HOUR MARKERS ═══
   for(let h=0;h<24;h++){
     const a=hToA(h)
     const isMajor=h%6===0
-    const r1=R*1.02,r2=R*(isMajor?1.06:1.04)
+    const isBurn=h===14||h===20
+    const r1=R*1.02,r2=R*(isMajor?1.06:isBurn?1.05:1.04)
 
     ctx.beginPath()
     ctx.moveTo(cx+Math.cos(a)*r1,cy+Math.sin(a)*r1)
     ctx.lineTo(cx+Math.cos(a)*r2,cy+Math.sin(a)*r2)
-    ctx.strokeStyle=isMajor?'rgba(255,248,231,.35)':'rgba(255,248,231,.1)'
-    ctx.lineWidth=isMajor?2:1;ctx.stroke()
+    ctx.strokeStyle=isBurn?'rgba(255,40,20,.5)':isMajor?'rgba(255,248,231,.35)':'rgba(255,248,231,.1)'
+    ctx.lineWidth=isMajor||isBurn?2:1;ctx.stroke()
 
     // ET hour labels (outer)
     if(h%3===0){
