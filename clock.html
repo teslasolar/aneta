@@ -59,18 +59,13 @@ const isWeekend=(()=>{const d=new Date();const dow=d.getDay();return dow===0||do
 const A={
   name:'THOMAS · US EAST',tz:'America/New_York',color:'#dc143c',
   blocks: isWeekend ? [
-    {s:0,e:1,type:'free'},
-    {s:1,e:3,type:'talk'},
+    {s:0,e:3,type:'free'},
+    {s:3,e:9,type:'sleep'},
+    {s:9,e:24,type:'free'}
+  ] : [
+    {s:0,e:3,type:'free'},
     {s:3,e:9,type:'sleep'},
     {s:9,e:14,type:'free'},
-    {s:14,e:17,type:'talk'},
-    {s:17,e:24,type:'free'}
-  ] : [
-    {s:0,e:1,type:'free'},
-    {s:1,e:3,type:'talk'},
-    {s:3,e:9,type:'sleep'},
-    {s:9,e:11,type:'free'},
-    {s:11,e:14,type:'talk'},
     {s:14,e:20,type:'work'},
     {s:20,e:24,type:'free'}
   ]
@@ -79,16 +74,15 @@ const B={
   name:'ANETA · POLAND',tz:'Europe/Warsaw',color:'#d4a94a',
   blocks: isWeekend ? [
     {s:0,e:7,type:'sleep'},
-    {s:7,e:14,type:'free'},
-    {s:14.5,e:17,type:'talk'},
+    {s:7,e:14.5,type:'free'},
+    {s:14.5,e:17,type:'busy'},
     {s:17,e:23,type:'free'},
     {s:23,e:24,type:'sleep'}
   ] : [
     {s:0,e:7,type:'sleep'},
-    {s:7,e:9,type:'talk'},
+    {s:7,e:9,type:'free'},
     {s:9,e:17,type:'work'},
-    {s:17,e:20,type:'talk'},
-    {s:20,e:23,type:'free'},
+    {s:17,e:23,type:'free'},
     {s:23,e:24,type:'sleep'}
   ]
 }
@@ -99,13 +93,15 @@ const COLORS={
   sleep:'rgba(15,8,40,.8)',
   work:'rgba(180,120,30,.55)',
   free:'rgba(30,100,55,.5)',
-  talk:'rgba(68,255,170,.5)'
+  talk:'rgba(68,255,170,.5)',
+  busy:'rgba(160,80,40,.5)'
 }
 const STROKE={
   sleep:'rgba(80,50,140,.5)',
   work:'rgba(240,180,50,.6)',
   free:'rgba(50,180,90,.6)',
-  talk:'rgba(68,255,170,.85)'
+  talk:'rgba(68,255,170,.85)',
+  busy:'rgba(220,120,50,.6)'
 }
 
 // ═══ GEOMETRY ═══
@@ -136,10 +132,8 @@ function findTalkWindows(){
     const bLocalH=(h+OFFSET)%24
     const bType=getTypeAt(B.blocks,bLocalH)
     let quality=0
-    if(aType==='talk'&&bType==='talk')quality=4
-    else if(aType==='talk'||bType==='talk')quality=3
-    else if((aType==='free'||aType==='talk')&&(bType==='free'||bType==='talk'))quality=3
-    else if((aType==='free'&&bType==='work')||(bType==='free'&&aType==='work'))quality=2
+    if(aType==='free'&&bType==='free')quality=4
+    else if((aType==='free'&&bType!=='sleep')||(bType==='free'&&aType!=='sleep'))quality=2
     else if(aType!=='sleep'&&bType!=='sleep')quality=1
     wins.push({h,aType,bType,bLocalH,quality})
   }
@@ -313,13 +307,13 @@ function draw(){
   statusEl.innerHTML+=`<span style="color:#d4a94a">${B.name}: ${bType.toUpperCase()}</span><br>`
   const q=talkWins.find(w=>w.h===Math.floor(etFrac))
   if(q&&q.quality>=4){
-    statusEl.innerHTML+=`<span style="color:#44ffaa">★ TALK WINDOW — both reserved</span>`
-  }else if(q&&q.quality>=3){
-    statusEl.innerHTML+=`<span style="color:#44ffaa">● CAN TALK</span>`
+    statusEl.innerHTML+=`<span style="color:#44ffaa">★ BOTH FREE — talk now</span>`
+  }else if(q&&q.quality>=2){
+    statusEl.innerHTML+=`<span style="color:rgba(255,200,60,.5)">● one free, one busy</span>`
   }else if(aType==='sleep'||bType==='sleep'){
     statusEl.innerHTML+=`<span style="color:rgba(255,60,60,.4)">● someone sleeping</span>`
   }else{
-    statusEl.innerHTML+=`<span style="color:rgba(255,200,60,.3)">● both awake — possible</span>`
+    statusEl.innerHTML+=`<span style="color:rgba(255,200,60,.3)">● both awake</span>`
   }
 
   // talk windows list
