@@ -33,15 +33,16 @@ canvas{display:block;flex:1}
   </div>
   <div class="col" id="status"></div>
   <div class="col">
-    <div class="hdr">TALK WINDOWS (daily)</div>
+    <div class="hdr">OVERLAP (both free)</div>
     <div class="win" id="wins"></div>
   </div>
   <div class="col">
     <div class="leg">
       <span><i class="dot" style="background:#1a1040"></i>sleep</span>
       <span><i class="dot" style="background:#8a5a20"></i>work</span>
+      <span><i class="dot" style="background:#c82814"></i>burn</span>
       <span><i class="dot" style="background:#2a8a4a"></i>free</span>
-      <span><i class="dot" style="background:#44ffaa"></i>talk</span>
+      <span><i class="dot" style="background:#44ffaa"></i>overlap</span>
     </div>
   </div>
 </div>
@@ -61,12 +62,14 @@ const A={
   blocks: isWeekend ? [
     {s:0,e:3,type:'free'},
     {s:3,e:9,type:'sleep'},
-    {s:9,e:24,type:'free'}
+    {s:9,e:14,type:'free'},
+    {s:14,e:20,type:'burn'},
+    {s:20,e:24,type:'free'}
   ] : [
     {s:0,e:3,type:'free'},
     {s:3,e:9,type:'sleep'},
     {s:9,e:14,type:'free'},
-    {s:14,e:20,type:'work'},
+    {s:14,e:20,type:'burn'},
     {s:20,e:24,type:'free'}
   ]
 }
@@ -94,14 +97,16 @@ const COLORS={
   work:'rgba(180,120,30,.55)',
   free:'rgba(30,100,55,.5)',
   talk:'rgba(68,255,170,.5)',
-  busy:'rgba(160,80,40,.5)'
+  busy:'rgba(160,80,40,.5)',
+  burn:'rgba(200,40,20,.45)'
 }
 const STROKE={
   sleep:'rgba(80,50,140,.5)',
   work:'rgba(240,180,50,.6)',
   free:'rgba(50,180,90,.6)',
   talk:'rgba(68,255,170,.85)',
-  busy:'rgba(220,120,50,.6)'
+  busy:'rgba(220,120,50,.6)',
+  burn:'rgba(255,60,30,.7)'
 }
 
 // ═══ GEOMETRY ═══
