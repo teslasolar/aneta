@@ -62,15 +62,15 @@ const A={
   blocks: isWeekend ? [
     {s:0,e:3,type:'free'},
     {s:3,e:9,type:'sleep'},
-    {s:9,e:14,type:'free'},
-    {s:14,e:20,type:'burn'},
-    {s:20,e:24,type:'free'}
+    {s:9,e:15,type:'free'},
+    {s:15,e:19,type:'burn'},
+    {s:19,e:24,type:'free'}
   ] : [
     {s:0,e:3,type:'free'},
     {s:3,e:9,type:'sleep'},
-    {s:9,e:14,type:'free'},
-    {s:14,e:20,type:'burn'},
-    {s:20,e:24,type:'free'}
+    {s:9,e:15,type:'free'},
+    {s:15,e:19,type:'burn'},
+    {s:19,e:24,type:'free'}
   ]
 }
 const B={
@@ -198,7 +198,7 @@ function draw(){
   })
 
   // ═══ BURN ZONE MARKERS — 14:00 and 20:00 ET ═══
-  const burnStart=hToA(14),burnEnd=hToA(20)
+  const burnStart=hToA(15),burnEnd=hToA(19)
   for(const ba of [burnStart,burnEnd]){
     ctx.beginPath()
     ctx.moveTo(cx+Math.cos(ba)*(rA-bandW),cy+Math.sin(ba)*(rA-bandW))
@@ -210,7 +210,7 @@ function draw(){
   for(let h=0;h<24;h++){
     const a=hToA(h)
     const isMajor=h%6===0
-    const isBurn=h===14||h===20
+    const isBurn=h===15||h===19
     const r1=R*1.02,r2=R*(isMajor?1.06:isBurn?1.05:1.04)
 
     ctx.beginPath()
