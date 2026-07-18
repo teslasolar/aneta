@@ -53,9 +53,19 @@ function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight-60;cx=W/2;cy=H/2
 resize();addEventListener('resize',resize)
 
 // ═══ SCHEDULES (local times) ═══
+// Weekday vs weekend detection
+const isWeekend=(()=>{const d=new Date();const dow=d.getDay();return dow===0||dow===6})()
+
 const A={
   name:'THOMAS · US EAST',tz:'America/New_York',color:'#dc143c',
-  blocks:[
+  blocks: isWeekend ? [
+    {s:0,e:1,type:'free'},
+    {s:1,e:3,type:'talk'},
+    {s:3,e:9,type:'sleep'},
+    {s:9,e:14,type:'free'},
+    {s:14,e:17,type:'talk'},
+    {s:17,e:24,type:'free'}
+  ] : [
     {s:0,e:1,type:'free'},
     {s:1,e:3,type:'talk'},
     {s:3,e:9,type:'sleep'},
@@ -67,7 +77,13 @@ const A={
 }
 const B={
   name:'ANETA · POLAND',tz:'Europe/Warsaw',color:'#d4a94a',
-  blocks:[
+  blocks: isWeekend ? [
+    {s:0,e:7,type:'sleep'},
+    {s:7,e:14,type:'free'},
+    {s:14.5,e:17,type:'talk'},
+    {s:17,e:23,type:'free'},
+    {s:23,e:24,type:'sleep'}
+  ] : [
     {s:0,e:7,type:'sleep'},
     {s:7,e:9,type:'talk'},
     {s:9,e:17,type:'work'},
