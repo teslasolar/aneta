@@ -96,16 +96,16 @@ const B={
 const OFFSET=6 // Poland is 6 hours ahead of US East
 
 const COLORS={
-  sleep:'rgba(20,12,50,.6)',
-  work:'rgba(140,90,30,.45)',
-  free:'rgba(40,140,70,.45)',
-  talk:'rgba(68,255,170,.35)'
+  sleep:'rgba(15,8,40,.8)',
+  work:'rgba(180,120,30,.55)',
+  free:'rgba(30,100,55,.5)',
+  talk:'rgba(68,255,170,.5)'
 }
 const STROKE={
-  sleep:'rgba(60,40,100,.3)',
-  work:'rgba(200,140,40,.4)',
-  free:'rgba(60,200,100,.5)',
-  talk:'rgba(68,255,170,.7)'
+  sleep:'rgba(80,50,140,.5)',
+  work:'rgba(240,180,50,.6)',
+  free:'rgba(50,180,90,.6)',
+  talk:'rgba(68,255,170,.85)'
 }
 
 // ═══ GEOMETRY ═══
@@ -157,10 +157,10 @@ function draw(){
   bg.addColorStop(0,'rgba(30,10,40,.3)');bg.addColorStop(1,'rgba(8,4,14,0)')
   ctx.fillStyle=bg;ctx.fillRect(0,0,W,H)
 
-  const bandW=R*.14
+  const bandW=R*.16
   const rA=R*.88 // outer — US East
-  const rB=R*.68 // inner — Poland
-  const rOv=R*.50 // overlap indicator
+  const rB=R*.66 // inner — Poland
+  const rOv=R*.48 // overlap indicator
 
   // ═══ PERSON A — outer ring (US Eastern, hours in ET) ═══
   A.blocks.forEach(b=>{
@@ -207,36 +207,36 @@ function draw(){
     ctx.beginPath()
     ctx.moveTo(cx+Math.cos(a)*r1,cy+Math.sin(a)*r1)
     ctx.lineTo(cx+Math.cos(a)*r2,cy+Math.sin(a)*r2)
-    ctx.strokeStyle=isMajor?'rgba(255,248,231,.2)':'rgba(255,248,231,.06)'
-    ctx.lineWidth=isMajor?1.5:1;ctx.stroke()
+    ctx.strokeStyle=isMajor?'rgba(255,248,231,.35)':'rgba(255,248,231,.1)'
+    ctx.lineWidth=isMajor?2:1;ctx.stroke()
 
     // ET hour labels (outer)
     if(h%3===0){
       const lr=R*1.12
       ctx.font=isMajor?'10px monospace':'8px monospace'
       ctx.textAlign='center';ctx.textBaseline='middle'
-      ctx.fillStyle='rgba(220,20,60,.35)'
+      ctx.fillStyle='rgba(220,20,60,.55)'
       ctx.fillText(String(h).padStart(2,'0'),cx+Math.cos(a)*lr,cy+Math.sin(a)*lr)
     }
 
     // PL hour labels (inner)
     if(h%3===0){
       const plH=(h+OFFSET)%24
-      const lr=R*.48
+      const lr=R*.42
       ctx.font='8px monospace'
-      ctx.fillStyle='rgba(212,169,74,.3)'
+      ctx.fillStyle='rgba(212,169,74,.5)'
       ctx.fillText(String(plH).padStart(2,'0'),cx+Math.cos(a)*lr,cy+Math.sin(a)*lr)
     }
   }
 
   // ring labels
-  ctx.font='7px monospace';ctx.textAlign='center'
-  ctx.fillStyle='rgba(220,20,60,.25)'
-  ctx.fillText('US EAST',cx,cy-rA-bandW/2-8)
-  ctx.fillStyle='rgba(212,169,74,.25)'
-  ctx.fillText('POLAND',cx,cy-rB-bandW/2-8)
-  ctx.fillStyle='rgba(68,255,170,.2)'
-  ctx.fillText('TALK',cx,cy-rOv-bandW*.3-6)
+  ctx.font='8px monospace';ctx.textAlign='center'
+  ctx.fillStyle='rgba(220,20,60,.45)'
+  ctx.fillText('THOMAS · ET',cx,cy-rA-bandW/2-8)
+  ctx.fillStyle='rgba(212,169,74,.45)'
+  ctx.fillText('ANETA · PL',cx,cy-rB-bandW/2-8)
+  ctx.fillStyle='rgba(68,255,170,.35)'
+  ctx.fillText(isWeekend?'WEEKEND':'TALK',cx,cy-rOv-bandW*.3-6)
 
   // ═══ CURRENT TIME HANDS ═══
   const now=new Date()
