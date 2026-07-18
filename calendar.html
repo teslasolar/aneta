@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>DROGA · July 2026</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#08040e;color:#fff8e7;font:11px/1.4 'Courier New',monospace;padding:12px}
+h1{font:14px/1 Georgia,serif;color:#dc143c;letter-spacing:4px;text-align:center;margin:8px 0 4px}
+.sub{text-align:center;font-size:8px;color:rgba(255,248,231,.2);margin-bottom:12px;letter-spacing:2px}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.hdr{text-align:center;font-size:8px;color:rgba(255,248,231,.15);padding:4px;letter-spacing:2px}
+.day{background:#0d0818;border:1px solid #1a1228;border-radius:3px;min-height:90px;padding:4px;position:relative;font-size:8px}
+.day.empty{background:transparent;border-color:transparent}
+.day.today{border-color:#dc143c44}
+.day.weekend{background:#0f0a1e}
+.num{font-size:10px;color:rgba(255,248,231,.3);margin-bottom:3px}
+.num.weekend{color:rgba(212,169,74,.3)}
+.ev{padding:2px 3px;border-radius:2px;margin:1px 0;font-size:7px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev.talk1{background:rgba(0,255,170,.08);color:#44ffaa;border-left:2px solid #44ffaa44}
+.ev.talk2{background:rgba(0,255,170,.08);color:#44ffaa;border-left:2px solid #44ffaa44}
+.ev.sleep{background:rgba(100,80,160,.06);color:rgba(100,80,160,.4);border-left:2px solid rgba(100,80,160,.15)}
+.ev.work{background:rgba(212,169,74,.06);color:rgba(212,169,74,.4);border-left:2px solid rgba(212,169,74,.15)}
+.ev.aneta{background:rgba(220,20,60,.1);color:#dc143c;border-left:2px solid #dc143c44}
+.ev.rally{background:rgba(255,100,50,.1);color:#ff6633;border-left:2px solid #ff663344}
+.ev.free{background:rgba(255,248,231,.02);color:rgba(255,248,231,.15);border-left:2px solid rgba(255,248,231,.06)}
+.leg{display:flex;gap:12px;justify-content:center;margin:10px 0;font-size:7px;color:rgba(255,248,231,.2);flex-wrap:wrap}
+.leg span{display:flex;align-items:center;gap:3px}
+.leg i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.tz{text-align:center;font-size:7px;color:rgba(255,248,231,.1);margin-top:8px;letter-spacing:1px}
+</style>
+</head>
+<body>
+
+<h1>JULY 2026</h1>
+<div class="sub">THOMAS (US EAST) &middot; ANETA (POLAND +6h)</div>
+
+<div class="leg">
+<span><i style="background:rgba(0,255,170,.15)"></i>TALK WINDOW</span>
+<span><i style="background:rgba(100,80,160,.1)"></i>SLEEP</span>
+<span><i style="background:rgba(212,169,74,.1)"></i>WORK</span>
+<span><i style="background:rgba(255,248,231,.04)"></i>FREE</span>
+<span><i style="background:rgba(220,20,60,.15)"></i>ANETA 2.5h</span>
+<span><i style="background:rgba(255,100,50,.15)"></i>RALLY POLAND</span>
+</div>
+
+<div class="grid" id="cal"></div>
+
+<div class="tz">
+TALK 1: 01:00-03:00 ET = 07:00-09:00 PL &middot; TALK 2: 11:00-14:00 ET = 17:00-20:00 PL<br>
+THOMAS: sleep 03-09 &middot; free 09-11+20-01 &middot; work 14-20<br>
+ANETA: sleep 23-07 &middot; free 20-23 &middot; work 09-17 &middot; Fri/Sat 14:30-17:00 PL (08:30-11:00 ET)
+</div>
+
+<script>
+const CAL = document.getElementById('cal')
+
+const DAYS_IN_JULY = 31
+const FIRST_DAY = 2 // July 1, 2026 = Wednesday (0=Mon)
+const TODAY = new Date()
+const TODAY_DAY = TODAY.getMonth() === 6 ? TODAY.getDate() : -1
+
+// Events
+const DAILY_ET = [
+    {t:'01-03',label:'TALK 1',cls:'talk1',note:'07-09 PL'},
+    {t:'03-09',label:'sleep',cls:'sleep',note:''},
+    {t:'09-11',label:'free',cls:'free',note:''},
+    {t:'11-14',label:'TALK 2',cls:'talk2',note:'17-20 PL'},
+    {t:'14-20',label:'work',cls:'work',note:''},
+    {t:'20-01',label:'free',cls:'free',note:''},
+]
+
+// Aneta's 2.5h block: Fri or Sat afternoon 14:30-17:00 PL = 08:30-11:00 ET
+// Mark both Fri and Sat as potential
+function isWeekend(dayOfMonth) {
+    // July 2026: 1=Wed, so Fri=3,10,17,24,31  Sat=4,11,18,25
+    const dow = (FIRST_DAY + dayOfMonth - 1) % 7 // 0=Mon
+    return dow >= 4 // 4=Fri, 5=Sat, 6=Sun
+}
+function isFriday(d) { return (FIRST_DAY + d - 1) % 7 === 4 }
+function isSaturday(d) { return (FIRST_DAY + d - 1) % 7 === 5 }
+function isSunday(d) { return (FIRST_DAY + d - 1) % 7 === 6 }
+
+// Rally Poland: July 24-26 (Fri-Sun)
+function isRally(d) { return d >= 24 && d <= 26 }
+
+// Headers
+const DOW = ['MON','TUE','WED','THU','FRI','SAT','SUN']
+DOW.forEach(d => {
+    const h = document.createElement('div')
+    h.className = 'hdr'
+    h.textContent = d
+    CAL.appendChild(h)
+})
+
+// Empty cells before July 1
+for (let i = 0; i < FIRST_DAY; i++) {
+    const e = document.createElement('div')
+    e.className = 'day empty'
+    CAL.appendChild(e)
+}
+
+// Days
+for (let d = 1; d <= DAYS_IN_JULY; d++) {
+    const cell = document.createElement('div')
+    const wkend = isFriday(d) || isSaturday(d) || isSunday(d)
+    cell.className = 'day' + (d === TODAY_DAY ? ' today' : '') + (wkend ? ' weekend' : '')
+
+    const num = document.createElement('div')
+    num.className = 'num' + (wkend ? ' weekend' : '')
+    num.textContent = d
+    cell.appendChild(num)
+
+    // Rally Poland
+    if (isRally(d)) {
+        const ev = document.createElement('div')
+        ev.className = 'ev rally'
+        ev.textContent = d === 24 ? 'RALLY START Katowice' : d === 25 ? 'RALLY DAY 2 stages' : 'RALLY FINAL Silesia'
+        cell.appendChild(ev)
+    }
+
+    // Aneta's 2.5h block on Fri/Sat
+    if (isFriday(d) || isSaturday(d)) {
+        const ev = document.createElement('div')
+        ev.className = 'ev aneta'
+        ev.textContent = 'ANETA 14:30-17:00 PL'
+        ev.title = '08:30-11:00 ET — potential 2.5h block'
+        cell.appendChild(ev)
+    }
+
+    // Daily schedule (condensed for space)
+    const t1 = document.createElement('div')
+    t1.className = 'ev talk1'
+    t1.textContent = '01-03 TALK 1'
+    cell.appendChild(t1)
+
+    const t2 = document.createElement('div')
+    t2.className = 'ev talk2'
+    t2.textContent = '11-14 TALK 2'
+    cell.appendChild(t2)
+
+    if (!isRally(d)) {
+        const w = document.createElement('div')
+        w.className = 'ev work'
+        w.textContent = '14-20 work'
+        cell.appendChild(w)
+    }
+
+    CAL.appendChild(cell)
+}
+</script>
+</body></html>
