@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>REGULUS · Daily Planner</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#08040e;--panel:#0d0818;--border:#1a1228;--text:#fff8e7;--dim:#444;--crimson:#dc143c;--gold:#d4a94a;--cyan:#0ff;--green:#44ffaa;--purple:#aa44ff;--orange:#ff8844}
+body{background:var(--bg);color:var(--text);font:11px/1.4 'Courier New',monospace}
+.top{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--border)}
+.top h1{font:13px Georgia,serif;color:var(--crimson);letter-spacing:3px}
+.top .nav{display:flex;gap:8px}
+.top .nav button{background:none;border:1px solid var(--border);color:var(--dim);font:9px monospace;padding:3px 8px;cursor:pointer;border-radius:3px}
+.top .nav button:hover,.top .nav button.on{color:var(--text);border-color:var(--crimson)}
+.tabs{display:flex;gap:2px;padding:6px 12px;border-bottom:1px solid var(--border)}
+.tabs button{background:var(--panel);border:1px solid var(--border);color:var(--dim);font:9px monospace;padding:4px 10px;cursor:pointer;border-radius:3px 3px 0 0;letter-spacing:1px}
+.tabs button:hover{color:var(--text)}
+.tabs button.on{color:var(--crimson);border-bottom-color:var(--bg);background:var(--bg)}
+.main{display:flex;height:calc(100vh - 72px)}
+.cal{flex:1;overflow-y:auto;padding:6px}
+.side{width:260px;border-left:1px solid var(--border);padding:10px;overflow-y:auto;font-size:9px}
+.side h3{color:var(--crimson);font-size:9px;letter-spacing:2px;margin:8px 0 4px;font-weight:normal}
+.grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.hdr{text-align:center;font-size:8px;color:var(--dim);padding:3px;letter-spacing:2px}
+.day{background:var(--panel);border:1px solid var(--border);border-radius:3px;min-height:110px;padding:3px;cursor:pointer;position:relative}
+.day:hover{border-color:var(--crimson)44}
+.day.today{border-color:var(--crimson);box-shadow:0 0 8px rgba(220,20,60,.1)}
+.day.empty{background:transparent;border-color:transparent;cursor:default;min-height:0}
+.day .num{font-size:10px;color:rgba(255,248,231,.25);margin-bottom:2px}
+.day.today .num{color:var(--crimson)}
+.day.selected{border-color:var(--cyan);background:#0a0a1e}
+canvas.ring{display:block;margin:2px auto}
+.task-mini{font-size:6px;color:var(--dim);overflow:hidden;max-height:30px;line-height:1.3;margin-top:2px}
+.side .sec{margin:6px 0;padding:6px;background:var(--panel);border:1px solid var(--border);border-radius:3px}
+.side .sec h4{font-size:8px;color:var(--gold);letter-spacing:1px;margin-bottom:4px;font-weight:normal}
+.side .task{display:flex;align-items:flex-start;gap:4px;padding:2px 0;font-size:9px}
+.side .task input[type=checkbox]{accent-color:var(--green);margin-top:1px}
+.side .task.done{color:var(--dim);text-decoration:line-through}
+.side .task .time{color:var(--crimson);font-size:8px;min-width:36px}
+.side .add{width:100%;background:none;border:1px dashed var(--border);color:var(--dim);font:8px monospace;padding:3px;cursor:pointer;border-radius:3px;margin-top:4px}
+.side .add:hover{border-color:var(--crimson);color:var(--text)}
+.legend{display:flex;gap:8px;padding:4px 12px;font-size:7px;color:var(--dim);flex-wrap:wrap}
+.legend span{display:flex;align-items:center;gap:3px}
+.legend i{width:8px;height:3px;border-radius:1px;display:inline-block}
+</style>
+</head>
+<body>
+
+<div class="top">
+<h1>REGULUS PLANNER</h1>
+<div class="nav">
+<button onclick="changeMonth(-1)">&lt;</button>
+<span id="monthLabel"></span>
+<button onclick="changeMonth(1)">&gt;</button>
+</div>
+</div>
+<div class="tabs" id="tabs"></div>
+<div class="legend">
+<span><i style="background:var(--crimson)"></i>supplements</span>
+<span><i style="background:var(--gold)"></i>meals</span>
+<span><i style="background:var(--cyan)"></i>routine</span>
+<span><i style="background:var(--green)"></i>talk windows</span>
+<span><i style="background:var(--purple)"></i>sleep</span>
+<span><i style="background:var(--orange)"></i>exercise</span>
+</div>
+<div class="main">
+<div class="cal" id="cal"></div>
+<div class="side" id="side"></div>
+</div>
+
+<script>
+const CATEGORIES = [
+    {id:'all',label:'ALL',color:'#fff8e7'},
+    {id:'supplements',label:'SUPPLEMENTS',color:'#dc143c'},
+    {id:'meals',label:'MEALS',color:'#d4a94a'},
+    {id:'routine',label:'ROUTINE',color:'#00ffff'},
+    {id:'talk',label:'TALK WINDOWS',color:'#44ffaa'},
+    {id:'sleep',label:'SLEEP',color:'#aa44ff'},
+    {id:'exercise',label:'EXERCISE',color:'#ff8844'},
+]
+
+const DAILY_TEMPLATE = {
+    supplements: [
+        {time:'13:00',text:'Mg glycinate 200mg (preload before work)',done:false},
+        {time:'13:00',text:'Se 200mcg selenomethionine',done:false},
+        {time:'13:00',text:'Zn picolinate 15mg (with lunch)',done:false},
+        {time:'13:00',text:'Omega-3 2g EPA+DHA (with food)',done:false},
+        {time:'21:00',text:'Mg glycinate 200mg (recovery)',done:false},
+        {time:'21:00',text:'Vitamin D 4000IU (if not sun)',done:false},
+    ],
+    meals: [
+        {time:'09:00',text:'breakfast — Mg-rich (spinach/nuts/seeds)',done:false},
+        {time:'13:00',text:'lunch — protein + complex carbs + Zn source',done:false},
+        {time:'20:00',text:'dinner — anti-inflammatory (salmon/turmeric)',done:false},
+        {time:'--:--',text:'water 3L minimum throughout day',done:false},
+    ],
+    routine: [
+        {time:'09:00',text:'wake — natural light 5min',done:false},
+        {time:'09:15',text:'multifidus activation 3min (L5-S1)',done:false},
+        {time:'09:20',text:'diaphragm 360 breathing 3min',done:false},
+        {time:'09:25',text:'psoas active lengthening 3min',done:false},
+        {time:'11:00',text:'check watch — Regulus rings status',done:false},
+        {time:'14:00',text:'work block start — posture check',done:false},
+        {time:'20:00',text:'work end — cold shower 30sec on lower back',done:false},
+        {time:'20:30',text:'multifidus + diaphragm 3min combined',done:false},
+    ],
+    talk: [
+        {time:'01:00',text:'TALK 1 open (Aneta morning 07:00 PL)',done:false},
+        {time:'03:00',text:'TALK 1 close — sleep',done:false},
+        {time:'11:00',text:'TALK 2 open (Aneta evening 17:00 PL)',done:false},
+        {time:'14:00',text:'TALK 2 close — work',done:false},
+    ],
+    sleep: [
+        {time:'00:00',text:'wind down — no screens, dim light',done:false},
+        {time:'00:30',text:'sleep hygiene: cool room, dark, Mg taken',done:false},
+        {time:'03:00',text:'target sleep (6hr block)',done:false},
+        {time:'09:00',text:'wake — consistent time daily',done:false},
+    ],
+    exercise: [
+        {time:'09:15',text:'L5-S1 protocol (multifidus+diaphragm+psoas)',done:false},
+        {time:'14:00',text:'walk 10min after lunch (glucose)',done:false},
+        {time:'20:00',text:'cold exposure 30sec (vagal reset)',done:false},
+        {time:'20:30',text:'evening L5-S1 maintenance',done:false},
+    ],
+}
+
+let currentMonth = new Date().getMonth()
+let currentYear = new Date().getFullYear()
+let selectedDay = new Date().getDate()
+let activeCategory = 'all'
+let savedData = JSON.parse(localStorage.getItem('regulus_planner') || '{}')
+
+function dayKey(y, m, d) { return `${y}-${m+1}-${d}` }
+
+function getDayData(y, m, d) {
+    const k = dayKey(y, m, d)
+    if (!savedData[k]) {
+        savedData[k] = JSON.parse(JSON.stringify(DAILY_TEMPLATE))
+    }
+    return savedData[k]
+}
+
+function save() { localStorage.setItem('regulus_planner', JSON.stringify(savedData)) }
+
+function toggleTask(y, m, d, cat, idx) {
+    const data = getDayData(y, m, d)
+    if (data[cat] && data[cat][idx]) {
+        data[cat][idx].done = !data[cat][idx].done
+        save()
+        render()
+    }
+}
+
+function addTask(y, m, d, cat) {
+    const text = prompt('task:')
+    if (!text) return
+    const time = prompt('time (HH:MM):', '--:--') || '--:--'
+    const data = getDayData(y, m, d)
+    if (!data[cat]) data[cat] = []
+    data[cat].push({time, text, done: false})
+    save()
+    render()
+}
+
+function drawRing(canvas, dayData) {
+    const ctx = canvas.getContext('2d')
+    const w = canvas.width, h = canvas.height
+    const cx = w/2, cy = h/2, r = Math.min(cx,cy) - 2
+    ctx.clearRect(0, 0, w, h)
+
+    const cats = ['supplements','meals','routine','talk','sleep','exercise']
+    const colors = ['#dc143c','#d4a94a','#00ffff','#44ffaa','#aa44ff','#ff8844']
+
+    cats.forEach((cat, i) => {
+        const tasks = dayData[cat] || []
+        if (!tasks.length) return
+        const total = tasks.length
+        const done = tasks.filter(t => t.done).length
+        const pct = done / total
+        const ringR = r - i * 4.5
+        const bandW = 3
+
+        ctx.beginPath()
+        ctx.arc(cx, cy, ringR, 0, Math.PI * 2)
+        ctx.strokeStyle = colors[i] + '15'
+        ctx.lineWidth = bandW
+        ctx.stroke()
+
+        if (pct > 0) {
+            ctx.beginPath()
+            ctx.arc(cx, cy, ringR, -Math.PI/2, -Math.PI/2 + pct * Math.PI * 2)
+            ctx.strokeStyle = colors[i] + (pct >= 1 ? '88' : '44')
+            ctx.lineWidth = bandW
+            ctx.lineCap = 'round'
+            ctx.stroke()
+        }
+    })
+
+    const allTasks = cats.flatMap(c => dayData[c] || [])
+    const totalDone = allTasks.filter(t => t.done).length
+    const totalAll = allTasks.length
+    if (totalAll > 0) {
+        ctx.font = '7px monospace'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillStyle = totalDone === totalAll ? '#44ffaa66' : '#fff8e722'
+        ctx.fillText(`${totalDone}/${totalAll}`, cx, cy)
+    }
+}
+
+function renderTabs() {
+    const tabs = document.getElementById('tabs')
+    tabs.innerHTML = ''
+    CATEGORIES.forEach(cat => {
+        const btn = document.createElement('button')
+        btn.textContent = cat.label
+        btn.className = activeCategory === cat.id ? 'on' : ''
+        btn.onclick = () => { activeCategory = cat.id; render() }
+        tabs.appendChild(btn)
+    })
+}
+
+function render() {
+    renderTabs()
+    const cal = document.getElementById('cal')
+    const today = new Date()
+
+    document.getElementById('monthLabel').textContent =
+        new Date(currentYear, currentMonth).toLocaleDateString('en-US', {month:'long', year:'numeric'}).toUpperCase()
+
+    const firstDay = new Date(currentYear, currentMonth, 1).getDay()
+    const offset = firstDay === 0 ? 6 : firstDay - 1
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate()
+
+    let html = '<div class="grid">'
+    const DOW = ['MON','TUE','WED','THU','FRI','SAT','SUN']
+    DOW.forEach(d => html += `<div class="hdr">${d}</div>`)
+
+    for (let i = 0; i < offset; i++) html += '<div class="day empty"></div>'
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const isToday = d === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()
+        const isSel = d === selectedDay
+        html += `<div class="day${isToday ? ' today' : ''}${isSel ? ' selected' : ''}" onclick="selectDay(${d})">`
+        html += `<div class="num">${d}</div>`
+        html += `<canvas class="ring" width="52" height="52" data-day="${d}"></canvas>`
+
+        const data = getDayData(currentYear, currentMonth, d)
+        const cats = activeCategory === 'all' ? Object.keys(DAILY_TEMPLATE) : [activeCategory]
+        const tasks = cats.flatMap(c => data[c] || [])
+        const undone = tasks.filter(t => !t.done).slice(0, 3)
+        if (undone.length) {
+            html += '<div class="task-mini">'
+            undone.forEach(t => html += `${t.time} ${t.text}<br>`)
+            html += '</div>'
+        }
+        html += '</div>'
+    }
+    html += '</div>'
+    cal.innerHTML = html
+
+    document.querySelectorAll('canvas.ring').forEach(c => {
+        const d = parseInt(c.dataset.day)
+        drawRing(c, getDayData(currentYear, currentMonth, d))
+    })
+
+    renderSide()
+}
+
+function selectDay(d) { selectedDay = d; render() }
+function changeMonth(delta) {
+    currentMonth += delta
+    if (currentMonth > 11) { currentMonth = 0; currentYear++ }
+    if (currentMonth < 0) { currentMonth = 11; currentYear-- }
+    selectedDay = 1
+    render()
+}
+
+function renderSide() {
+    const side = document.getElementById('side')
+    const data = getDayData(currentYear, currentMonth, selectedDay)
+    const dateStr = new Date(currentYear, currentMonth, selectedDay).toLocaleDateString('en-US', {weekday:'long', month:'short', day:'numeric'})
+
+    let html = `<h3>${dateStr}</h3>`
+
+    const cats = activeCategory === 'all' ? Object.keys(DAILY_TEMPLATE) : [activeCategory]
+    const catMeta = {
+        supplements: {label:'SUPPLEMENTS',color:'var(--crimson)',icon:'💊'},
+        meals: {label:'MEALS',color:'var(--gold)',icon:'🍽'},
+        routine: {label:'ROUTINE',color:'var(--cyan)',icon:'🔄'},
+        talk: {label:'TALK WINDOWS',color:'var(--green)',icon:'📞'},
+        sleep: {label:'SLEEP',color:'var(--purple)',icon:'🌙'},
+        exercise: {label:'EXERCISE',color:'var(--orange)',icon:'🏋'},
+    }
+
+    cats.forEach(cat => {
+        const meta = catMeta[cat]
+        const tasks = data[cat] || []
+        const done = tasks.filter(t => t.done).length
+
+        html += `<div class="sec">`
+        html += `<h4 style="color:${meta.color}">${meta.icon} ${meta.label} (${done}/${tasks.length})</h4>`
+        tasks.forEach((task, i) => {
+            html += `<div class="task${task.done ? ' done' : ''}">`
+            html += `<input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTask(${currentYear},${currentMonth},${selectedDay},'${cat}',${i})">`
+            html += `<span class="time">${task.time}</span>`
+            html += `<span>${task.text}</span>`
+            html += '</div>'
+        })
+        html += `<button class="add" onclick="addTask(${currentYear},${currentMonth},${selectedDay},'${cat}')">+ add task</button>`
+        html += '</div>'
+    })
+
+    const allTasks = Object.keys(DAILY_TEMPLATE).flatMap(c => data[c] || [])
+    const totalDone = allTasks.filter(t => t.done).length
+    const totalAll = allTasks.length
+    const pct = totalAll > 0 ? Math.round(totalDone / totalAll * 100) : 0
+    html += `<div class="sec"><h4 style="color:var(--cyan)">DAY COMPLETION: ${pct}%</h4>`
+    html += `<div style="height:4px;background:var(--border);border-radius:2px;margin-top:4px">`
+    html += `<div style="height:100%;width:${pct}%;background:${pct>=100?'var(--green)':'var(--cyan)'};border-radius:2px"></div>`
+    html += '</div></div>'
+
+    side.innerHTML = html
+}
+
+render()
+</script>
+</body></html>
