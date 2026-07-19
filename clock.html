@@ -60,17 +60,16 @@ const isWeekend=(()=>{const d=new Date();const dow=d.getDay();return dow===0||do
 const A={
   name:'THOMAS · US EAST',tz:'America/New_York',color:'#dc143c',
   blocks: isWeekend ? [
-    {s:0,e:3,type:'free'},
-    {s:3,e:9,type:'sleep'},
-    {s:9,e:15,type:'free'},
+    {s:0,e:5,type:'free'},
+    {s:5,e:11,type:'sleep'},
+    {s:11,e:15,type:'free'},
     {s:15,e:19,type:'burn'},
     {s:19,e:24,type:'free'}
   ] : [
-    {s:0,e:3,type:'free'},
-    {s:3,e:9,type:'sleep'},
-    {s:9,e:10,type:'free'},
-    {s:10,e:14,type:'work'},
-    {s:14,e:15,type:'free'},
+    {s:0,e:5,type:'free'},
+    {s:5,e:11,type:'sleep'},
+    {s:11,e:12,type:'free'},
+    {s:12,e:15,type:'work'},
     {s:15,e:19,type:'burn'},
     {s:19,e:24,type:'free'}
   ]
