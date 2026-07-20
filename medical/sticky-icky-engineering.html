@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Engineering Specification — Sticky Icky Corty Picky</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#faf8f4;color:#1a1a1a;font:11px/1.7 'Courier New',monospace;max-width:820px;margin:0 auto;padding:30px 20px 80px}
+h1{font:bold 16px/1.2 Georgia,serif;color:#dc143c;margin:30px 0 4px}
+h2{font:bold 12px/1.2 'Courier New',monospace;color:#1a1a1a;margin:24px 0 6px;border-bottom:2px solid #dc143c;padding-bottom:3px}
+h3{font:bold 11px/1.2 monospace;margin:14px 0 4px;color:#444}
+.meta{font-size:10px;color:#888;margin:4px 0 20px;border-left:3px solid #dc143c;padding-left:10px}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:10px}
+th{background:#f0ede8;text-align:left;padding:4px 6px;border:1px solid #ddd;font-weight:bold}
+td{padding:4px 6px;border:1px solid #ddd;vertical-align:top}
+.spec{background:#f8f6f2;padding:10px;margin:8px 0;border-left:3px solid #dc143c;font-size:10px}
+.spec.warn{border-left-color:#e65100}
+.spec.ok{border-left-color:#2e7d32}
+pre{background:#08040e;color:#fff8e7;padding:12px;border-radius:4px;margin:8px 0;font-size:10px;overflow-x:auto;line-height:1.5}
+.sm{font-size:9px;color:#888}
+.ref{font-size:9px;color:#555;margin:2px 0;padding-left:16px;text-indent:-16px}
+hr{border:none;border-top:1px solid #ddd;margin:20px 0}
+</style>
+</head>
+<body>
+
+<h1>ENGINEERING SPECIFICATION</h1>
+<h1 style="font-size:13px;font-weight:normal">Sticky Icky Corty Picky &mdash; Diagnostic Skincare Patch</h1>
+<div class="meta">
+Document: SICP-ENG-001 Rev A<br>
+Classification: Product Development<br>
+Date: July 2026<br>
+Status: Design Phase
+</div>
+
+<h2>1. PRODUCT REQUIREMENTS</h2>
+
+<table>
+<tr><th>Req ID</th><th>Requirement</th><th>Target</th><th>Verification</th></tr>
+<tr><td>REQ-01</td><td>Dissolve keratin plugs (comedones)</td><td>&ge;40% reduction in 4 weeks</td><td>Comedone count, clinical trial</td></tr>
+<tr><td>REQ-02</td><td>Extract cortisol from ISF</td><td>&ge;1 ng/mL detectable</td><td>ELISA validation vs blood cortisol</td></tr>
+<tr><td>REQ-03</td><td>Visual cortisol indication</td><td>Color change visible to naked eye</td><td>Colorimetric calibration curve</td></tr>
+<tr><td>REQ-04</td><td>Painless application</td><td>VAS pain score &lt;1/10</td><td>Human factors study (n=30)</td></tr>
+<tr><td>REQ-05</td><td>No skin irritation</td><td>TEWL increase &lt;15% at 24hr</td><td>Patch test, dermatologist eval</td></tr>
+<tr><td>REQ-06</td><td>Single-use disposable</td><td>Individually sealed, 18-month shelf life</td><td>Accelerated stability (40C/75%RH)</td></tr>
+<tr><td>REQ-07</td><td>Application time</td><td>1-4 hours wear, 30 sec apply/remove</td><td>Human factors timing study</td></tr>
+<tr><td>REQ-08</td><td>Phone-scannable readout</td><td>Cortisol &plusmn;15% accuracy vs lab</td><td>Bland-Altman analysis vs ELISA</td></tr>
+</table>
+
+<h2>2. LAYER SPECIFICATIONS</h2>
+
+<h3>2.1 Layer 1 — Dissolving Microneedle Array</h3>
+
+<table>
+<tr><th>Parameter</th><th>Specification</th><th>Tolerance</th><th>Test Method</th></tr>
+<tr><td>Material</td><td>PVA (87-89% hydrolyzed) / PVP K30 blend (70:30 w/w)</td><td>&plusmn;2%</td><td>FTIR, DSC</td></tr>
+<tr><td>Needle height</td><td>400 &mu;m</td><td>&plusmn;30 &mu;m</td><td>SEM, optical profilometry</td></tr>
+<tr><td>Needle base diameter</td><td>200 &mu;m</td><td>&plusmn;20 &mu;m</td><td>SEM</td></tr>
+<tr><td>Needle tip radius</td><td>&lt;10 &mu;m</td><td>max 15 &mu;m</td><td>SEM</td></tr>
+<tr><td>Needle density</td><td>256 needles/cm&sup2; (16x16 array)</td><td>&plusmn;5%</td><td>Optical microscopy</td></tr>
+<tr><td>Patch active area</td><td>4 cm&sup2; (2x2 cm)</td><td>&plusmn;0.5mm</td><td>Die-cut tolerance</td></tr>
+<tr><td>Insertion force</td><td>&lt;0.15 N/needle</td><td>max 0.2 N</td><td>Texture analyzer (TA.XT)</td></tr>
+<tr><td>Insertion efficiency</td><td>&ge;90%</td><td>min 85%</td><td>Parafilm M model / porcine skin</td></tr>
+<tr><td>Dissolution time</td><td>5 min (agarose), 10 min (skin)</td><td>&plusmn;3 min</td><td>Dissolution study, OCT imaging</td></tr>
+<tr><td>Channel patency</td><td>&ge;4 hours post-dissolution</td><td>min 2 hr</td><td>Methylene blue permeation test</td></tr>
+</table>
+
+<div class="spec">
+<strong>Manufacturing:</strong> PDMS micromold casting. Master mold: laser-machined stainless steel or 2PP lithography. Production: centrifugal casting of PVA/PVP solution into PDMS negative, vacuum degas 30 min, dry at 25&deg;C/40%RH for 24hr, demold, inspect 100% under 10x stereoscope.
+</div>
+
+<h3>2.2 Layer 2 — BHA/AHA Active Layer</h3>
+
+<table>
+<tr><th>Component</th><th>Concentration</th><th>Function</th><th>pH Target</th></tr>
+<tr><td>Salicylic acid (BHA)</td><td>2.0% w/w</td><td>Oil-soluble keratolytic, COX-2 inhibitor</td><td rowspan="4">3.5 &plusmn; 0.3</td></tr>
+<tr><td>Glycolic acid (AHA)</td><td>5.0% w/w</td><td>Water-soluble surface exfoliant</td></tr>
+<tr><td>Niacinamide (B3)</td><td>2.0% w/w</td><td>Anti-inflammatory, barrier repair</td></tr>
+<tr><td>Sodium hyaluronate</td><td>0.5% w/w</td><td>Moisture retention in channels</td></tr>
+</table>
+
+<div class="spec">
+<strong>Matrix:</strong> Hydroxyethyl cellulose gel base (2% HEC in purified water). BHA dissolved in propylene glycol (15% PG co-solvent for oil-soluble SA). pH adjusted with sodium hydroxide 0.1N to 3.5. Sterile-filtered 0.22&mu;m prior to casting onto microneedle base layer.
+</div>
+
+<div class="spec warn">
+<strong>Critical parameter:</strong> pH must remain 3.2-3.8 for BHA/AHA efficacy. Below 3.0 = irritation risk. Above 4.0 = insufficient keratolysis. QC: pH meter every batch + accelerated stability pH drift study.
+</div>
+
+<h3>2.3 Layer 3 — Hydrocolloid Absorption Matrix</h3>
+
+<table>
+<tr><th>Parameter</th><th>Specification</th></tr>
+<tr><td>Material</td><td>Sodium carboxymethylcellulose (NaCMC, DS 0.7-0.9) + pectin (5:1 ratio)</td></tr>
+<tr><td>Thickness</td><td>0.8 mm &plusmn; 0.1 mm</td></tr>
+<tr><td>Absorption capacity</td><td>&ge;15x dry weight in simulated ISF (pH 7.4 PBS)</td></tr>
+<tr><td>Absorption rate</td><td>&ge;50% capacity within 60 min</td></tr>
+<tr><td>Cortisol uptake</td><td>&ge;80% of ISF cortisol within 2 hours</td></tr>
+<tr><td>Moisture content (as packaged)</td><td>&lt;5% w/w</td></tr>
+</table>
+
+<div class="spec">
+<strong>Manufacturing:</strong> NaCMC/pectin solution cast onto PET release liner, dried at 40&deg;C forced-air oven to target moisture. Cross-linked with 0.5% CaCl2 spray for structural integrity. Die-cut to patch geometry. Laminated onto Layer 2 with pressure-sensitive medical adhesive (acrylate-based, ISO 10993 biocompatible).
+</div>
+
+<h3>2.4 Layer 4 — Cortisol Indicator Film</h3>
+
+<table>
+<tr><th>Parameter</th><th>Specification</th></tr>
+<tr><td>Aptamer</td><td>Anti-cortisol DNA aptamer (Kd &lt;50 nM), 5'-modified with chromogenic reporter</td></tr>
+<tr><td>Reporter system</td><td>HRP-TMB colorimetric OR fluorescent (Cy5) for phone scanning</td></tr>
+<tr><td>Detection range</td><td>1-100 ng/mL cortisol in ISF</td></tr>
+<tr><td>Color change</td><td>Clear &rarr; blue/purple (TMB) proportional to [cortisol]</td></tr>
+<tr><td>Response time</td><td>&le;30 min after cortisol contact</td></tr>
+<tr><td>Film substrate</td><td>Transparent PET, 50&mu;m, medical-grade adhesive backing</td></tr>
+<tr><td>Stability</td><td>Aptamer active &ge;12 months at 4&deg;C, &ge;6 months at 25&deg;C</td></tr>
+</table>
+
+<div class="spec">
+<strong>Calibration:</strong> Color reference strip printed on patch border (0, 5, 15, 30, 60, 100 ng/mL cortisol equivalents). User compares patch color to strip for semi-quantitative reading. Phone app (camera + image analysis) provides quantitative ng/mL &plusmn;15%.
+</div>
+
+<h2>3. ASSEMBLY DRAWING</h2>
+
+<pre>
+CROSS-SECTION (not to scale)
+
+  ┌─────────────────────────────────────┐  ← Layer 4: indicator PET film (50μm)
+  │  aptamer + chromogenic reporter     │     clear → purple with cortisol
+  ├─────────────────────────────────────┤
+  │▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│  ← Layer 3: hydrocolloid (800μm)
+  │▓▓▓ NaCMC/pectin absorber ▓▓▓▓▓▓▓▓▓│     swells with absorbed fluid
+  ├─────────────────────────────────────┤
+  │ BHA 2% + AHA 5% + niacinamide 2%   │  ← Layer 2: active gel (200μm)
+  │ in HEC gel matrix, pH 3.5           │     keratolytic + anti-inflammatory
+  ├──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┤
+  │▲ │▲ │▲ │▲ │▲ │▲ │▲ │▲ │▲ │▲ │▲ │▲ │  ← Layer 1: microneedle array
+  │▲ │▲ │▲ │▲ │▲ │▲ │▲ │▲ │▲ │▲ │▲ │▲ │     PVA/PVP, 400μm height
+  │▲ │▲ │▲ │▲ │▲ │▲ │▲ │▲ │▲ │▲ │▲ │▲ │     256/cm², dissolves in 5-10 min
+  └──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┘
+  ═══════════════════════════════════════  ← SKIN SURFACE
+  ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄  ← stratum corneum (10-20μm)
+  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  ← epidermis (50-100μm)
+  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  ← dermis (ISF containing cortisol)
+  ● ← pore with keratin plug
+       BHA dissolves ↑ from inside
+       AHA dissolves ↑ from surface cap
+       hydrocolloid absorbs ↑ the debris
+</pre>
+
+<h2>4. BILL OF MATERIALS</h2>
+
+<table>
+<tr><th>Item</th><th>Material</th><th>Qty/Patch</th><th>Est. Cost</th><th>Supplier Class</th></tr>
+<tr><td>Microneedle array</td><td>PVA/PVP blend</td><td>12 mg</td><td>$0.15</td><td>Pharma polymer</td></tr>
+<tr><td>BHA (salicylic acid)</td><td>USP grade</td><td>4 mg</td><td>$0.01</td><td>API supplier</td></tr>
+<tr><td>AHA (glycolic acid)</td><td>USP grade</td><td>10 mg</td><td>$0.01</td><td>API supplier</td></tr>
+<tr><td>Niacinamide</td><td>USP grade</td><td>4 mg</td><td>$0.01</td><td>API supplier</td></tr>
+<tr><td>HEC gel matrix</td><td>Pharma grade</td><td>180 mg</td><td>$0.02</td><td>Excipient</td></tr>
+<tr><td>NaCMC/pectin</td><td>Medical grade</td><td>300 mg</td><td>$0.05</td><td>Hydrocolloid</td></tr>
+<tr><td>Cortisol aptamer</td><td>Custom synthesis</td><td>0.5 &mu;g</td><td>$0.30</td><td>Oligo house</td></tr>
+<tr><td>Chromogenic reporter</td><td>TMB substrate</td><td>2 mg</td><td>$0.05</td><td>Diagnostic reagent</td></tr>
+<tr><td>PET backing film</td><td>Medical grade</td><td>8 cm&sup2;</td><td>$0.03</td><td>Film converter</td></tr>
+<tr><td>Adhesive border</td><td>Acrylate PSA</td><td>4 cm&sup2;</td><td>$0.02</td><td>Medical adhesive</td></tr>
+<tr><td>Foil pouch</td><td>Al/PET/PE laminate</td><td>1 ea</td><td>$0.04</td><td>Packaging</td></tr>
+<tr><td>Desiccant sachet</td><td>Silica gel 1g</td><td>1 ea</td><td>$0.02</td><td>Packaging</td></tr>
+<tr><td colspan="3"><strong>TOTAL COGS per patch</strong></td><td><strong>$0.71</strong></td><td></td></tr>
+<tr><td colspan="3"><strong>Retail target (5x markup)</strong></td><td><strong>$3.55</strong></td><td></td></tr>
+</table>
+
+<h2>5. MANUFACTURING PROCESS</h2>
+
+<pre>
+PROCESS FLOW
+
+  RAW MATERIALS         MICRONEEDLE         ACTIVE LAYER
+  ┌──────────┐          FABRICATION          PREPARATION
+  │ PVA/PVP  │─────┐    ┌─────────┐         ┌──────────┐
+  │ powder   │     └──→ │ Dissolve │         │ Weigh    │
+  └──────────┘          │ in H2O   │         │ BHA+AHA  │
+                        │ 10% w/v  │         │ +niacin  │
+                        └────┬─────┘         └────┬─────┘
+                             ▼                     ▼
+                     ┌───────────────┐     ┌───────────────┐
+                     │ Cast into     │     │ Dissolve in   │
+                     │ PDMS mold     │     │ HEC gel + PG  │
+                     │ (centrifugal) │     │ pH adjust 3.5 │
+                     └───────┬───────┘     └───────┬───────┘
+                             ▼                     ▼
+                     ┌───────────────┐     ┌───────────────┐
+                     │ Vacuum degas  │     │ Sterile filter│
+                     │ 30 min, 25°C  │     │ 0.22μm        │
+                     └───────┬───────┘     └───────┬───────┘
+                             ▼                     ▼
+                     ┌───────────────┐     ┌───────────────┐
+                     │ Dry 24hr      │     │ Cast onto MN  │
+                     │ 25°C / 40%RH  │     │ base layer    │
+                     └───────┬───────┘     └───────┬───────┘
+                             ▼                     ▼
+                     ┌───────────────┐          LAMINATION
+                     │ Demold        │     ┌───────────────┐
+                     │ 100% inspect  │────→│ Laminate:     │
+                     └───────────────┘     │ MN + active   │
+                                           │ + hydrocolloid│
+  INDICATOR FILM                           │ + indicator   │
+  ┌──────────────┐                         └───────┬───────┘
+  │ Aptamer coat │                                 ▼
+  │ on PET film  │─────────────────────→   ┌───────────────┐
+  │ + ref strip  │                         │ Die-cut       │
+  └──────────────┘                         │ QC test       │
+                                           │ Foil pouch    │
+  HYDROCOLLOID                             │ + desiccant   │
+  ┌──────────────┐                         └───────┬───────┘
+  │ NaCMC/pectin │                                 ▼
+  │ cast + dry   │─────────────────────→   ┌───────────────┐
+  │ + CaCl2 xlink│                         │ FINISHED GOOD │
+  └──────────────┘                         │ labeled, boxed│
+                                           └───────────────┘
+</pre>
+
+<h2>6. QUALITY CONTROL</h2>
+
+<table>
+<tr><th>Test</th><th>Method</th><th>Acceptance</th><th>Frequency</th></tr>
+<tr><td>Needle height</td><td>SEM (n=5/batch)</td><td>400 &plusmn; 30 &mu;m</td><td>Every batch</td></tr>
+<tr><td>Insertion efficiency</td><td>Parafilm M (n=10)</td><td>&ge;90%</td><td>Every batch</td></tr>
+<tr><td>Dissolution time</td><td>Agarose 0.8% gel</td><td>&le;8 min</td><td>Every batch</td></tr>
+<tr><td>pH of active layer</td><td>pH meter (n=3)</td><td>3.5 &plusmn; 0.3</td><td>Every batch</td></tr>
+<tr><td>BHA assay</td><td>HPLC</td><td>2.0% &plusmn; 10%</td><td>Every batch</td></tr>
+<tr><td>Absorption capacity</td><td>Gravimetric (PBS)</td><td>&ge;15x weight</td><td>Monthly</td></tr>
+<tr><td>Cortisol sensitivity</td><td>Spiked ISF standard</td><td>LOD &le;1 ng/mL</td><td>Every aptamer lot</td></tr>
+<tr><td>Color accuracy</td><td>Spectrophotometer</td><td>&Delta;E &lt;5 vs reference</td><td>Every indicator lot</td></tr>
+<tr><td>Sterility</td><td>USP &lt;71&gt;</td><td>No growth</td><td>Per ISO 11137</td></tr>
+<tr><td>Bioburden</td><td>USP &lt;61&gt;</td><td>&lt;100 CFU/patch</td><td>Every batch</td></tr>
+<tr><td>Endotoxin</td><td>LAL (USP &lt;85&gt;)</td><td>&lt;20 EU/patch</td><td>Every batch</td></tr>
+<tr><td>Shelf life</td><td>ICH Q1A (40&deg;C/75%RH)</td><td>18 months</td><td>Stability program</td></tr>
+</table>
+
+<h2>7. REGULATORY PATHWAY</h2>
+
+<div class="spec">
+<strong>Classification:</strong> Dual-function product. Skincare component (BHA/AHA/hydrocolloid) = cosmetic. Cortisol diagnostic component = Class II medical device (510(k) pathway, predicate: cortisol diagnostic lateral flow tests). Microneedle component may require separate device review depending on FDA combination product designation.
+<br><br>
+<strong>Recommended path:</strong> File as combination product with CDRH (device lead). Request pre-submission meeting to clarify classification. BHA/AHA at cosmetic concentrations (2%/5%) have established safety profiles. Microneedle dissolution safety demonstrated in published literature (Georgia Tech, multiple 2024-2026 studies).
+<br><br>
+<strong>Standards:</strong> ISO 10993 (biocompatibility), ISO 13485 (QMS), ISO 11135/11137 (sterilization), IEC 62366 (usability), ISO 14971 (risk management)
+</div>
+
+<h2>8. RISK ANALYSIS (FMEA excerpt)</h2>
+
+<table>
+<tr><th>Failure Mode</th><th>Effect</th><th>Cause</th><th>S</th><th>O</th><th>D</th><th>RPN</th><th>Mitigation</th></tr>
+<tr><td>Needles break during insertion</td><td>Incomplete penetration</td><td>Excess moisture, thin tips</td><td>3</td><td>3</td><td>4</td><td>36</td><td>Moisture control, tip radius spec</td></tr>
+<tr><td>pH drift in active layer</td><td>Irritation or no effect</td><td>BHA/AHA instability</td><td>5</td><td>3</td><td>3</td><td>45</td><td>pH buffer, stability testing</td></tr>
+<tr><td>Aptamer degradation</td><td>False-low cortisol reading</td><td>Heat/humidity exposure</td><td>4</td><td>4</td><td>3</td><td>48</td><td>Foil pouch, desiccant, cold chain</td></tr>
+<tr><td>Allergic reaction</td><td>Contact dermatitis</td><td>Adhesive or BHA sensitivity</td><td>6</td><td>2</td><td>3</td><td>36</td><td>Hypoallergenic PSA, patch test warning</td></tr>
+<tr><td>Insufficient cortisol extraction</td><td>No color change</td><td>Low ISF flow, short wear time</td><td>3</td><td>4</td><td>4</td><td>48</td><td>Min wear time 2hr, hydration guidance</td></tr>
+<tr><td>User reads color wrong</td><td>Incorrect stress assessment</td><td>Lighting, color blindness</td><td>3</td><td>4</td><td>2</td><td>24</td><td>Phone app for objective reading</td></tr>
+</table>
+
+<hr>
+
+<h2>9. REFERENCES</h2>
+<div class="ref">1. Microneedle ISF extraction — Science Transl Med 2019, doi:10.1126/scitranslmed.aaw0285</div>
+<div class="ref">2. Cortisol aptamer microneedle sensor — ScienceDirect 2024, S0956566324009424</div>
+<div class="ref">3. Wearable microneedle cortisol — Wiley Adv Materials 2026, doi:10.1002/adma.202514242</div>
+<div class="ref">4. BHA comedone reduction 42% — 12-week RCT, J Clin Aesthet Dermatol</div>
+<div class="ref">5. Reverse iontophoresis cortisol — Bioelectrochemistry 2017, S1567539416301372</div>
+<div class="ref">6. MN ISF transport design — Frontiers in Sensors 2026, doi:10.3389/fsens.2026.1819441</div>
+<div class="ref">7. PVA/PVP dissolving MN fabrication — J Pharm Sci, multiple 2020-2026</div>
+
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Engineering Specification — Weekly Vitamin Patch</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#faf8f4;color:#1a1a1a;font:11px/1.7 'Courier New',monospace;max-width:820px;margin:0 auto;padding:30px 20px 80px}
+h1{font:bold 16px/1.2 Georgia,serif;color:#dc143c;margin:30px 0 4px}
+h2{font:bold 12px/1.2 'Courier New',monospace;color:#1a1a1a;margin:24px 0 6px;border-bottom:2px solid #dc143c;padding-bottom:3px}
+h3{font:bold 11px/1.2 monospace;margin:14px 0 4px;color:#444}
+.meta{font-size:10px;color:#888;margin:4px 0 20px;border-left:3px solid #dc143c;padding-left:10px}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:10px}
+th{background:#f0ede8;text-align:left;padding:4px 6px;border:1px solid #ddd;font-weight:bold}
+td{padding:4px 6px;border:1px solid #ddd;vertical-align:top}
+.spec{background:#f8f6f2;padding:10px;margin:8px 0;border-left:3px solid #dc143c;font-size:10px}
+.spec.warn{border-left-color:#e65100}
+.spec.ok{border-left-color:#2e7d32}
+pre{background:#08040e;color:#fff8e7;padding:12px;border-radius:4px;margin:8px 0;font-size:10px;overflow-x:auto;line-height:1.5}
+.sm{font-size:9px;color:#888}
+.ref{font-size:9px;color:#555;margin:2px 0;padding-left:16px;text-indent:-16px}
+hr{border:none;border-top:1px solid #ddd;margin:20px 0}
+</style>
+</head>
+<body>
+
+<h1>ENGINEERING SPECIFICATION</h1>
+<h1 style="font-size:13px;font-weight:normal">Weekly Vitamin Patch &mdash; IV-Replacement Transdermal Delivery System</h1>
+<div class="meta">
+Document: WVP-ENG-001 Rev A<br>
+Classification: Product Development<br>
+Date: July 2026<br>
+Status: Design Phase
+</div>
+
+<h2>1. PRODUCT REQUIREMENTS</h2>
+
+<table>
+<tr><th>Req ID</th><th>Requirement</th><th>Target</th><th>Verification</th></tr>
+<tr><td>REQ-01</td><td>Deliver 10 nutrients transdermally</td><td>&ge;70% bioavailability vs IV</td><td>Plasma levels vs IV control (crossover study)</td></tr>
+<tr><td>REQ-02</td><td>Mineral bolus delivery (Mg, Se, Zn, Fe, I)</td><td>Complete within 2 hours</td><td>Plasma Cmax timing</td></tr>
+<tr><td>REQ-03</td><td>Vitamin sustained delivery (B, C, D, NAC)</td><td>24-hour steady state</td><td>Plasma AUC0-24</td></tr>
+<tr><td>REQ-04</td><td>Painless application</td><td>VAS &lt;1/10</td><td>Human factors (n=50)</td></tr>
+<tr><td>REQ-05</td><td>24-hour wear without detachment</td><td>&ge;95% adhesion at 24hr</td><td>Peel force test + wear study</td></tr>
+<tr><td>REQ-06</td><td>Waterproof for showering</td><td>Withstand 10 min warm water spray</td><td>Simulated shower test</td></tr>
+<tr><td>REQ-07</td><td>Weekly application (replace IV)</td><td>Equivalent to Myers cocktail IV</td><td>Clinical outcome comparison (n=100)</td></tr>
+<tr><td>REQ-08</td><td>No significant skin irritation</td><td>TEWL &lt;20% increase at 48hr post-removal</td><td>Repeat insult patch test (RIPT)</td></tr>
+<tr><td>REQ-09</td><td>Shelf life</td><td>24 months at 25&deg;C</td><td>ICH Q1A stability</td></tr>
+</table>
+
+<h2>2. NUTRIENT PAYLOAD SPECIFICATION</h2>
+
+<table>
+<tr><th>Nutrient</th><th>Form</th><th>Dose/Patch</th><th>Layer</th><th>Release</th><th>IV Equivalent</th><th>MW (Da)</th><th>LogP</th></tr>
+<tr><td>Magnesium</td><td>Mg glycinate</td><td>200 mg Mg&sup2;+</td><td>Needle tip</td><td>Bolus (0-2hr)</td><td>2g MgSO4</td><td>172</td><td>-2.1</td></tr>
+<tr><td>Selenium</td><td>Selenomethionine</td><td>200 &mu;g Se</td><td>Needle tip</td><td>Bolus</td><td>200&mu;g IV Se</td><td>196</td><td>-0.3</td></tr>
+<tr><td>Zinc</td><td>Zn picolinate</td><td>15 mg Zn</td><td>Needle tip</td><td>Bolus</td><td>10mg IV Zn</td><td>310</td><td>0.1</td></tr>
+<tr><td>Iron</td><td>Fe bisglycinate</td><td>18 mg Fe</td><td>Needle tip</td><td>Bolus</td><td>100mg iron sucrose</td><td>204</td><td>-1.5</td></tr>
+<tr><td>Iodine</td><td>KI</td><td>150 &mu;g I</td><td>Needle tip</td><td>Bolus</td><td>n/a</td><td>166</td><td>-0.8</td></tr>
+<tr><td>Vitamin B12</td><td>Methylcobalamin</td><td>1000 &mu;g</td><td>Reservoir</td><td>Sustained (2-24hr)</td><td>1000&mu;g IM</td><td>1344</td><td>-4.0</td></tr>
+<tr><td>Vitamin C</td><td>Ascorbic acid</td><td>500 mg</td><td>Reservoir</td><td>Sustained</td><td>1g IV vit C</td><td>176</td><td>-1.8</td></tr>
+<tr><td>Vitamin D3</td><td>Cholecalciferol</td><td>5000 IU (125&mu;g)</td><td>Needle tip</td><td>Bolus</td><td>n/a</td><td>385</td><td>7.5</td></tr>
+<tr><td>B-complex</td><td>Mixed (B1,2,3,5,6,9)</td><td>Full RDA each</td><td>Reservoir</td><td>Sustained</td><td>Std IV B-complex</td><td>122-441</td><td>varies</td></tr>
+<tr><td>NAC</td><td>N-acetylcysteine</td><td>300 mg</td><td>Reservoir</td><td>Sustained</td><td>600mg IV NAC</td><td>163</td><td>-0.2</td></tr>
+</table>
+
+<div class="spec warn">
+<strong>Formulation challenge:</strong> Vitamin D3 is highly lipophilic (LogP 7.5) — needs lipid nanoparticle encapsulation or cyclodextrin complexation for dissolution in aqueous microneedle matrix. Recommend hydroxypropyl-&beta;-cyclodextrin (HP-&beta;-CD) inclusion complex at 1:2 molar ratio D3:CD.
+</div>
+
+<div class="spec warn">
+<strong>Payload constraint:</strong> Total needle tip payload limited by needle volume. At 600&mu;m height, 300&mu;m base, conical needle volume &asymp; 14.1 nL/needle. Array of 1600 needles (40x40) on 16 cm&sup2; patch = 22.6 &mu;L total needle volume. Minerals must be formulated as concentrated solutions/nanoparticles. Mg glycinate at 200mg requires reservoir assist &mdash; cannot fit in needles alone.
+</div>
+
+<div class="spec ok">
+<strong>Design solution:</strong> Bilayer approach. Needle tips carry concentrated mineral salts (Se, Zn, I, Fe &mdash; total &lt;20mg solid). Mg delivered primarily through the reservoir hydrogel diffusing through open microneedle channels over 4-6 hours. B12 + C + NAC + B-complex in reservoir for 24hr sustained delivery.
+</div>
+
+<h2>3. LAYER SPECIFICATIONS</h2>
+
+<h3>3.1 Layer D — Microneedle Array (skin contact)</h3>
+
+<table>
+<tr><th>Parameter</th><th>Specification</th><th>Tolerance</th></tr>
+<tr><td>Material</td><td>PVA/PVP K30 (60:40) + trehalose dihydrate (10% cryoprotectant)</td><td>&plusmn;2% ratio</td></tr>
+<tr><td>Needle height</td><td>600 &mu;m</td><td>&plusmn;40 &mu;m</td></tr>
+<tr><td>Needle base</td><td>300 &mu;m (conical)</td><td>&plusmn;25 &mu;m</td></tr>
+<tr><td>Tip radius</td><td>&lt;10 &mu;m</td><td>max 15 &mu;m</td></tr>
+<tr><td>Array density</td><td>100 needles/cm&sup2; (10x10 per cm&sup2;)</td><td>&plusmn;5%</td></tr>
+<tr><td>Patch active area</td><td>16 cm&sup2; (4x4 cm)</td><td>&plusmn;1 mm</td></tr>
+<tr><td>Total needles</td><td>1,600</td><td>&plusmn;80</td></tr>
+<tr><td>Insertion force</td><td>&lt;0.12 N/needle</td><td>max 0.18 N</td></tr>
+<tr><td>Insertion efficiency</td><td>&ge;90%</td><td>min 85%</td></tr>
+<tr><td>Dissolution time</td><td>2-5 min</td><td>max 8 min</td></tr>
+<tr><td>Channel patency</td><td>&ge;24 hours</td><td>min 12 hr</td></tr>
+</table>
+
+<div class="spec">
+<strong>Needle tip loading:</strong> Mineral salts dissolved in PVA solution at supersaturated concentration, cast into needle tip portion of mold only (two-step casting). Tip volume (top 200&mu;m): ~3 nL/needle &times; 1600 = 4.8 &mu;L mineral payload. Sufficient for Se (200&mu;g), Zn (15mg as nanoparticle), I (150&mu;g), Fe (18mg as nanoparticle), D3-CD complex (125&mu;g). Mg delivered via reservoir layer.
+</div>
+
+<h3>3.2 Layer C — Mineral Dissolution Layer</h3>
+
+<table>
+<tr><th>Parameter</th><th>Specification</th></tr>
+<tr><td>Material</td><td>PVA film loaded with Mg glycinate (200mg) + vitamin D3-HP&beta;CD complex</td></tr>
+<tr><td>Thickness</td><td>200 &mu;m &plusmn; 30 &mu;m</td></tr>
+<tr><td>Dissolution time</td><td>30-120 min in ISF at 37&deg;C</td></tr>
+<tr><td>Function</td><td>Extended bolus — dissolves after needles, delivers Mg through open channels</td></tr>
+</table>
+
+<h3>3.3 Layer B — Reservoir Matrix</h3>
+
+<table>
+<tr><th>Parameter</th><th>Specification</th></tr>
+<tr><td>Material</td><td>Cross-linked PEG hydrogel (PEG-DA 700, UV cross-linked)</td></tr>
+<tr><td>Thickness</td><td>2.0 mm &plusmn; 0.2 mm</td></tr>
+<tr><td>Active loading</td><td>B12 1000&mu;g + Vit C 500mg + NAC 300mg + B-complex (full RDA)</td></tr>
+<tr><td>Release profile</td><td>Zero-order approximation over 24hr (&plusmn;20% of mean flux)</td></tr>
+<tr><td>Swelling ratio</td><td>3-5x dry weight in PBS at 37&deg;C</td></tr>
+<tr><td>Diffusion coefficient</td><td>Target 1-5 &times; 10&sup-7; cm&sup2;/s for B12 (MW 1344)</td></tr>
+</table>
+
+<div class="spec">
+<strong>Release kinetics:</strong> Hydrogel mesh size controls diffusion. PEG-DA 700 cross-linked at 10% w/v provides mesh size ~10 nm — sufficient for all payload molecules (largest: B12 at ~1.5 nm hydrodynamic radius). Vitamin C stability maintained by anaerobic packaging (N2 flush) and ascorbyl palmitate co-formulation (5% of ascorbic acid load) as oxidation buffer.
+</div>
+
+<h3>3.4 Layer A — Backing and Adhesive</h3>
+
+<table>
+<tr><th>Parameter</th><th>Specification</th></tr>
+<tr><td>Backing film</td><td>Polyurethane (PU) breathable film, 25 &mu;m, MVTR &ge;800 g/m&sup2;/24hr</td></tr>
+<tr><td>Adhesive</td><td>Medical-grade silicone PSA (gentle on skin, repositionable)</td></tr>
+<tr><td>Adhesive area</td><td>36 cm&sup2; total (16 cm&sup2; active + 20 cm&sup2; border)</td></tr>
+<tr><td>Peel force (initial)</td><td>3-6 N/25mm (sufficient hold)</td></tr>
+<tr><td>Peel force (24hr)</td><td>&ge;2 N/25mm (maintains adhesion)</td></tr>
+<tr><td>Waterproof rating</td><td>IPX4 equivalent (splash/shower proof)</td></tr>
+</table>
+
+<h2>4. ASSEMBLY DRAWING</h2>
+
+<pre>
+CROSS-SECTION (not to scale)
+
+  ┌═══════════════════════════════════════════════════┐
+  │ Layer A: PU breathable backing (25μm)             │
+  │ + silicone PSA adhesive border (20 cm² surround)  │
+  ├═══════════════════════════════════════════════════┤
+  │▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│
+  │▒▒ Layer B: PEG hydrogel reservoir (2.0mm)       ▒▒│
+  │▒▒ B12 + Vit C + NAC + B-complex                ▒▒│
+  │▒▒ sustained release over 24 hours               ▒▒│
+  │▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒│
+  ├───────────────────────────────────────────────────┤
+  │ Layer C: Mg glycinate + D3-CD dissolution (200μm) │
+  │ dissolves 30-120 min, Mg through channels         │
+  ├──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┤
+  │▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│
+  │▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│▲▲│
+  │●●│●●│●●│●●│●●│●●│●●│●●│●●│●●│●●│●●│●●│●●│●●│●●│●●│
+  └──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┘
+   ▲▲ = PVA/PVP needle shaft (dissolves in 2-5 min)
+   ●● = mineral-loaded needle tips (Se, Zn, Fe, I)
+       dissolve first → bolus delivery into dermis
+
+  ═══════════════════════════════════════════════════  ← SKIN
+  ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄  ← stratum corneum
+  ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─  ← epidermis
+  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  ← dermis
+  ∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿∿  ← capillary bed
+    minerals absorbed into capillaries → systemic
+    vitamins diffuse through channels → sustained absorption
+
+  DELIVERY TIMELINE:
+  ├─ 0-5 min ──┤── 5 min-2 hr ──┤──── 2-24 hr ────┤
+  needle tips    Mg dissolves      reservoir diffuses
+  dissolve:      through open      B12, C, NAC, B
+  Se Zn Fe I     channels          through channels
+  bolus          extended bolus    sustained release
+</pre>
+
+<h2>5. BILL OF MATERIALS</h2>
+
+<table>
+<tr><th>Item</th><th>Material</th><th>Qty/Patch</th><th>Est. Cost</th></tr>
+<tr><td>Microneedle array (1600 needles)</td><td>PVA/PVP/trehalose</td><td>80 mg</td><td>$0.40</td></tr>
+<tr><td>Mineral tip loading</td><td>Se+Zn+Fe+I salts</td><td>35 mg</td><td>$0.25</td></tr>
+<tr><td>Mg glycinate dissolution layer</td><td>PVA film + Mg glycinate</td><td>350 mg</td><td>$0.30</td></tr>
+<tr><td>D3-cyclodextrin complex</td><td>HP-&beta;-CD + cholecalciferol</td><td>15 mg</td><td>$0.10</td></tr>
+<tr><td>B12 (methylcobalamin)</td><td>Pharma grade</td><td>1 mg</td><td>$0.05</td></tr>
+<tr><td>Vitamin C (ascorbic acid)</td><td>USP grade</td><td>500 mg</td><td>$0.03</td></tr>
+<tr><td>NAC</td><td>USP grade</td><td>300 mg</td><td>$0.08</td></tr>
+<tr><td>B-complex blend</td><td>USP grade</td><td>50 mg total</td><td>$0.10</td></tr>
+<tr><td>PEG-DA hydrogel reservoir</td><td>PEG-DA 700 + photoinitiator</td><td>2.5 g</td><td>$0.80</td></tr>
+<tr><td>PU backing film</td><td>Medical grade breathable</td><td>36 cm&sup2;</td><td>$0.12</td></tr>
+<tr><td>Silicone PSA</td><td>Medical grade</td><td>20 cm&sup2;</td><td>$0.15</td></tr>
+<tr><td>Release liner</td><td>Siliconized PET</td><td>40 cm&sup2;</td><td>$0.04</td></tr>
+<tr><td>Foil pouch (N2 flush)</td><td>Al/PET/PE + N2</td><td>1 ea</td><td>$0.08</td></tr>
+<tr><td>Desiccant + O2 absorber</td><td>Silica + FreshPax</td><td>1 ea</td><td>$0.05</td></tr>
+<tr><td colspan="3"><strong>TOTAL COGS per patch</strong></td><td><strong>$2.55</strong></td></tr>
+<tr><td colspan="3"><strong>Retail target (8x markup)</strong></td><td><strong>$20.40</strong></td></tr>
+</table>
+
+<div class="spec ok">
+<strong>Economics:</strong> COGS $2.55/patch &times; 52 weeks = $133/year. Retail ~$20/patch &times; 52 = $1,040/year. Compare to IV infusion: $200/session &times; 52 = $10,400/year. Patient saves ~$9,360/year with better compliance (home use vs clinic visit). Insurance reimbursement potential under preventive care.
+</div>
+
+<h2>6. MANUFACTURING PROCESS</h2>
+
+<pre>
+PROCESS FLOW — TWO-STEP NEEDLE CASTING
+
+  STEP 1: MINERAL TIP CASTING
+  ┌──────────────┐     ┌──────────────┐     ┌──────────────┐
+  │ Dissolve     │────→│ Dispense     │────→│ Centrifuge   │
+  │ Se+Zn+Fe+I  │     │ into PDMS    │     │ 4000 rpm     │
+  │ in PVA soln  │     │ mold tips    │     │ 10 min       │
+  └──────────────┘     │ (50μL/patch) │     │ fills tips   │
+                       └──────────────┘     └──────┬───────┘
+                                                    ▼
+  STEP 2: SHAFT CASTING                    ┌──────────────┐
+  ┌──────────────┐                         │ Dry tip      │
+  │ PVA/PVP      │────────────────────────→│ layer 2hr    │
+  │ blank soln   │     cast over dry tips  │ 25°C/40%RH   │
+  └──────────────┘                         └──────┬───────┘
+                                                   ▼
+  LAYER C: Mg DISSOLUTION LAYER            ┌──────────────┐
+  ┌──────────────┐                         │ Cast Mg film │
+  │ Mg glycinate │────────────────────────→│ onto needle  │
+  │ in PVA soln  │                         │ base, dry    │
+  └──────────────┘                         └──────┬───────┘
+                                                   ▼
+  LAYER B: HYDROGEL RESERVOIR              ┌──────────────┐
+  ┌──────────────┐                         │ Cast PEG-DA  │
+  │ PEG-DA +     │────────────────────────→│ + vitamins   │
+  │ vitamins +   │                         │ UV cure 5min │
+  │ photoiniator │                         │ (365nm)      │
+  └──────────────┘                         └──────┬───────┘
+                                                   ▼
+  LAYER A: BACKING                         ┌──────────────┐
+  ┌──────────────┐                         │ Laminate PU  │
+  │ PU film +    │────────────────────────→│ backing      │
+  │ silicone PSA │                         │ die-cut      │
+  └──────────────┘                         │ foil pouch   │
+                                           │ N2 flush     │
+                                           └──────┬───────┘
+                                                   ▼
+                                           ┌──────────────┐
+                                           │ FINISHED     │
+                                           │ PRODUCT      │
+                                           └──────────────┘
+</pre>
+
+<h2>7. PHARMACOKINETIC TARGETS</h2>
+
+<table>
+<tr><th>Nutrient</th><th>T<sub>max</sub> Target</th><th>C<sub>max</sub> Target</th><th>AUC<sub>0-24</sub> Target</th><th>Comparator</th></tr>
+<tr><td>Magnesium</td><td>2-4 hr</td><td>2.5 mg/dL serum</td><td>&ge;70% of 2g IV MgSO4</td><td>IV push</td></tr>
+<tr><td>Selenium</td><td>4-8 hr</td><td>120 &mu;g/L serum</td><td>&ge;80% of 200&mu;g oral</td><td>Oral selenomethionine</td></tr>
+<tr><td>Zinc</td><td>2-6 hr</td><td>100 &mu;g/dL serum</td><td>&ge;75% of 15mg oral</td><td>Oral Zn picolinate</td></tr>
+<tr><td>B12</td><td>8-12 hr</td><td>800 pg/mL serum</td><td>&ge;90% of 1000&mu;g IM</td><td>IM injection</td></tr>
+<tr><td>Vitamin C</td><td>4-8 hr</td><td>1.5 mg/dL plasma</td><td>&ge;60% of 1g IV</td><td>IV infusion</td></tr>
+<tr><td>NAC</td><td>4-8 hr</td><td>10 &mu;M plasma</td><td>&ge;50% of 600mg oral</td><td>Oral NAC</td></tr>
+</table>
+
+<div class="spec">
+<strong>PK study design:</strong> Randomized crossover (n=24). Three arms: (1) weekly patch, (2) equivalent IV infusion, (3) equivalent oral supplements. Washout 2 weeks between arms. Blood draws at 0, 1, 2, 4, 8, 12, 24, 48hr. Primary endpoint: relative bioavailability (AUC patch / AUC IV). Secondary: Tmax, Cmax, patient preference VAS.
+</div>
+
+<h2>8. QUALITY CONTROL</h2>
+
+<table>
+<tr><th>Test</th><th>Method</th><th>Acceptance</th><th>Frequency</th></tr>
+<tr><td>Needle geometry</td><td>SEM (n=5/batch)</td><td>600 &plusmn; 40 &mu;m, tip &lt;10 &mu;m</td><td>Every batch</td></tr>
+<tr><td>Insertion efficiency</td><td>Parafilm M 8-layer</td><td>&ge;90%</td><td>Every batch</td></tr>
+<tr><td>Mineral content (Se, Zn, Fe, I)</td><td>ICP-MS per needle tip dissolution</td><td>&plusmn;15% of label claim</td><td>Every batch</td></tr>
+<tr><td>Mg content</td><td>ICP-OES of dissolution layer</td><td>200mg &plusmn; 10%</td><td>Every batch</td></tr>
+<tr><td>Vitamin assay (B12, C, B-complex)</td><td>HPLC</td><td>&plusmn;10% of label</td><td>Every batch</td></tr>
+<tr><td>NAC assay</td><td>HPLC</td><td>300mg &plusmn; 10%</td><td>Every batch</td></tr>
+<tr><td>Release rate (B12)</td><td>Franz cell, 37&deg;C, 24hr</td><td>Zero-order &plusmn;20%</td><td>Monthly</td></tr>
+<tr><td>Hydrogel swelling</td><td>Gravimetric in PBS</td><td>3-5x dry weight</td><td>Monthly</td></tr>
+<tr><td>Adhesion (initial + 24hr)</td><td>180&deg; peel test</td><td>&ge;3N initial, &ge;2N at 24hr</td><td>Every batch</td></tr>
+<tr><td>Moisture content</td><td>Karl Fischer</td><td>&lt;3% w/w</td><td>Every batch</td></tr>
+<tr><td>Vitamin C oxidation</td><td>HPLC (dehydroascorbic acid)</td><td>&lt;5% degradation</td><td>Stability</td></tr>
+<tr><td>Sterility</td><td>USP &lt;71&gt;</td><td>No growth</td><td>Per ISO 11137</td></tr>
+<tr><td>Stability</td><td>ICH Q1A (25&deg;C/60%RH, 40&deg;C/75%RH)</td><td>24 months</td><td>0,3,6,9,12,18,24 mo</td></tr>
+</table>
+
+<h2>9. REGULATORY PATHWAY</h2>
+
+<div class="spec">
+<strong>Classification:</strong> Drug-device combination product. Microneedle array = device component. Vitamin/mineral payload = drug component (dietary supplement or OTC drug depending on claims). FDA combination product — request CDER lead (drug-led) if therapeutic claims, or market as dietary supplement with device delivery (lower barrier but limited claims).
+<br><br>
+<strong>Recommended path:</strong>
+<br>Phase 1: Market as dietary supplement with microneedle delivery device (no drug claims, no 510(k) needed for dissolving MN). Structure-function claims only ("supports energy metabolism").
+<br>Phase 2: Pursue 505(b)(2) NDA for specific therapeutic claims (Regulus Syndrome treatment) using published literature + bridging PK study.
+<br><br>
+<strong>Standards:</strong> ISO 10993 (biocompatibility), ISO 13485 (QMS), USP &lt;1151&gt; (pharmaceutical dosage forms), ICH Q1A/Q1B (stability), 21 CFR 101.36 (supplement labeling)
+</div>
+
+<h2>10. RISK ANALYSIS (FMEA excerpt)</h2>
+
+<table>
+<tr><th>Failure Mode</th><th>Effect</th><th>S</th><th>O</th><th>D</th><th>RPN</th><th>Mitigation</th></tr>
+<tr><td>Mineral dose too high (local)</td><td>Skin irritation at site</td><td>5</td><td>3</td><td>3</td><td>45</td><td>Dose optimization study, nanoparticle encapsulation</td></tr>
+<tr><td>Vitamin C oxidation in storage</td><td>Reduced potency, discoloration</td><td>3</td><td>4</td><td>3</td><td>36</td><td>N2 flush, O2 absorber, ascorbyl palmitate buffer</td></tr>
+<tr><td>Hydrogel delamination</td><td>Reservoir detaches from needles</td><td>4</td><td>2</td><td>4</td><td>32</td><td>Plasma treatment interface, lamination QC</td></tr>
+<tr><td>Uneven needle dissolution</td><td>Variable mineral delivery</td><td>3</td><td>3</td><td>3</td><td>27</td><td>Casting uniformity control, centrifuge SOP</td></tr>
+<tr><td>Patch falls off before 24hr</td><td>Incomplete vitamin delivery</td><td>3</td><td>3</td><td>2</td><td>18</td><td>Adhesive border oversized, application guide</td></tr>
+<tr><td>Iron staining skin</td><td>Cosmetic — temporary brown spot</td><td>2</td><td>4</td><td>2</td><td>16</td><td>Fe bisglycinate (low staining form), inner arm application</td></tr>
+<tr><td>B12 photodegradation</td><td>Reduced potency</td><td>3</td><td>3</td><td>2</td><td>18</td><td>Amber-tinted backing film, foil pouch</td></tr>
+</table>
+
+<hr>
+
+<h2>11. REFERENCES</h2>
+<div class="ref">1. Dissolving MN B12: 90% insertion, 120s dissolution — PMVE/MA study, Springer 2026</div>
+<div class="ref">2. B12 MN transdermal, reduce endothelial inflammation — J Pharm Sci 2026, S0022354926000870</div>
+<div class="ref">3. Wearable MN protein biomarker monitoring — Wiley Adv Materials 2026, adma.202514242</div>
+<div class="ref">4. MN ISF transport design principles — Frontiers Sensors 2026, fsens.2026.1819441</div>
+<div class="ref">5. 3D-printed hollow MN for ISF extraction — Cell Biomaterials 2024</div>
+<div class="ref">6. Georgia Tech MN ISF patch — Science Transl Med 2019, scitranslmed.aaw0285</div>
+<div class="ref">7. MN for metabolic bone diseases — Frontiers Bioeng 2026, fbioe.2026.1793776</div>
+<div class="ref">8. Rapidly dissolving bilayer MN for B12 — Int J Pharm 2019, PMID 31150773</div>
+
+<p class="sm" style="margin-top:30px;text-align:center">
+Aneta Medical Systems &bull; teslasolar.github.io/aneta &bull; July 2026
+</p>
+
+</body>
+</html>
