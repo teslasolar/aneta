@@ -190,11 +190,43 @@ function getTypeAt(blocks,h){
 
 let selectedDate=new Date()
 
+let t=0
 function drawClock(){
+    t+=1/60
     ctx.clearRect(0,0,W,H)
     const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,R*1.5)
     bg.addColorStop(0,'rgba(30,10,40,.3)');bg.addColorStop(1,'rgba(8,4,14,0)')
     ctx.fillStyle=bg;ctx.fillRect(0,0,W,H)
+
+    // ═══ TESSELLATED BACKGROUND ═══
+    const tileSize=40
+    const drift=t*.3
+    ctx.strokeStyle='rgba(220,20,60,.025)'
+    ctx.lineWidth=.5
+    for(let gx=-tileSize;gx<W+tileSize;gx+=tileSize){
+        for(let gy=-tileSize;gy<H+tileSize;gy+=tileSize){
+            const ox=gx+Math.sin(gy*.01+drift)*4
+            const oy=gy+Math.cos(gx*.01+drift)*4
+            // hexagonal tessellation
+            const row=Math.floor(gy/tileSize)
+            const shift=row%2?tileSize/2:0
+            const px=ox+shift,py=oy
+            ctx.beginPath()
+            for(let i=0;i<6;i++){
+                const a=i*Math.PI/3+Math.PI/6
+                const hx=px+Math.cos(a)*tileSize*.35
+                const hy=py+Math.sin(a)*tileSize*.35
+                i===0?ctx.moveTo(hx,hy):ctx.lineTo(hx,hy)
+            }
+            ctx.closePath();ctx.stroke()
+            // inner dot at certain cells
+            const dist=Math.hypot(px-cx,py-cy)
+            if(dist<R*1.3&&Math.sin(px*.05+py*.07+t)>.7){
+                ctx.beginPath();ctx.arc(px,py,1,0,TAU)
+                ctx.fillStyle='rgba(0,255,255,.03)';ctx.fill()
+            }
+        }
+    }
 
     const bandW=R*.16,rA=R*.88,rB=R*.66,rOv=R*.48
     const{A,B}=getSchedules(selectedDate)
@@ -293,6 +325,70 @@ function drawClock(){
     ctx.font='8px monospace';ctx.fillStyle='rgba(255,248,231,.08)'
     const ds=selectedDate.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})
     ctx.fillText(ds,cx,cy)
+
+    // ═══ 24h TIMELINE BAR ═══
+    const barY=H-28,barH=18,barX=20,barW=W-40
+    const{A:barA,B:barB}=getSchedules(selectedDate)
+
+    // Thomas bar (top half)
+    barA.blocks.forEach(b=>{
+        const x1=barX+b.s/24*barW,x2=barX+b.e/24*barW
+        ctx.fillStyle=COLORS[b.type]||COLORS.free
+        ctx.fillRect(x1,barY,x2-x1,barH/2)
+        ctx.strokeStyle=STROKE[b.type]||STROKE.free
+        ctx.lineWidth=.5
+        ctx.strokeRect(x1,barY,x2-x1,barH/2)
+    })
+
+    // Aneta bar (bottom half, mapped to ET)
+    barB.blocks.forEach(b=>{
+        const s=bToET(b.s),e=bToET(b.e)
+        const drawSeg=(s1,e1)=>{
+            const x1=barX+s1/24*barW,x2=barX+e1/24*barW
+            ctx.fillStyle=COLORS[b.type]||COLORS.free
+            ctx.fillRect(x1,barY+barH/2,x2-x1,barH/2)
+            ctx.strokeStyle=STROKE[b.type]||STROKE.free
+            ctx.lineWidth=.5;ctx.strokeRect(x1,barY+barH/2,x2-x1,barH/2)
+        }
+        if(s<e){drawSeg(s,e)}else{drawSeg(s,24);drawSeg(0,e)}
+    })
+
+    // overlap highlights on bar
+    for(let h=0;h<24;h++){
+        const aT=getTypeAt(barA.blocks,h)
+        const bLH=(h+OFFSET)%24
+        const bT=getTypeAt(barB.blocks,bLH)
+        if(aT==='free'&&bT==='free'){
+            const x1=barX+h/24*barW,x2=barX+(h+1)/24*barW
+            ctx.fillStyle='rgba(68,255,170,.2)'
+            ctx.fillRect(x1,barY-2,x2-x1,barH+4)
+            ctx.strokeStyle='rgba(68,255,170,.4)'
+            ctx.lineWidth=1;ctx.strokeRect(x1,barY-2,x2-x1,barH+4)
+        }
+    }
+
+    // bar hour labels
+    ctx.font='6px monospace';ctx.textAlign='center';ctx.textBaseline='top'
+    for(let h=0;h<24;h+=3){
+        const x=barX+h/24*barW
+        ctx.fillStyle='rgba(255,248,231,.15)'
+        ctx.fillText(String(h).padStart(2,'0'),x,barY+barH+2)
+    }
+
+    // current time marker on bar (today only)
+    if(selectedDate.toDateString()===new Date().toDateString()){
+        const nowFrac=(()=>{const d2=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));return d2.getHours()+d2.getMinutes()/60})()
+        const nx=barX+nowFrac/24*barW
+        ctx.beginPath();ctx.moveTo(nx,barY-4);ctx.lineTo(nx,barY+barH+2)
+        ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1.5;ctx.stroke()
+        ctx.beginPath();ctx.moveTo(nx-3,barY-4);ctx.lineTo(nx+3,barY-4);ctx.lineTo(nx,barY-1);ctx.closePath()
+        ctx.fillStyle='#fff';ctx.globalAlpha=.4;ctx.fill();ctx.globalAlpha=1
+    }
+
+    // bar labels
+    ctx.font='5px monospace';ctx.textAlign='left'
+    ctx.fillStyle='rgba(220,20,60,.3)';ctx.fillText('T',barX-10,barY+2)
+    ctx.fillStyle='rgba(212,169,74,.3)';ctx.fillText('A',barX-10,barY+barH/2+2)
 
     // info bar
     const etStr=now.toLocaleTimeString('en-GB',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit'})
