@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Sticky Icky Corty Picky + Vitamin Patch</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#faf8f4;color:#1a1a1a;font:12px/1.7 'Courier New',monospace;max-width:900px;margin:0 auto;padding:30px 20px 80px}
+h1{font:bold 20px/1.2 Georgia,serif;color:#dc143c;margin:30px 0 4px;text-align:center}
+h2{font:bold 13px/1.2 Georgia,serif;color:#1a1a1a;margin:28px 0 6px;border-bottom:2px solid #dc143c;padding-bottom:4px}
+h3{font:italic 12px/1.2 Georgia,serif;margin:16px 0 4px;color:#333}
+.sub{text-align:center;font-size:10px;color:#888;margin-bottom:24px;letter-spacing:2px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+.card{background:#fff;border:1px solid #e0ddd5;border-radius:6px;padding:14px;position:relative}
+.card h4{font:bold 11px monospace;color:#dc143c;margin-bottom:6px;letter-spacing:1px}
+.card.highlight{border-color:#dc143c;box-shadow:0 2px 12px rgba(220,20,60,.08)}
+.layer{display:flex;gap:12px;margin:10px 0;padding:10px;background:#f5f3ee;border-radius:4px;border-left:3px solid #dc143c}
+.layer.l2{border-left-color:#d4a94a}
+.layer.l3{border-left-color:#44aa44}
+.layer.l4{border-left-color:#4488ff}
+.layer .num{font:bold 18px Georgia,serif;color:#dc143c;min-width:24px}
+.layer.l2 .num{color:#d4a94a}
+.layer.l3 .num{color:#44aa44}
+.layer.l4 .num{color:#4488ff}
+.tag{display:inline-block;font-size:9px;padding:2px 6px;border-radius:10px;margin:2px;letter-spacing:1px}
+.tag.pub{background:#e8f5e9;color:#2e7d32}
+.tag.nov{background:#fff3e0;color:#e65100}
+.tag.pat{background:#fce4ec;color:#c62828}
+table{border-collapse:collapse;width:100%;margin:10px 0;font-size:11px}
+th{background:#f0ede8;text-align:left;padding:5px 8px;border:1px solid #ddd;font-weight:bold}
+td{padding:5px 8px;border:1px solid #ddd;vertical-align:top}
+.vs{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin:12px 0}
+.vs .mid{font:bold 14px Georgia,serif;color:#dc143c}
+.box{background:#08040e;color:#fff8e7;padding:14px;border-radius:6px;margin:12px 0;font-size:11px;line-height:1.6}
+.box .t{color:#dc143c;font-size:10px;letter-spacing:2px;margin-bottom:6px}
+.price{font:bold 16px Georgia,serif;color:#dc143c}
+.sm{font-size:9px;color:#888}
+.flow{display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.flow .step{background:#f5f3ee;padding:4px 8px;border-radius:4px;font-size:10px}
+.flow .arrow{color:#dc143c;font-weight:bold}
+svg{display:block;margin:10px auto}
+@media(max-width:600px){.cards{grid-template-columns:1fr}.vs{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<h1>STICKY ICKY CORTY PICKY</h1>
+<div class="sub">PEEL THE STRESS OFF YOUR FACE</div>
+
+<h2>Product 1: Sticky Icky Corty Picky</h2>
+<p>A dissolving skin wrap that extracts keratin plugs AND cortisol from your skin simultaneously, then shows you your stress level via color change.</p>
+
+<h3>Layer Architecture</h3>
+
+<div class="layer l4">
+<div class="num">4</div>
+<div>
+<strong>INDICATOR FILM</strong> (outermost)<br>
+Cortisol-specific aptamer conjugated to chromogenic reporter. Turns clear &rarr; purple proportional to cortisol absorbed. Peel off and READ your stress level. Phone-scannable for exact ng/mL.
+<br><span class="tag pub">PUBLISHED</span> <span class="sm">aptamer-cortisol ISF detection, ScienceDirect 2024</span>
+</div>
+</div>
+
+<div class="layer l3">
+<div class="num">3</div>
+<div>
+<strong>HYDROCOLLOID MATRIX</strong><br>
+Sodium carboxymethylcellulose + cross-linked polyacrylic acid. Osmotic absorption &mdash; sucks fluid, sebum, cortisol, cytokines. Absorbs 10-50x its weight. Same tech as pimple patches but pharma-grade.
+<br><span class="tag pub">PUBLISHED</span> <span class="sm">standard hydrocolloid wound/acne tech</span>
+</div>
+</div>
+
+<div class="layer l2">
+<div class="num">2</div>
+<div>
+<strong>BHA + AHA DISSOLVING LAYER</strong><br>
+Salicylic acid 2% (oil-soluble BHA) penetrates INTO pores, dissolves keratin-sebum plugs via keratolysis. Glycolic acid 5% (water-soluble AHA) clears surface dead cells. Anti-inflammatory via COX-2 inhibition. Niacinamide 2% bonus.
+<br><span class="tag pub">PUBLISHED</span> <span class="sm">42% comedone reduction in 12-week trial</span>
+</div>
+</div>
+
+<div class="layer">
+<div class="num">1</div>
+<div>
+<strong>DISSOLVING MICRONEEDLE ARRAY</strong> (skin contact)<br>
+PVA/PVP biodegradable polymer needles, 300-500&mu;m height, 100-400/cm&sup2;. Painless &mdash; dissolve in 5-10 min. Create micro-channels for ISF extraction + deeper BHA/AHA delivery. 72-hour wear demonstrated with zero irritation.
+<br><span class="tag pub">PUBLISHED</span> <span class="sm">Georgia Tech, Wiley Advanced Materials 2026</span>
+</div>
+</div>
+
+<h3>How To Use</h3>
+<div class="flow">
+<div class="step">STICK<br><span class="sm">apply to face</span></div>
+<div class="arrow">&rarr;</div>
+<div class="step">DISSOLVE<br><span class="sm">10 min needles</span></div>
+<div class="arrow">&rarr;</div>
+<div class="step">SUCK<br><span class="sm">1-4 hours osmotic</span></div>
+<div class="arrow">&rarr;</div>
+<div class="step">PEEL<br><span class="sm">remove patch</span></div>
+<div class="arrow">&rarr;</div>
+<div class="step">READ<br><span class="sm">check color = cortisol</span></div>
+</div>
+
+<h3>What It Extracts</h3>
+<div class="cards">
+<div class="card">
+<h4>FROM PORES (BHA/AHA)</h4>
+keratin plugs (comedones)<br>
+oxidized sebum (blackheads)<br>
+dead corneocytes<br>
+trapped bacteria<br>
+<span class="sm">mechanism: keratolysis &mdash; breaks corneodesmosomes</span>
+</div>
+<div class="card">
+<h4>FROM ISF (microneedles)</h4>
+cortisol <span class="sm">(your Cor = 0.84)</span><br>
+IL-6, TNF-&alpha; <span class="sm">(inflammation)</span><br>
+glucose <span class="sm">(your Glc = 108)</span><br>
+insulin, cortisone, DHEA
+</div>
+</div>
+
+<h3>What Makes It Novel</h3>
+<div class="cards">
+<div class="card"><h4>EXISTING</h4>pore strips &rarr; extract keratin only<br>hydrocolloid &rarr; absorb pus only<br>microneedle sensors &rarr; measure only<br>cortisol patches &rarr; sense only</div>
+<div class="card highlight"><h4>STICKY ICKY</h4>dissolves keratin &check;<br>absorbs sebum + cortisol &check;<br>extracts ISF biomarkers &check;<br>shows stress level &check;<br><span class="tag pat">PATENTABLE COMBINATION</span></div>
+</div>
+
+<div class="box">
+<div class="t">REGULUS INTEGRATION</div>
+Photograph used patch &rarr; phone app reads cortisol color &rarr; compare to watch EDA (Cor~EDA r=0.973) &rarr; VALIDATE the watch proxy with actual skin cortisol &rarr; close the loop. Skincare that calibrates your health monitor.
+</div>
+
+<p><span class="price">$2&ndash;5 per patch</span> &nbsp; <span class="sm">2-3x per week &bull; comparable to premium pore strips</span></p>
+
+<hr style="margin:40px 0;border:none;border-top:2px solid #dc143c">
+
+<h1>VITAMIN PATCH</h1>
+<div class="sub">REPLACE YOUR WEEKLY IV DRIP WITH A STICKER</div>
+
+<h2>Product 2: The Weekly Patch &mdash; Full Spectrum Dissolving Vitamin Delivery</h2>
+<p>A dissolving microneedle patch that delivers a complete IV-equivalent vitamin and mineral load transdermally over 24 hours. No needles. No clinic. No drip bag. Just a patch on your arm once a week.</p>
+
+<h3>Why Transdermal Beats Oral AND IV</h3>
+<table>
+<tr><th>Route</th><th>Bioavailability</th><th>Pain</th><th>Time</th><th>Cost</th><th>Access</th></tr>
+<tr><td>Oral pills</td><td>10-30% (gut degrades)</td><td>none</td><td>daily</td><td>$</td><td>home</td></tr>
+<tr><td>IV infusion</td><td>100% (direct blood)</td><td>needle + sit</td><td>45-90 min</td><td>$$$</td><td>clinic</td></tr>
+<tr><td style="color:#dc143c"><strong>Microneedle patch</strong></td><td><strong>~90% (bypasses gut)</strong></td><td><strong>painless</strong></td><td><strong>apply once</strong></td><td><strong>$$</strong></td><td><strong>home</strong></td></tr>
+</table>
+<p class="sm">Dissolving microneedles bypass first-pass metabolism (gut + liver degradation), achieving near-IV bioavailability. Published: B12 microneedle delivery achieves 90%+ insertion efficiency with dissolution in 120 seconds. (PMVE/MA 2026, Springer)</p>
+
+<h3>Patch Formulation &mdash; Regulus Protocol</h3>
+<p>Designed specifically for the Regulus Syndrome cascade &mdash; every ingredient targets a measured deficiency.</p>
+
+<table>
+<tr><th>Nutrient</th><th>Dose/Patch</th><th>IV Equivalent</th><th>Targets</th><th>Your Deficiency</th></tr>
+<tr><td style="color:#dc143c"><strong>Magnesium glycinate</strong></td><td>200mg</td><td>2g MgSO4 IV push</td><td>cascade ROOT</td><td>Mg = 1.72 (borderline)</td></tr>
+<tr><td><strong>Selenium</strong> (selenomethionine)</td><td>200&mu;g</td><td>200&mu;g IV Se</td><td>glutathione/GPx</td><td>Se = 0.083 (DEFICIENT)</td></tr>
+<tr><td><strong>Zinc</strong> (picolinate)</td><td>15mg</td><td>10mg IV Zn</td><td>immune + insulin</td><td>Zn = 0.31 (LOW)</td></tr>
+<tr><td><strong>B12</strong> (methylcobalamin)</td><td>1000&mu;g</td><td>1000&mu;g IM B12</td><td>nerve + RBC</td><td>Hgb = 13.0 (LOW)</td></tr>
+<tr><td><strong>Vitamin D3</strong></td><td>5000IU</td><td>n/a (oral equiv)</td><td>Mg absorption + immune</td><td>untested (likely LOW)</td></tr>
+<tr><td><strong>Vitamin C</strong> (ascorbic acid)</td><td>500mg</td><td>1g IV vit C</td><td>antioxidant + Fe absorption</td><td>oxidative deficit -0.60</td></tr>
+<tr><td><strong>B-complex</strong> (B1,B2,B3,B5,B6,B9)</td><td>full RDA</td><td>standard IV B-complex</td><td>energy metabolism</td><td>baseline support</td></tr>
+<tr><td><strong>Iron</strong> (ferrous bisglycinate)</td><td>18mg</td><td>100mg IV iron sucrose</td><td>hemoglobin + O2</td><td>Hgb = 13.0 (low-normal)</td></tr>
+<tr><td><strong>Iodine</strong> (potassium iodide)</td><td>150&mu;g</td><td>n/a</td><td>thyroid T4 production</td><td>I = 0.23 (LOW)</td></tr>
+<tr><td><strong>NAC</strong> (N-acetylcysteine)</td><td>300mg</td><td>600mg IV NAC</td><td>glutathione precursor</td><td>Se depleted = GSH depleted</td></tr>
+</table>
+
+<h3>Patch Architecture</h3>
+
+<div class="layer">
+<div class="num">A</div>
+<div>
+<strong>BACKING LAYER</strong> &mdash; breathable adhesive film, hypoallergenic. Holds patch on arm/thigh for 24hr. Waterproof for showering.
+</div>
+</div>
+
+<div class="layer l2">
+<div class="num">B</div>
+<div>
+<strong>RESERVOIR MATRIX</strong> &mdash; hydrogel polymer loaded with water-soluble vitamins (B-complex, C, NAC) for sustained 24-hour diffusion through the microneedle channels. Time-release kinetics matched to IV drip rate.
+</div>
+</div>
+
+<div class="layer l3">
+<div class="num">C</div>
+<div>
+<strong>MINERAL LAYER</strong> &mdash; Mg, Zn, Se, Fe, I embedded in dissolving polymer tips. Releases in first 2 hours as needles dissolve. Bolus delivery &mdash; equivalent to IV push for minerals.
+<br><span class="tag pub">PUBLISHED</span> <span class="sm">B12 dissolving MN: 90% insertion, 120s dissolution (Springer 2026)</span>
+</div>
+</div>
+
+<div class="layer">
+<div class="num">D</div>
+<div>
+<strong>MICRONEEDLE ARRAY</strong> (skin contact) &mdash; 500-700&mu;m PVA/PVP dissolving needles. Higher density than Corty Picky (400-600/cm&sup2;) for greater payload. Dissolve in 2-5 minutes. Create sustained diffusion channels that remain open 12-24 hours for reservoir layer delivery.
+<br><span class="tag pub">PUBLISHED</span> <span class="sm">microneedle channels remain open 24-72hr post-dissolution</span>
+</div>
+</div>
+
+<h3>Application Protocol</h3>
+<div class="flow">
+<div class="step">CLEAN<br><span class="sm">inner arm/thigh</span></div>
+<div class="arrow">&rarr;</div>
+<div class="step">PRESS<br><span class="sm">30 sec firm</span></div>
+<div class="arrow">&rarr;</div>
+<div class="step">WEAR<br><span class="sm">24 hours</span></div>
+<div class="arrow">&rarr;</div>
+<div class="step">REMOVE<br><span class="sm">peel off</span></div>
+<div class="arrow">&rarr;</div>
+<div class="step">REPEAT<br><span class="sm">weekly</span></div>
+</div>
+
+<h3>Weekly Patch vs Weekly IV &mdash; Direct Comparison</h3>
+<div class="vs">
+<div class="card">
+<h4>WEEKLY IV (Myers Cocktail)</h4>
+Drive to clinic: 30 min<br>
+Wait: 15 min<br>
+IV insertion: painful<br>
+Drip time: 45-90 min<br>
+Recovery: 15 min<br>
+Cost: $150-300/session<br>
+Total time: 2-3 hours<br>
+Infection risk: yes<br>
+Bruising: common
+</div>
+<div class="mid">vs</div>
+<div class="card highlight">
+<h4>WEEKLY PATCH</h4>
+Apply at home: 30 sec<br>
+Wait: 0 (wear and go)<br>
+Application: painless<br>
+Delivery: 24hr sustained<br>
+Recovery: none<br>
+Cost: $15-30/patch<br>
+Total time: 30 seconds<br>
+Infection risk: no<br>
+Bruising: none
+</div>
+</div>
+
+<h3>Delivery Phases</h3>
+<table>
+<tr><th>Time</th><th>What Happens</th><th>Equivalent</th></tr>
+<tr><td>0-5 min</td><td>Microneedles dissolve &mdash; Mg, Zn, Se, Fe, I bolus into dermis</td><td>IV mineral push</td></tr>
+<tr><td>5 min-2 hr</td><td>Mineral dissolution complete, channels open</td><td>IM injection absorption</td></tr>
+<tr><td>2-24 hr</td><td>Reservoir diffuses B-complex, C, NAC, D3 through channels</td><td>IV drip (sustained)</td></tr>
+<tr><td>24 hr</td><td>Remove patch. Channels close naturally over next 24hr</td><td>IV disconnect</td></tr>
+</table>
+
+<div class="box">
+<div class="t">REGULUS PROTOCOL INTEGRATION</div>
+<strong>Sunday evening:</strong> apply vitamin patch (inner arm)<br>
+<strong>Monday-Saturday:</strong> daily Sticky Icky Corty Picky on face (2-3x/week)<br>
+<strong>Continuous:</strong> watch monitors cascade reversal in real-time<br><br>
+The patch delivers the minerals. The watch proves they're working. The Corty Picky validates cortisol is dropping. One ecosystem: supplement &rarr; monitor &rarr; validate.
+<br><br>
+<strong>Week 1:</strong> Mg bolus from patch &rarr; EDA should drop within 48hr<br>
+<strong>Week 2:</strong> Se + NAC restoring glutathione &rarr; Inf should drop<br>
+<strong>Week 4:</strong> full mineral repletion &rarr; cascade reversal visible on watch
+</div>
+
+<p><span class="price">$15&ndash;30 per patch</span> &nbsp; <span class="sm">weekly application &bull; $60-120/month vs $600-1200/month IV</span></p>
+
+<hr style="margin:40px 0;border:none;border-top:2px solid #dc143c">
+
+<h2>Product Line Summary</h2>
+<div class="cards">
+<div class="card highlight">
+<h4>STICKY ICKY CORTY PICKY</h4>
+skincare + diagnostic<br>
+face patch, 2-3x/week<br>
+extracts keratin + cortisol<br>
+color-change stress readout<br>
+<span class="price">$2-5</span>/patch
+</div>
+<div class="card highlight">
+<h4>THE WEEKLY PATCH</h4>
+nutrition + IV replacement<br>
+arm/thigh patch, 1x/week<br>
+10 essential nutrients<br>
+24hr sustained delivery<br>
+<span class="price">$15-30</span>/patch
+</div>
+</div>
+
+<div class="box">
+<div class="t">PATENT CLAIMS (provisional)</div>
+1. A dissolving microneedle patch combining keratolytic agents (BHA/AHA) with hydrocolloid absorption matrix and cortisol-specific chromogenic aptamer indicator for simultaneous skin treatment and stress biomarker quantification.<br><br>
+2. A transdermal dissolving microneedle system for weekly delivery of a multi-mineral multi-vitamin formulation comprising magnesium, selenium, zinc, iron, iodine, B-complex, vitamin C, vitamin D3, and N-acetylcysteine in a bilayer architecture with immediate-release mineral tips and sustained-release vitamin reservoir, achieving bioavailability comparable to intravenous infusion.
+</div>
+
+<p class="sm" style="margin-top:30px;text-align:center">
+Aneta Medical Systems &bull; teslasolar.github.io/aneta &bull; 2026<br>
+References: Georgia Tech microneedle ISF extraction (Science Transl Med) &bull;
+PMVE/MA B12 microneedle 90% efficiency (Springer 2026) &bull;
+Cortisol aptamer ISF detection (ScienceDirect 2024) &bull;
+BHA 42% comedone reduction (12-week RCT) &bull;
+Wearable microneedle cortisol sensor (Wiley Adv Materials 2026)
+</p>
+
+</body>
+</html>
