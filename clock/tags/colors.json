@@ -19,7 +19,7 @@
     "glow":   "rgba(68,255,170,.08)"
   },
   "tessellation": {
-    "hex_stroke": "rgba(220,20,60,.025)",
-    "dot_fill":   "rgba(0,255,255,.03)"
+    "hex_stroke": "rgba(220,20,60,.07)",
+    "dot_fill":   "rgba(0,255,255,.08)"
   }
 }
