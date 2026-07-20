@@ -1,0 +1,15 @@
+{
+  "name": "Schedule",
+  "description": "A person's daily schedule with named time blocks",
+  "fields": {
+    "name":   {"type": "string", "desc": "display name"},
+    "tz":     {"type": "string", "desc": "IANA timezone"},
+    "color":  {"type": "string", "desc": "hex color for ring"},
+    "blocks": {"type": "array", "items": {
+      "s":     {"type": "number", "desc": "start hour (0-24, fractional ok)"},
+      "e":     {"type": "number", "desc": "end hour"},
+      "type":  {"type": "string", "enum": ["sleep","free","work","burn","busy"]},
+      "label": {"type": "string", "optional": true}
+    }}
+  }
+}

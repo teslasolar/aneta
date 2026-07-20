@@ -1,0 +1,25 @@
+{
+  "block_fill": {
+    "sleep": "rgba(15,8,40,.8)",
+    "work":  "rgba(180,120,30,.55)",
+    "free":  "rgba(30,100,55,.5)",
+    "burn":  "rgba(220,30,15,.6)",
+    "busy":  "rgba(160,80,40,.5)"
+  },
+  "block_stroke": {
+    "sleep": "rgba(80,50,140,.5)",
+    "work":  "rgba(240,180,50,.6)",
+    "free":  "rgba(50,180,90,.6)",
+    "burn":  "rgba(255,40,20,.9)",
+    "busy":  "rgba(220,120,50,.6)"
+  },
+  "overlap": {
+    "fill":   "rgba(68,255,170,.5)",
+    "stroke": "rgba(68,255,170,.85)",
+    "glow":   "rgba(68,255,170,.08)"
+  },
+  "tessellation": {
+    "hex_stroke": "rgba(220,20,60,.025)",
+    "dot_fill":   "rgba(0,255,255,.03)"
+  }
+}

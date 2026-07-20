@@ -1,0 +1,41 @@
+{
+  "thomas": {
+    "name": "THOMAS · ET",
+    "tz": "America/New_York",
+    "color": "#dc143c",
+    "offset_from_thomas": 0,
+    "weekday": [
+      {"s":0,"e":5,"type":"free"},
+      {"s":5,"e":11,"type":"sleep"},
+      {"s":11,"e":12,"type":"free"},
+      {"s":12,"e":15,"type":"work"},
+      {"s":15,"e":19,"type":"burn"},
+      {"s":19,"e":24,"type":"free"}
+    ],
+    "weekend": [
+      {"s":0,"e":5,"type":"free"},
+      {"s":5,"e":11,"type":"sleep"},
+      {"s":11,"e":15,"type":"free"},
+      {"s":15,"e":19,"type":"burn"},
+      {"s":19,"e":24,"type":"free"}
+    ]
+  },
+  "aneta": {
+    "name": "ANETA · PL",
+    "tz": "Europe/Warsaw",
+    "color": "#d4a94a",
+    "offset_from_thomas": 6,
+    "weekday": [
+      {"s":0,"e":5,"type":"sleep"},
+      {"s":5,"e":9,"type":"free"},
+      {"s":9,"e":17,"type":"work"},
+      {"s":17,"e":23,"type":"free"},
+      {"s":23,"e":24,"type":"sleep"}
+    ],
+    "weekend": [
+      {"s":0,"e":5,"type":"sleep"},
+      {"s":5,"e":23,"type":"free"},
+      {"s":23,"e":24,"type":"sleep"}
+    ]
+  }
+}

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>DROGA · Clock + Calendar</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#08040e;color:#fff8e7;font:11px/1.6 'Courier New',monospace;overflow:hidden;display:flex;flex-direction:column;height:100vh}
+canvas{display:block;flex:1}
+#info{position:fixed;bottom:0;left:0;right:0;padding:6px 12px;background:rgba(8,4,14,.92);border-top:1px solid rgba(220,20,60,.15);display:flex;justify-content:space-between;gap:12px;font-size:10px}
+#info .col{flex:1}
+#info .hdr{color:rgba(220,20,60,.5);font-size:8px;letter-spacing:2px;margin-bottom:2px}
+#info .time{font-size:16px;letter-spacing:1px}
+#info .time-a{color:#dc143c}
+#info .time-b{color:#d4a94a}
+#info .win{color:rgba(100,255,160,.4);font-size:9px}
+.leg{display:flex;gap:10px;font-size:8px;color:rgba(255,248,231,.25)}
+.leg span{display:flex;align-items:center;gap:3px}
+.leg .dot{width:8px;height:8px;border-radius:2px;display:inline-block}
+#cal{position:fixed;top:0;right:0;width:220px;height:100%;background:rgba(8,4,14,.95);border-left:1px solid rgba(220,20,60,.1);padding:8px;overflow-y:auto;font-size:9px;z-index:5}
+#cal .mhdr{color:#dc143c;font-size:10px;letter-spacing:2px;text-align:center;margin:4px 0}
+#cal .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px}
+#cal .dhdr{text-align:center;color:rgba(255,248,231,.15);font-size:7px}
+#cal .day{text-align:center;padding:3px 1px;cursor:pointer;border-radius:2px;font-size:9px;color:rgba(255,248,231,.25)}
+#cal .day:hover{background:rgba(220,20,60,.1)}
+#cal .day.today{color:#dc143c;border:1px solid rgba(220,20,60,.3)}
+#cal .day.selected{background:rgba(0,255,255,.08);color:#0ff}
+#cal .day.has-event{color:rgba(255,200,50,.5)}
+#cal .sched{margin-top:8px;border-top:1px solid rgba(220,20,60,.1);padding-top:6px}
+#cal .ev{padding:2px 4px;margin:2px 0;border-radius:2px;font-size:8px}
+#cal .ev.sleep{background:rgba(15,8,40,.6);color:rgba(80,50,140,.6)}
+#cal .ev.free{background:rgba(30,100,55,.15);color:rgba(50,180,90,.5)}
+#cal .ev.work{background:rgba(180,120,30,.15);color:rgba(240,180,50,.5)}
+#cal .ev.burn{background:rgba(220,30,15,.15);color:rgba(255,60,30,.6)}
+#cal .ev.busy{background:rgba(160,80,40,.15);color:rgba(220,120,50,.5)}
+#loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(220,20,60,.3);font-size:10px;z-index:99}
+</style>
+</head>
+<body>
+<div id="loading">loading tags...</div>
+<canvas id="c"></canvas>
+<div id="cal"></div>
+<div id="info">
+  <div class="col"><div class="hdr">US EASTERN</div><div class="time time-a" id="ta">--:--</div></div>
+  <div class="col"><div class="hdr">POLAND (CEST)</div><div class="time time-b" id="tb">--:--</div></div>
+  <div class="col" id="status"></div>
+  <div class="col"><div class="hdr">OVERLAP (both free)</div><div class="win" id="wins"></div></div>
+  <div class="col"><div class="leg">
+    <span><i class="dot" style="background:#1a1040"></i>sleep</span>
+    <span><i class="dot" style="background:#8a5a20"></i>work</span>
+    <span><i class="dot" style="background:#c82814"></i>burn</span>
+    <span><i class="dot" style="background:#2a8a4a"></i>free</span>
+    <span><i class="dot" style="background:#44ffaa"></i>overlap</span>
+  </div></div>
+</div>
+
+<script>
+const TAU=Math.PI*2,PHI=(1+Math.sqrt(5))/2
+let W,H,cx,cy,R,t=0
+const cv=document.getElementById('c'),ctx=cv.getContext('2d')
+function resize(){W=cv.width=innerWidth-220;H=cv.height=innerHeight-60;cx=W/2;cy=H/2;R=Math.min(W,H)*.4}
+resize();addEventListener('resize',resize)
+
+// ═══ LOADED FROM JSON TAGS ═══
+let PEOPLE=null,EVENTS=null,COLORS=null,RING=null,TIMELINE=null,TESS=null
+
+async function loadTags(){
+    const base='tags/'
+    const tpl='templates/'
+    const [people,events,colors,ring,timeline,tess]=await Promise.all([
+        fetch(base+'people.json').then(r=>r.json()),
+        fetch(base+'events.json').then(r=>r.json()),
+        fetch(base+'colors.json').then(r=>r.json()),
+        fetch(tpl+'ring.json').then(r=>r.json()),
+        fetch(tpl+'timeline.json').then(r=>r.json()),
+        fetch(tpl+'tessellation.json').then(r=>r.json()),
+    ])
+    PEOPLE=people;EVENTS=events;COLORS=colors
+    RING=ring.params;TIMELINE=timeline.params;TESS=tess.params
+    document.getElementById('loading').style.display='none'
+    renderCalendar()
+    loop()
+}
+
+// ═══ SCHEDULE ENGINE (reads from loaded tags) ═══
+function getDow(y,m,d){return new Date(y,m,d).getDay()}
+function isWeekendDay(y,m,d){const dow=getDow(y,m,d);return dow===0||dow===6}
+function isFriday(y,m,d){return getDow(y,m,d)===5}
+
+function getSchedules(date){
+    const y=date.getFullYear(),m=date.getMonth(),d=date.getDate()
+    const wkend=isWeekendDay(y,m,d)
+    const monthKey=`${y}-${String(m+1).padStart(2,'0')}`
+    const dayEvents=(EVENTS[monthKey]||{})[String(d)]
+
+    function buildBlocks(personKey){
+        const person=PEOPLE[personKey]
+        let blocks=JSON.parse(JSON.stringify(wkend?person.weekend:person.weekday))
+        if(dayEvents&&dayEvents.person===personKey&&dayEvents.overrides){
+            const newBlocks=[]
+            for(const b of blocks){
+                let consumed=false
+                for(const ov of dayEvents.overrides){
+                    if(ov.s>=b.s&&ov.e<=b.e&&(b.type==='work'||b.type==='free')){
+                        if(ov.s>b.s)newBlocks.push({s:b.s,e:ov.s,type:b.type})
+                        newBlocks.push(ov)
+                        if(ov.e<b.e)newBlocks.push({s:ov.e,e:b.e,type:b.type})
+                        consumed=true;break
+                    }
+                }
+                if(!consumed)newBlocks.push(b)
+            }
+            blocks=newBlocks
+        }
+        return{name:person.name,color:person.color,blocks,offset:person.offset_from_thomas||0}
+    }
+    return{A:buildBlocks('thomas'),B:buildBlocks('aneta')}
+}
+
+// ═══ DRAWING PRIMITIVES ═══
+function hToA(h){return(h/24)*TAU-TAU/4}
+function drawArc(x,y,r,w,startH,endH,fill,stroke){
+    const a1=hToA(startH),a2=hToA(endH)
+    ctx.beginPath();ctx.arc(x,y,r,a1,a2);ctx.lineWidth=w;ctx.strokeStyle=fill;ctx.stroke()
+    ctx.lineWidth=1;ctx.strokeStyle=stroke
+    ctx.beginPath();ctx.arc(x,y,r-w/2,a1,a2);ctx.stroke()
+    ctx.beginPath();ctx.arc(x,y,r+w/2,a1,a2);ctx.stroke()
+}
+function bToET(h,offset){return(h-offset+24)%24}
+function getTypeAt(blocks,h){
+    const hm=((h%24)+24)%24
+    for(const b of blocks)if(hm>=b.s&&hm<b.e)return b.type
+    return'sleep'
+}
+
+let selectedDate=new Date()
+
+// ═══ MAIN DRAW ═══
+function drawClock(){
+    t+=1/60
+    ctx.clearRect(0,0,W,H)
+    const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,R*1.5)
+    bg.addColorStop(0,'rgba(30,10,40,.3)');bg.addColorStop(1,'rgba(8,4,14,0)')
+    ctx.fillStyle=bg;ctx.fillRect(0,0,W,H)
+
+    // tessellation
+    const ts=TESS.tileSize,drift=t*TESS.driftSpeed
+    ctx.strokeStyle=COLORS.tessellation.hex_stroke;ctx.lineWidth=.5
+    for(let gx=-ts;gx<W+ts;gx+=ts){for(let gy=-ts;gy<H+ts;gy+=ts){
+        const row=Math.floor(gy/ts),shift=row%2?ts/2:0
+        const px=gx+shift+Math.sin(gy*.01+drift)*TESS.wobbleAmp
+        const py=gy+Math.cos(gx*.01+drift)*TESS.wobbleAmp
+        ctx.beginPath()
+        for(let i=0;i<6;i++){const a=i*Math.PI/3+Math.PI/6;i===0?ctx.moveTo(px+Math.cos(a)*ts*TESS.hexRadius,py+Math.sin(a)*ts*TESS.hexRadius):ctx.lineTo(px+Math.cos(a)*ts*TESS.hexRadius,py+Math.sin(a)*ts*TESS.hexRadius)}
+        ctx.closePath();ctx.stroke()
+        if(Math.hypot(px-cx,py-cy)<R*TESS.innerRadiusFrac&&Math.sin(px*.05+py*.07+t)>TESS.dotThreshold){
+            ctx.beginPath();ctx.arc(px,py,TESS.dotRadius,0,TAU)
+            ctx.fillStyle=COLORS.tessellation.dot_fill;ctx.fill()}
+    }}
+
+    const bandW=R*RING.bandWidth,rA=R*RING.outerRing,rB=R*RING.innerRing,rOv=R*RING.overlapRing
+    const{A,B}=getSchedules(selectedDate)
+    const offset=B.offset
+
+    // A ring
+    A.blocks.forEach(b=>{drawArc(cx,cy,rA,bandW,b.s,b.e,COLORS.block_fill[b.type]||COLORS.block_fill.free,COLORS.block_stroke[b.type]||COLORS.block_stroke.free)})
+    // B ring
+    B.blocks.forEach(b=>{
+        const s=bToET(b.s,offset),e=bToET(b.e,offset)
+        if(s<e){drawArc(cx,cy,rB,bandW,s,e,COLORS.block_fill[b.type]||COLORS.block_fill.free,COLORS.block_stroke[b.type]||COLORS.block_stroke.free)}
+        else{drawArc(cx,cy,rB,bandW,s,24,COLORS.block_fill[b.type]||COLORS.block_fill.free,COLORS.block_stroke[b.type]||COLORS.block_stroke.free)
+             drawArc(cx,cy,rB,bandW,0,e,COLORS.block_fill[b.type]||COLORS.block_fill.free,COLORS.block_stroke[b.type]||COLORS.block_stroke.free)}
+    })
+
+    // overlap
+    for(let h=0;h<24;h++){
+        const aT=getTypeAt(A.blocks,h),bLH=(h+offset)%24,bT=getTypeAt(B.blocks,bLH)
+        if(aT==='free'&&bT==='free'){
+            drawArc(cx,cy,rOv,bandW*.7,h,h+1,COLORS.overlap.fill,COLORS.overlap.stroke)
+            const ga=hToA(h+.5),gx=cx+Math.cos(ga)*rOv,gy=cy+Math.sin(ga)*rOv
+            const glow=ctx.createRadialGradient(gx,gy,0,gx,gy,bandW)
+            glow.addColorStop(0,COLORS.overlap.glow);glow.addColorStop(1,'rgba(68,255,170,0)')
+            ctx.beginPath();ctx.arc(gx,gy,bandW,0,TAU);ctx.fillStyle=glow;ctx.fill()
+        }else if((aT==='free'&&bT!=='sleep')||(bT==='free'&&aT!=='sleep')){
+            drawArc(cx,cy,rOv,bandW*.4,h,h+1,'rgba(255,200,60,.1)','rgba(255,200,60,.2)')
+        }
+    }
+
+    // burn markers
+    const bs=hToA(15),be=hToA(19)
+    for(const ba of[bs,be]){ctx.beginPath();ctx.moveTo(cx+Math.cos(ba)*(rA-bandW),cy+Math.sin(ba)*(rA-bandW));ctx.lineTo(cx+Math.cos(ba)*(rA+bandW*.6),cy+Math.sin(ba)*(rA+bandW*.6));ctx.strokeStyle='rgba(255,40,20,.4)';ctx.lineWidth=1.5;ctx.stroke()}
+
+    // hour markers
+    for(let h=0;h<24;h++){
+        const a=hToA(h),isMajor=h%RING.majorTickFreq===0,isBurn=h===15||h===19
+        ctx.beginPath();ctx.moveTo(cx+Math.cos(a)*R*1.02,cy+Math.sin(a)*R*1.02)
+        ctx.lineTo(cx+Math.cos(a)*R*(isMajor?1.06:isBurn?1.05:1.04),cy+Math.sin(a)*R*(isMajor?1.06:isBurn?1.05:1.04))
+        ctx.strokeStyle=isBurn?'rgba(255,40,20,.5)':isMajor?'rgba(255,248,231,.35)':'rgba(255,248,231,.1)'
+        ctx.lineWidth=isMajor||isBurn?2:1;ctx.stroke()
+        if(h%RING.hourLabelFreq===0){
+            ctx.font=isMajor?'10px monospace':'8px monospace';ctx.textAlign='center';ctx.textBaseline='middle'
+            ctx.fillStyle='rgba(220,20,60,.55)';ctx.fillText(String(h).padStart(2,'0'),cx+Math.cos(a)*R*1.12,cy+Math.sin(a)*R*1.12)
+            ctx.font='8px monospace';ctx.fillStyle='rgba(212,169,74,.5)'
+            ctx.fillText(String((h+offset)%24).padStart(2,'0'),cx+Math.cos(a)*R*.42,cy+Math.sin(a)*R*.42)
+        }
+    }
+
+    // labels
+    ctx.font='8px monospace';ctx.textAlign='center'
+    ctx.fillStyle='rgba(220,20,60,.45)';ctx.fillText(A.name,cx,cy-rA-bandW/2-8)
+    ctx.fillStyle='rgba(212,169,74,.45)';ctx.fillText(B.name,cx,cy-rB-bandW/2-8)
+    const dayType=isWeekendDay(selectedDate.getFullYear(),selectedDate.getMonth(),selectedDate.getDate())?'WEEKEND':isFriday(selectedDate.getFullYear(),selectedDate.getMonth(),selectedDate.getDate())?'FRIDAY':'WEEKDAY'
+    ctx.fillStyle='rgba(68,255,170,.35)';ctx.fillText(dayType,cx,cy-rOv-bandW*.3-6)
+    ctx.fillStyle='rgba(255,248,231,.08)';ctx.fillText(selectedDate.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'}),cx,cy)
+
+    // ═══ TIMELINE BAR ═══
+    const TL=TIMELINE,barY=H-TL.barOffsetY,barH=TL.barHeight,barX=TL.barMarginX,barW=W-TL.barMarginX*2
+    A.blocks.forEach(b=>{const x1=barX+b.s/24*barW,x2=barX+b.e/24*barW;ctx.fillStyle=COLORS.block_fill[b.type]||COLORS.block_fill.free;ctx.fillRect(x1,barY,x2-x1,barH/2);ctx.strokeStyle=COLORS.block_stroke[b.type]||COLORS.block_stroke.free;ctx.lineWidth=.5;ctx.strokeRect(x1,barY,x2-x1,barH/2)})
+    B.blocks.forEach(b=>{const s=bToET(b.s,offset),e=bToET(b.e,offset);const draw=(s1,e1)=>{const x1=barX+s1/24*barW,x2=barX+e1/24*barW;ctx.fillStyle=COLORS.block_fill[b.type]||COLORS.block_fill.free;ctx.fillRect(x1,barY+barH/2,x2-x1,barH/2);ctx.strokeStyle=COLORS.block_stroke[b.type]||COLORS.block_stroke.free;ctx.lineWidth=.5;ctx.strokeRect(x1,barY+barH/2,x2-x1,barH/2)};if(s<e)draw(s,e);else{draw(s,24);draw(0,e)}})
+    for(let h=0;h<24;h++){const aT=getTypeAt(A.blocks,h),bLH=(h+offset)%24,bT=getTypeAt(B.blocks,bLH);if(aT==='free'&&bT==='free'){const x1=barX+h/24*barW,x2=barX+(h+1)/24*barW,p=TL.overlapGlowPad;ctx.fillStyle='rgba(68,255,170,.2)';ctx.fillRect(x1,barY-p,x2-x1,barH+p*2);ctx.strokeStyle='rgba(68,255,170,.4)';ctx.lineWidth=1;ctx.strokeRect(x1,barY-p,x2-x1,barH+p*2)}}
+    ctx.font='6px monospace';ctx.textAlign='center';ctx.textBaseline='top'
+    for(let h=0;h<24;h+=TL.hourLabelFreq){ctx.fillStyle='rgba(255,248,231,.15)';ctx.fillText(String(h).padStart(2,'0'),barX+h/24*barW,barY+barH+2)}
+    if(selectedDate.toDateString()===new Date().toDateString()){const nf=(()=>{const d2=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));return d2.getHours()+d2.getMinutes()/60})();const nx=barX+nf/24*barW;ctx.beginPath();ctx.moveTo(nx,barY-4);ctx.lineTo(nx,barY+barH+2);ctx.strokeStyle='rgba(255,255,255,.4)';ctx.lineWidth=1.5;ctx.stroke();ctx.beginPath();ctx.moveTo(nx-3,barY-4);ctx.lineTo(nx+3,barY-4);ctx.lineTo(nx,barY-1);ctx.closePath();ctx.fillStyle='#fff';ctx.globalAlpha=.4;ctx.fill();ctx.globalAlpha=1}
+    ctx.font='5px monospace';ctx.textAlign='left';ctx.fillStyle='rgba(220,20,60,.3)';ctx.fillText('T',barX-10,barY+2);ctx.fillStyle='rgba(212,169,74,.3)';ctx.fillText('A',barX-10,barY+barH/2+2)
+
+    // time hands (today only)
+    const now=new Date()
+    if(selectedDate.toDateString()===now.toDateString()){
+        const etF=(()=>{const d=new Date(now.toLocaleString('en-US',{timeZone:'America/New_York'}));return d.getHours()+d.getMinutes()/60+d.getSeconds()/3600})()
+        const plF=(()=>{const d=new Date(now.toLocaleString('en-US',{timeZone:'Europe/Warsaw'}));return d.getHours()+d.getMinutes()/60+d.getSeconds()/3600})()
+        const aA=hToA(etF);ctx.beginPath();ctx.moveTo(cx+Math.cos(aA)*(rA-bandW),cy+Math.sin(aA)*(rA-bandW));ctx.lineTo(cx+Math.cos(aA)*(rA+bandW*.8),cy+Math.sin(aA)*(rA+bandW*.8));ctx.strokeStyle='rgba(220,20,60,.6)';ctx.lineWidth=2;ctx.stroke()
+        ctx.beginPath();ctx.arc(cx+Math.cos(aA)*(rA+bandW),cy+Math.sin(aA)*(rA+bandW),3,0,TAU);ctx.fillStyle='#dc143c';ctx.fill()
+        const plM=bToET(plF,offset),bA=hToA(plM);ctx.beginPath();ctx.moveTo(cx+Math.cos(bA)*(rB-bandW),cy+Math.sin(bA)*(rB-bandW));ctx.lineTo(cx+Math.cos(bA)*(rB+bandW*.8),cy+Math.sin(bA)*(rB+bandW*.8));ctx.strokeStyle='rgba(212,169,74,.6)';ctx.lineWidth=2;ctx.stroke()
+        ctx.beginPath();ctx.arc(cx+Math.cos(bA)*(rB+bandW),cy+Math.sin(bA)*(rB+bandW),3,0,TAU);ctx.fillStyle='#d4a94a';ctx.fill()
+
+        // update info
+        document.getElementById('ta').textContent=now.toLocaleTimeString('en-GB',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit'})
+        document.getElementById('tb').textContent=now.toLocaleTimeString('en-GB',{timeZone:'Europe/Warsaw',hour:'2-digit',minute:'2-digit',second:'2-digit'})
+        const aType=getTypeAt(A.blocks,Math.floor(etF)),bType=getTypeAt(B.blocks,Math.floor(plF))
+        const st=document.getElementById('status');st.innerHTML='<div class="hdr">STATUS</div>'
+        st.innerHTML+=`<span style="color:${A.color}">${A.name}: ${aType.toUpperCase()}</span><br>`
+        st.innerHTML+=`<span style="color:${B.color}">${B.name}: ${bType.toUpperCase()}</span><br>`
+        if(aType==='free'&&bType==='free')st.innerHTML+='<span style="color:#44ffaa">★ BOTH FREE</span>'
+        else if(aType==='sleep'||bType==='sleep')st.innerHTML+='<span style="color:rgba(255,60,60,.4)">● sleeping</span>'
+        else st.innerHTML+='<span style="color:rgba(255,200,60,.3)">● awake</span>'
+    }
+
+    // overlap windows text
+    const wE=document.getElementById('wins');let wH='';let inW=false,wS=0
+    for(let h=0;h<25;h++){const aT=h<24?getTypeAt(A.blocks,h):'x';const bLH=(h+offset)%24;const bT=h<24?getTypeAt(B.blocks,bLH):'x';const both=aT==='free'&&bT==='free'
+    if(both&&!inW){inW=true;wS=h};if(!both&&inW){wH+=`${String(wS).padStart(2,'0')}-${String(h).padStart(2,'0')} ET  `;inW=false}}
+    wE.innerHTML=wH||'none'
+}
+
+// ═══ CALENDAR ═══
+function renderCalendar(){
+    const calEl=document.getElementById('cal')
+    const y=selectedDate.getFullYear(),m=selectedDate.getMonth()
+    const today=new Date()
+    const monthKey=`${y}-${String(m+1).padStart(2,'0')}`
+    const monthEvents=EVENTS[monthKey]||{}
+    const monthName=new Date(y,m).toLocaleDateString('en-US',{month:'long',year:'numeric'}).toUpperCase()
+    const firstDow=new Date(y,m,1).getDay(),off=firstDow===0?6:firstDow-1
+    const dim=new Date(y,m+1,0).getDate()
+    let html=`<div class="mhdr">${monthName}</div><div class="grid">`
+    'MTWTFSS'.split('').forEach(d=>html+=`<div class="dhdr">${d}</div>`)
+    for(let i=0;i<off;i++)html+='<div class="day"></div>'
+    for(let d=1;d<=dim;d++){
+        const isT=d===today.getDate()&&m===today.getMonth()&&y===today.getFullYear()
+        const isS=d===selectedDate.getDate()&&m===selectedDate.getMonth()
+        const hasEv=monthEvents[String(d)]||isFriday(y,m,d)
+        html+=`<div class="day${isT?' today':''}${isS?' selected':''}${hasEv?' has-event':''}" onclick="selectDay(${d})">${d}</div>`
+    }
+    html+='</div><div class="sched">'
+    const{A,B}=getSchedules(selectedDate)
+    const dn=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][selectedDate.getDay()]
+    html+=`<div style="color:${A.color};font-size:8px;letter-spacing:1px;margin-bottom:4px">${dn} ${selectedDate.getDate()} — ${A.name}</div>`
+    A.blocks.forEach(b=>html+=`<div class="ev ${b.type}">${String(Math.floor(b.s)).padStart(2,'0')}-${String(Math.floor(b.e)).padStart(2,'0')} ${b.type}</div>`)
+    html+=`<div style="color:${B.color};font-size:8px;letter-spacing:1px;margin:6px 0 4px">${B.name}</div>`
+    B.blocks.forEach(b=>html+=`<div class="ev ${b.type}">${String(Math.floor(b.s)).padStart(2,'0')}:${b.s%1?'30':'00'}-${String(Math.floor(b.e)).padStart(2,'0')}:${b.e%1?'30':'00'} ${b.type}${b.label?' — '+b.label:''}</div>`)
+    html+='</div>';calEl.innerHTML=html
+}
+function selectDay(d){selectedDate=new Date(selectedDate.getFullYear(),selectedDate.getMonth(),d);renderCalendar()}
+window.selectDay=selectDay
+
+function loop(){requestAnimationFrame(loop);drawClock()}
+loadTags()
+</script>
+</body></html>

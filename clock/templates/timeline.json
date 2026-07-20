@@ -1,0 +1,12 @@
+{
+  "name": "timeline",
+  "description": "24h linear timeline bar layout",
+  "params": {
+    "barHeight":    18,
+    "barMarginX":   20,
+    "barOffsetY":   28,
+    "hourLabelFreq": 3,
+    "overlapGlowPad": 2,
+    "nowMarkerSize":  3
+  }
+}

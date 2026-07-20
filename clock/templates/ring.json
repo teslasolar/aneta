@@ -1,0 +1,13 @@
+{
+  "name": "ring",
+  "description": "Concentric ring clock layout parameters",
+  "params": {
+    "bandWidth":      {"value": 0.16, "desc": "fraction of R"},
+    "outerRing":      {"value": 0.88, "desc": "person A ring radius fraction"},
+    "innerRing":      {"value": 0.66, "desc": "person B ring radius fraction"},
+    "overlapRing":    {"value": 0.48, "desc": "overlap indicator radius fraction"},
+    "burnMarkerAlpha": {"value": 0.4},
+    "hourLabelFreq":  {"value": 3, "desc": "show label every N hours"},
+    "majorTickFreq":  {"value": 6}
+  }
+}

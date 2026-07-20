@@ -1,0 +1,13 @@
+{
+  "name": "tessellation",
+  "description": "Animated hexagonal background pattern",
+  "params": {
+    "tileSize":     40,
+    "driftSpeed":   0.3,
+    "wobbleAmp":    4,
+    "hexRadius":    0.35,
+    "dotThreshold": 0.7,
+    "dotRadius":    1,
+    "innerRadiusFrac": 1.3
+  }
+}

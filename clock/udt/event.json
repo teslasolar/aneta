@@ -1,0 +1,14 @@
+{
+  "name": "CalendarEvent",
+  "description": "An override event for a specific date",
+  "fields": {
+    "date":      {"type": "string", "desc": "YYYY-MM-DD"},
+    "person":    {"type": "string", "desc": "thomas or aneta"},
+    "overrides": {"type": "array", "items": {
+      "s":     {"type": "number"},
+      "e":     {"type": "number"},
+      "type":  {"type": "string", "enum": ["sleep","free","work","burn","busy"]},
+      "label": {"type": "string", "optional": true}
+    }}
+  }
+}
