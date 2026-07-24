@@ -3,7 +3,8 @@
     "3":  {"person":"aneta","overrides":[{"s":11,"e":16,"type":"busy","label":"Aneta 2.5h"}]},
     "10": {"person":"aneta","overrides":[{"s":11,"e":16,"type":"busy","label":"Aneta 2.5h"}]},
     "17": {"person":"aneta","overrides":[{"s":11,"e":16,"type":"busy","label":"Aneta 2.5h"}]},
-    "24": {"person":"aneta","overrides":[{"s":11,"e":16,"type":"busy","label":"Aneta 2.5h"}]},
+    "23": {"person":"aneta","overrides":[{"s":11,"e":16,"type":"busy","label":"Aneta busy"}]},
+    "24": {"person":"aneta","overrides":[{"s":9,"e":17,"type":"work","label":"Aneta full day"}]},
     "31": {"person":"aneta","overrides":[{"s":11,"e":16,"type":"busy","label":"Aneta 2.5h"}]}
   }
 }
