@@ -5,6 +5,7 @@
     "17": {"person":"aneta","overrides":[{"s":11,"e":16,"type":"busy","label":"Aneta 2.5h"}]},
     "23": {"person":"aneta","overrides":[{"s":11,"e":16,"type":"busy","label":"Aneta busy"}]},
     "24": {"person":"aneta","overrides":[{"s":9,"e":17,"type":"work","label":"Aneta full day"}]},
+    "28": {"person":"aneta","overrides":[{"s":13,"e":18,"type":"busy","label":"Aneta meeting"}]},
     "31": {"person":"aneta","overrides":[{"s":11,"e":16,"type":"busy","label":"Aneta 2.5h"}]}
   }
 }
